@@ -2,6 +2,7 @@ from concurrent import futures
 
 import grpc
 import time
+import sys
 
 import chat_pb2 as chat
 import chat_pb2_grpc as rpc
@@ -33,8 +34,8 @@ class ChatServer(rpc.DataTransferServiceServicer):
         return ack
 
 
-if __name__ == '__main__':
-    port = 11912
+def main(argv):
+    port = argv[1]
     # create a gRPC server
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     rpc.add_DataTransferServiceServicer_to_server(ChatServer(), server)
@@ -45,3 +46,7 @@ if __name__ == '__main__':
     # Server starts in background (another thread) so keep waiting
     while True:
         time.sleep(64 * 64 * 100)
+
+if __name__ == '__main__':
+    main(sys.argv[:])
+    

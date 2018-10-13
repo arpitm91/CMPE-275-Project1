@@ -2,24 +2,21 @@ import threading
 from tkinter import *
 from tkinter import simpledialog
 import time
-
+import sys
 import grpc
 
 import chat_pb2 as chat
 import chat_pb2_grpc as rpc
 
-address = 'localhost'
-port = 11912
-
 class Client:
 
-    def __init__(self, u: str, window):
+    def __init__(self, u: str, window, server_address, server_port):
         # the frame to put ui components on
         self.window = window
         self.username = u
 
         # create a gRPC channel + stub
-        channel = grpc.insecure_channel(address + ':' + str(port))
+        channel = grpc.insecure_channel(server_address + ':' + str(server_port))
         self.conn = rpc.DataTransferServiceStub(channel)
         # self._ping()
         # create new listening thread for when new message streams come in
@@ -32,10 +29,16 @@ class Client:
         user = chat.User()
         user.name = self.username
 
-        for message in self.conn.Ping(user):
-            print("R[{}] {} {} {} {} {} {}".format(message.id, message.type, message.data.decode(), message.destination,
-                                                   message.origin, message.timestamp, message.hops))
-            self.chat_list.insert(END, "[{}] {}\n".format(message.origin, message.data.decode()))
+        while True:
+            try:
+                for message in self.conn.Ping(user):
+                    print("R[{}] {} {} {} {} {} {}".format(message.id, message.type, message.data.decode(), message.destination,
+                                                        message.origin, message.timestamp, message.hops))
+                    self.chat_list.insert(END, "[{}] {}\n".format(message.origin, message.data.decode()))
+            except grpc.RpcError as e:
+                print("Fail to connect ...")
+                time.sleep(3)
+
 
 
     def _send_message(self, msg, destination):
@@ -65,8 +68,7 @@ class Client:
         self.entry_message.focus()
         self.entry_message.pack(side=BOTTOM)
 
-
-if __name__ == '__main__':
+def main(argv):
     root = Tk()
     frame = Frame(root, width=300, height=300)
     frame.pack()
@@ -75,4 +77,10 @@ if __name__ == '__main__':
     while username is None:
         username = simpledialog.askstring("Username", "What's your username?", parent=root)
     root.deiconify()
-    c = Client(username, frame)
+    server_address = argv[1]
+    server_port = argv[2]
+
+    c = Client(username, frame, server_address, server_port)
+
+if __name__ == '__main__':
+    main(sys.argv[:])
