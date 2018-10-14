@@ -22,7 +22,7 @@ class Client:
         # create a gRPC channel + stub
         channel = grpc.insecure_channel(server_address + ':' + str(server_port))
         self.conn = rpc.DataTransferServiceStub(channel)
-        # self._ping()
+        
         # create new listening thread for when new message streams come in
         threading.Thread(target=self._ping, daemon=True).start()
        
@@ -37,7 +37,8 @@ class Client:
 
         while True:
             try:
-                for message in self.conn.Ping(user):                    
+                print_take_input_msg()
+                for message in self.conn.Ping(user):
                     print_msg(message)
                     print_take_input_msg()
                 

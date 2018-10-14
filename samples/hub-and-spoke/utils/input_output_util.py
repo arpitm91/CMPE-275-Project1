@@ -21,8 +21,6 @@ def get_input():
     input_thread.daemon = True
     input_thread.start()
 
-    last_update = time.time()
-    print(BLUE + "Enter your input >" + WHITE, end = ' ', flush=True)
     while True:
         if not input_queue.empty():
             yield input_queue.get()          
@@ -35,14 +33,4 @@ def print_take_input_msg():
 
 def log_error(string):
         print(ERASE_LINE + RED + string + WHITE)
-
-def logging():
-    while True:
-        # DO SOMETHING TO CREATE THE "Log text"
-        print(ERASE_LINE + YELLOW + "[{}] Log text".format(time.strftime('%X')) + WHITE)
-        print(BLUE + "Enter your input >" + WHITE, end = ' ', flush=True)
-        time.sleep(2)
-
-# logging_thread = (threading.Thread(target=logging, args=( )))
-# logging_thread.start()
 
