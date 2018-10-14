@@ -6,4 +6,4 @@ Chat application created with gRPC for hub and spoke sample. This was a study fo
 `python server.py <server-port>`
 
 ## Running Client
-`python client.py <server-ip> <server-port>`
+`python client.py <server-ip> <server-port> <username>`
