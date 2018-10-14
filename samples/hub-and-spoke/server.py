@@ -7,6 +7,7 @@ import sys
 import chat_pb2 as chat
 import chat_pb2_grpc as rpc
 
+from utils.input_output_util import print_msg
 
 class ChatServer(rpc.DataTransferServiceServicer):
 
@@ -21,12 +22,12 @@ class ChatServer(rpc.DataTransferServiceServicer):
             # Check if there are any new messages
             while len(self.chats) > lastindex:
                 n = self.chats[lastindex]
-                print("sending messages ", n.data.decode())
                 lastindex += 1
                 yield n
 
     def Send(self, request: chat.Message, context):
-        print("[{}] {} {} {} {} {} {}".format(request.id, request.type, request.data.decode(), request.destination, request.origin, request.timestamp, request.hops))
+        print_msg(request)
+        
         # Add it to the chat history
         ack = chat.Ack()
         ack.id = request.id
