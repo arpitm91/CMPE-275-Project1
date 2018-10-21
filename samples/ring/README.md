@@ -14,4 +14,4 @@ Chat application created with gRPC for ring sample.
 
 ## Message Format
 
-Enter your input > `<destination_username> <message>`
+Enter your input > `<msg_type> <destination_username> <message>`

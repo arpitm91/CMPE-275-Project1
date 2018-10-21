@@ -3,6 +3,7 @@
 
 import sys
 _b=sys.version_info[0]<3 and (lambda x:x) or (lambda x:x.encode('latin1'))
+from google.protobuf.internal import enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
@@ -19,9 +20,34 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='chat.proto',
   package='grpc',
   syntax='proto3',
-  serialized_pb=_b('\n\nchat.proto\x12\x04grpc\"w\n\x07Message\x12\n\n\x02id\x18\x01 \x01(\x03\x12\x0c\n\x04type\x18\x02 \x01(\x03\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x12\x13\n\x0b\x64\x65stination\x18\x04 \x01(\t\x12\x0e\n\x06origin\x18\x05 \x01(\t\x12\x11\n\ttimestamp\x18\x06 \x01(\x03\x12\x0c\n\x04hops\x18\x07 \x01(\x03\"\x11\n\x03\x41\x63k\x12\n\n\x02id\x18\x01 \x01(\x03\"\x14\n\x04User\x12\x0c\n\x04name\x18\x01 \x01(\t2\\\n\x13\x44\x61taTransferService\x12 \n\x04Send\x12\r.grpc.Message\x1a\t.grpc.Ack\x12#\n\x04Ping\x12\n.grpc.User\x1a\r.grpc.Message0\x01\x62\x06proto3')
+  serialized_pb=_b('\n\nchat.proto\x12\x04grpc\"\xaa\x01\n\x07Message\x12\n\n\x02id\x18\x01 \x01(\x03\x12\x1f\n\x04type\x18\x02 \x01(\x0e\x32\x11.grpc.MessageType\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x12\x13\n\x0b\x64\x65stination\x18\x04 \x01(\t\x12\x0e\n\x06origin\x18\x05 \x01(\t\x12\x11\n\ttimestamp\x18\x06 \x01(\x03\x12\x0c\n\x04hops\x18\x07 \x01(\x03\x12\x0e\n\x06seqnum\x18\x08 \x01(\x03\x12\x0e\n\x06seqmax\x18\t \x01(\x03\"\x11\n\x03\x41\x63k\x12\n\n\x02id\x18\x01 \x01(\x03\"\x14\n\x04User\x12\x0c\n\x04name\x18\x01 \x01(\t*!\n\x0bMessageType\x12\x08\n\x04Text\x10\x00\x12\x08\n\x04\x46ile\x10\x01\x32\\\n\x13\x44\x61taTransferService\x12 \n\x04Send\x12\r.grpc.Message\x1a\t.grpc.Ack\x12#\n\x04Ping\x12\n.grpc.User\x1a\r.grpc.Message0\x01\x62\x06proto3')
 )
 
+_MESSAGETYPE = _descriptor.EnumDescriptor(
+  name='MessageType',
+  full_name='grpc.MessageType',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='Text', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='File', index=1, number=1,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=234,
+  serialized_end=267,
+)
+_sym_db.RegisterEnumDescriptor(_MESSAGETYPE)
+
+MessageType = enum_type_wrapper.EnumTypeWrapper(_MESSAGETYPE)
+Text = 0
+File = 1
 
 
 
@@ -41,7 +67,7 @@ _MESSAGE = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='type', full_name='grpc.Message.type', index=1,
-      number=2, type=3, cpp_type=2, label=1,
+      number=2, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -81,6 +107,20 @@ _MESSAGE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='seqnum', full_name='grpc.Message.seqnum', index=7,
+      number=8, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='seqmax', full_name='grpc.Message.seqmax', index=8,
+      number=9, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -93,8 +133,8 @@ _MESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=20,
-  serialized_end=139,
+  serialized_start=21,
+  serialized_end=191,
 )
 
 
@@ -124,8 +164,8 @@ _ACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=141,
-  serialized_end=158,
+  serialized_start=193,
+  serialized_end=210,
 )
 
 
@@ -155,13 +195,15 @@ _USER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=160,
-  serialized_end=180,
+  serialized_start=212,
+  serialized_end=232,
 )
 
+_MESSAGE.fields_by_name['type'].enum_type = _MESSAGETYPE
 DESCRIPTOR.message_types_by_name['Message'] = _MESSAGE
 DESCRIPTOR.message_types_by_name['Ack'] = _ACK
 DESCRIPTOR.message_types_by_name['User'] = _USER
+DESCRIPTOR.enum_types_by_name['MessageType'] = _MESSAGETYPE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Message = _reflection.GeneratedProtocolMessageType('Message', (_message.Message,), dict(
@@ -193,8 +235,8 @@ _DATATRANSFERSERVICE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=182,
-  serialized_end=274,
+  serialized_start=269,
+  serialized_end=361,
   methods=[
   _descriptor.MethodDescriptor(
     name='Send',

@@ -2,14 +2,21 @@ syntax = "proto3";
 
 package grpc;
 
+enum MessageType {
+    Text = 0;
+    File = 1;
+}
+
 message Message {
 	int64 id = 1;
-	int64 type = 2;
+	MessageType type = 2;
 	bytes data = 3;
 	string destination = 4;
 	string origin = 5;
 	int64 timestamp = 6;
 	int64 hops = 7;
+	int64 seqnum = 8;
+	int64 seqmax = 9;
 }
 
 message Ack {
@@ -22,5 +29,5 @@ message User {
 
 service DataTransferService {
     rpc Send (Message) returns (Ack);
-    rpc Ping (User) returns (stream Message);
+    rpc Ping (User) returns (stream Message);    
 }
