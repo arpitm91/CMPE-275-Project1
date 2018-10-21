@@ -1,19 +1,21 @@
 import os
 import math
 
-CHUNK_SIZE = 1024*1024  # 1MB
+CHUNK_SIZE = 1024 * 1024  # 1MB
 
 
 def get_total_file_chunks(filename):
     return math.ceil(os.path.getsize(filename) / CHUNK_SIZE)
-    
-def get_file_chunks(filename):    
+
+
+def get_file_chunks(filename):
     with open(filename, 'rb') as f:
-        while True:        
+        while True:
             piece = f.read(CHUNK_SIZE);
             if not piece:
                 break
             yield piece
+
 
 def write_file_chunks(message):
     file_name = message.origin + "_" + str(message.id)

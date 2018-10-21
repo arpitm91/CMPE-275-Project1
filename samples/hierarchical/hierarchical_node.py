@@ -25,36 +25,17 @@ chats = []
 file_buffer = []
 HOPS = 5
 
+
 class Client:
     def __init__(self, username, server_address, server_port):
 
         self.username = username
-        self.msg_id = 0
-        self.messageTimes ={}
 
         # create a gRPC channel + stub
         channel = grpc.insecure_channel(server_address + ':' + str(server_port))
         self.conn = rpc.DataTransferServiceStub(channel)
-        # self._ping()
         # create new listening thread for when new message streams come in
         threading.Thread(target=self._ping, daemon=True).start()
-
-        for msg in get_input():
-            msg = msg.split()
-            if len(msg) <= 2:
-                log_error("invalid message format: <destination> <msg>")
-                return
-
-            if msg[0] == "text":
-                self._send_message(msg[1], msg[2:])
-            elif msg[0] == "file":
-                self._tranfer_file(msg[1], msg[2])
-            else:
-                log_error("invalid message type: supported msg type text, file")
-
-    def _next_msg_id(self):
-        self.msg_id = self.msg_id + 1
-        return self.msg_id
 
     def _ping(self):
         user = chat.User()
@@ -62,31 +43,45 @@ class Client:
 
         while True:
             try:
-                print_take_input_msg()
                 for message in self.conn.Ping(user):
                     if message.destination == self.username:
-
                         if message.type == chat.File:
                             write_file_chunks(message)
                             print_file_info(message)
-                            if message.origin == self.username:
-                                print("round time for ",message.id," part ",message.seqnum,"/",message.seqmax," : ",time.time()-self.messageTimes[message.id])
 
                         if message.type == chat.Text:
                             print_msg(message)
 
-                        print_take_input_msg()
                     elif message.origin == self.username:
                         log_info("destination " + message.destination + " not found..")
                     else:
-                        if message.hops!=0:
-                            message.hops = message.hops - 1
-                            log_forwarding_info(message)
-                            chats.append(message)
+                        if message.hops != 0:
+                            skip = False
+                            for sent_message in chats:
+                                if sent_message.origin == message.origin and sent_message.id == message.id:
+                                    print("duplicate message")
+                                    skip = True
+                            if not skip:
+                                message.hops = message.hops - 1
+                                log_forwarding_info(message)
+                                chats.append(message)
 
             except grpc.RpcError as e:
                 log_error("Fail to connect...")
                 time.sleep(1)
+
+
+# server
+class ChatServer(rpc.DataTransferServiceServicer):
+    def __init__(self, username):
+        self.username = username
+        self.msg_id = 0
+        self.messageTimes = {}
+        print_take_input_msg()
+
+    def _next_msg_id(self):
+        self.msg_id = self.msg_id + 1
+        return self.msg_id
 
     def _send_message(self, destination, msg):
 
@@ -108,7 +103,7 @@ class Client:
 
         try:
             msg_id = self._next_msg_id()
-            
+
             self.messageTimes[msg_id] = time.time()
 
             total_chunk = get_total_file_chunks(filename)
@@ -126,22 +121,11 @@ class Client:
                 message.seqnum = current_chunk
                 message.seqmax = total_chunk
                 current_chunk += 1
-                
+
                 chats.append(message)
 
         except FileNotFoundError as e:
             print("File not found:", e)
-        
-
-def start_client(username, server_address, server_port):
-    c = Client(username, server_address, server_port)
-
-
-# server
-
-class ChatServer(rpc.DataTransferServiceServicer):
-    def __init__(self):
-        pass
 
     def Ping(self, request: chat.User, context):
         print("[{}] from Ping in server".format(request.name))
@@ -151,28 +135,50 @@ class ChatServer(rpc.DataTransferServiceServicer):
             while len(chats) > lastindex:
                 n = chats[lastindex]
                 lastindex += 1
-                yield n
+                if request.name != n.origin:
+                    yield n
 
     def Send(self, request: chat.Message, context):
-        # print_msg(request)
-
         # Add it to the chat history
         ack = chat.Ack()
         ack.id = request.id
         chats.append(request)
         return ack
 
-def main(argv):
-    username = argv[1]
+
+def start_client(username, server_address, server_port):
+    c = Client(username, server_address, server_port)
+
+
+def start_server(username, my_port):
     # create a gRPC server
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    rpc.add_DataTransferServiceServicer_to_server(ChatServer(), server)
+    server_object = ChatServer(username)
+    rpc.add_DataTransferServiceServicer_to_server(server_object, server)
 
-
-    my_port = connections.connections[username]["own"]["port"]
     print('Starting server. Listening...')
     server.add_insecure_port('[::]:' + str(my_port))
     server.start()
+
+    for msg in get_input():
+        print_take_input_msg()
+        msg = msg.split()
+        if len(msg) <= 2:
+            log_error("invalid message format: <destination> <msg>")
+            return
+
+        if msg[0] == "text":
+            server_object._send_message(msg[1], msg[2:])
+        elif msg[0] == "file":
+            server_object._tranfer_file(msg[1], msg[2])
+        else:
+            log_error("invalid message type: supported msg type text, file")
+
+
+def main(argv):
+    username = argv[1]
+    my_port = connections.connections[username]["own"]["port"]
+    threading.Thread(target=start_server, args=(username, my_port), daemon=True).start()
 
     for client in connections.connections[username]["clients"]:
         # client
@@ -188,4 +194,3 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv[:])
-

@@ -3,14 +3,10 @@ Chat application created with gRPC for ring sample.
 
 ## Running ring node
 
-`python3 ring_node.py <node_port> <server_ip> <server_port> <username>`
+`python3 hierarchical_node.py <username>`
 
 ### Example
-`python3 ring_node.py 11000 localhost 11001 aartee`
-
-`python3 ring_node.py 11001 localhost 11002 anuj`
-
-`python3 ring_node.py 11002 localhost 11000 arpit`
+`python3 hierarchical_node.py arpit_0`
 
 ## Message Format
 
