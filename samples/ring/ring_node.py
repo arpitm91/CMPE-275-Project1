@@ -28,6 +28,7 @@ class Client:
 
         self.username = username
         self.msg_id = 0
+        self.messageTimes ={}
 
         # create a gRPC channel + stub
         channel = grpc.insecure_channel(server_address + ':' + str(server_port))
@@ -66,6 +67,8 @@ class Client:
                         if message.type == chat.File:
                             write_file_chunks(message)
                             print_file_info(message)
+                            if message.origin == self.username:
+                                print("round time for ",message.id," part ",message.seqnum,"/",message.seqmax," : ",time.time()-self.messageTimes[message.id])
 
                         if message.type == chat.Text:
                             print_msg(message)
@@ -105,6 +108,8 @@ class Client:
 
         try:
             msg_id = self._next_msg_id()
+            
+            self.messageTimes[msg_id] = time.time()
 
             total_chunk = get_total_file_chunks(filename)
             current_chunk = 1
