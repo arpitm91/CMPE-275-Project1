@@ -49,23 +49,29 @@ connections = {
 			"ip": "localhost",
 			"port": "10000"
 		},
-		"clients" : []
+		"clients": [
+		]
 	},
 	"test_2": {
 		"own": {
 			"ip": "localhost",
 			"port": "10001"
 		},
-		"clients": [{
-				"ip": "localhost",
-				"port": "10000"
-			}
+		"clients": [
 		]
 	},
 	"test_3": {
 		"own": {
 			"ip": "localhost",
 			"port": "10002"
+		},
+		"clients": [
+		]
+	},
+	"client": {
+		"own": {
+			"ip": "localhost",
+			"port": "10003"
 		},
 		"clients": [{
 				"ip": "localhost",
@@ -74,7 +80,11 @@ connections = {
 			{
 				"ip": "localhost",
 				"port": "10001"
+			},
+			{
+				"ip": "localhost",
+				"port": "10002"
 			}
 		]
-	}	
+	}		
 }
