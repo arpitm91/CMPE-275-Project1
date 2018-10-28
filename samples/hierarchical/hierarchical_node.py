@@ -58,7 +58,7 @@ class Client:
                         if message.hops != 0:
                             skip = False
                             for sent_message in chats:
-                                if sent_message.origin == message.origin and sent_message.id == message.id:
+                                if sent_message.origin == message.origin and sent_message.id == message.id and sent_message.seqnum == message.seqnum:
                                     print("duplicate message")
                                     skip = True
                             if not skip:
