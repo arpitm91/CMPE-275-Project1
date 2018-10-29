@@ -327,3 +327,11 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv[:])
+
+# TODO:
+# 1. Make TABLE_LOG a set
+# 2. Node should have map for last_log_index sent to each other node (last_log_index is updated on ack)
+# 3. Should only sent TABLE_LOG to other node starting from last_log_index for that node
+#
+# 4. Should not commit log before acknowledged from more than half of the nodes
+# 5. Instead of using MAX_RAFT_NODES, MAX_RAFT_NODES should be calculated from array
