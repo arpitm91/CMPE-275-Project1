@@ -148,9 +148,9 @@ def _send_heartbeat():
     table.leader_ip = Globals.MY_IP
     table.leader_port = Globals.MY_PORT
 
-    added_logs = Globals.FILE_LOGS[Globals.LAST_SENT_TABLE_LOG:]
+    # added_logs = Globals.FILE_LOGS[Globals.LAST_SENT_TABLE_LOG:]
     Globals.LAST_SENT_TABLE_LOG = len(Globals.FILE_LOGS)
-    table.tableLog.extend(added_logs)
+    table.tableLog.extend(Globals.FILE_LOGS)
 
     for client in Globals.LST_CLIENTS:
         client._RaftHeartbit(table)
@@ -225,6 +225,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
         random_timer.reset()
         log_info("MY Leader: ",Globals.LEADER_PORT, len(Globals.FILE_LOGS))
 
+        Globals.FILE_LOGS = []
         for tl in request.tableLog:
             log_info("LOG Arrived: ")
             Globals.FILE_LOGS.append(tl)          
