@@ -47,13 +47,16 @@ message TableLog {
 
 message Table {
     int64 cycle_number = 1;
-    repeated TableLog tableLog = 2;
+    string leader_ip = 2;
+    string leader_port = 3;
+    repeated TableLog tableLog = 4;
 }
 
 message Candidacy {
     int64 cycle_number = 1;
     string ip = 2;
-    string port = 3;    
+    string port = 3;
+    int64 log_length = 4;
 }
 
 message CandidacyResponse {
