@@ -1,4 +1,4 @@
-MAX_RAFT_NODES = 4
+MAX_RAFT_NODES = 3
 connections = {
 	"arpit_0": {
 		"own": {

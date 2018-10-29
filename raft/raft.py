@@ -99,14 +99,16 @@ def _random_timeout():
     random_timer.reset()
 
 def _heartbeat_timeout():
-    print("_heartbeat_timeout: ", Globals.NODE_STATE, Globals.CURRENT_CYCLE)
     if Globals.NODE_STATE == NodeState.FOLLOWER:
         pass
     elif Globals.NODE_STATE == NodeState.LEADER:
+        print("_heartbeat_timeout: ", Globals.NODE_STATE, Globals.CURRENT_CYCLE)
         print("Leader !!")
         _send_heartbeat()
     elif Globals.NODE_STATE == NodeState.CANDIDATE:
+        print("_heartbeat_timeout: ", Globals.NODE_STATE, Globals.CURRENT_CYCLE)
         _ask_for_vote()
+        _send_heartbeat()
     heartbeat_timer.reset()
 
 random_timer = TimerUtil(_random_timeout)
@@ -114,8 +116,6 @@ heartbeat_timer = TimerUtil(_heartbeat_timeout, Globals.HEARTBEAT_TIMEOUT)
 
 def _process_heartbeat(client, call_future):
     print("_process_heartbeat")
-    print(client.conn)
-
     # print(client.server_port)
     # print(call_future.result())
 
@@ -188,7 +188,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
     def RaftHeartbit(self, request: file_transfer.Table, context):
         ack = file_transfer.Ack()
 
-        if request.cycle_number > Globals.CURRENT_CYCLE:
+        if request.cycle_number > Globals.CURRENT_CYCLE and len(request.tableLog) >= len(Globals.FILE_LOGS):
             Globals.NODE_STATE = NodeState.FOLLOWER
             Globals.CURRENT_CYCLE = request.cycle_number
             Globals.HAS_CURRENT_VOTED = False
@@ -231,7 +231,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
 
         if request.log_length < len(Globals.FILE_LOGS):
             candidacy_response.voted = file_transfer.NO
-        elif Globals.CURRENT_CYCLE < request.cycle_number and not Globals.HAS_CURRENT_VOTED:
+        elif request.cycle_number > Globals.CURRENT_CYCLE or (request.cycle_number == Globals.CURRENT_CYCLE and not Globals.HAS_CURRENT_VOTED):
             Globals.CURRENT_CYCLE = request.cycle_number
             Globals.HAS_CURRENT_VOTED = True
             Globals.NUMBER_OF_VOTES = 0
@@ -241,6 +241,8 @@ class ChatServer(rpc.DataTransferServiceServicer):
             candidacy_response.cycle_number = request.cycle_number
             Globals.NODE_STATE = NodeState.FOLLOWER
             random_timer.reset()
+            pprint.pprint("###")
+            pprint.pprint(request)
         else:
             candidacy_response.voted = file_transfer.NO
 
@@ -269,10 +271,10 @@ def start_server(username, my_port):
 
 def main(argv):
     username = argv[1]
-    MY_PORT = connections.connections[username]["own"]["port"]
-    MY_IP = connections.connections[username]["own"]["ip"]
+    Globals.MY_PORT = connections.connections[username]["own"]["port"]
+    Globals.MY_IP = connections.connections[username]["own"]["ip"]
 
-    threading.Thread(target=start_server, args=(username, MY_PORT), daemon=True).start()
+    threading.Thread(target=start_server, args=(username, Globals.MY_PORT), daemon=True).start()
 
     for client in connections.connections[username]["clients"]:
         # client
