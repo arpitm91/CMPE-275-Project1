@@ -51,6 +51,14 @@ connections = {
 			"port": "10000"
 		},
 		"clients": [
+			{
+				"ip": "localhost",
+				"port": "10001"
+			},
+			{
+				"ip": "localhost",
+				"port": "10002"
+			}
 		]
 	},
 	"test_2": {
@@ -59,6 +67,14 @@ connections = {
 			"port": "10001"
 		},
 		"clients": [
+			{
+				"ip": "localhost",
+				"port": "10000"
+			},
+			{
+				"ip": "localhost",
+				"port": "10002"
+			}
 		]
 	},
 	"test_3": {
@@ -67,6 +83,14 @@ connections = {
 			"port": "10002"
 		},
 		"clients": [
+			{
+				"ip": "localhost",
+				"port": "10000"
+			},
+			{
+				"ip": "localhost",
+				"port": "10001"
+			}
 		]
 	},
 	"client": {
