@@ -8,6 +8,7 @@ class TimerUtil:
         self.timer = None
         self.callback = callback
         self.time = time
+        print("creating timer")
 
     def start(self):
         if self.timer != None:
@@ -29,4 +30,4 @@ class TimerUtil:
         self.start()
 
     def get_random_time(self):
-        return randint(150, 300) / 100
+        return (randint(150, 300) / 100) * 4

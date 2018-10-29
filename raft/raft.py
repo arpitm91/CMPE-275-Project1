@@ -29,6 +29,32 @@ import configs.connections as connections
 
 from configs.connections import MAX_RAFT_NODES
 
+import sys
+import traceback
+from concurrent.futures import ThreadPoolExecutor
+
+class ThreadPoolExecutorStackTraced(ThreadPoolExecutor):
+
+    def submit(self, fn, *args, **kwargs):
+        """Submits the wrapped function instead of `fn`"""
+
+        return super(ThreadPoolExecutorStackTraced, self).submit(
+            self._function_wrapper, fn, *args, **kwargs)
+
+    def _function_wrapper(self, fn, *args, **kwargs):
+        """Wraps `fn` in order to preserve the traceback of any kind of
+        raised exception
+
+        """
+        try:
+            return fn(*args, **kwargs)
+        except Exception:
+            raise sys.exc_info()[0](traceback.format_exc())  # Creates an
+                                                             # exception of the
+                                                             # same type with the
+                                                             # traceback as
+                                                             # message
+
 class NodeState(Enum):
     CANDIDATE   = 0
     FOLLOWER    = 1
@@ -47,7 +73,7 @@ class Globals:
     NUMBER_OF_VOTES = 0
     LEADER_PORT = ""
     LEADER_IP = ""
-    HEARTBEAT_TIMEOUT = 0.5
+    HEARTBEAT_TIMEOUT = 2
 
 def _increment_cycle_and_reset():
     Globals.CURRENT_CYCLE += 1
@@ -94,10 +120,15 @@ def _process_heartbeat(client, call_future):
     # print(call_future.result())
 
 def _process_request_for_vote(client, call_future):
+    with ThreadPoolExecutorStackTraced(max_workers=10) as executor:
+        try:
+            candidacy_response = call_future.result()
+        except:
+            print("Exception Error !!", client.server_port)
+            return
 
-    candidacy_response = call_future.result()
 
-    if candidacy_response.voted == file_transfer.YES:
+    if candidacy_response.voted == file_transfer.YES and candidacy_response.cycle_number == Globals.CURRENT_CYCLE:
         Globals.NUMBER_OF_VOTES += 1
         print("Got Vote:", Globals.NUMBER_OF_VOTES)
         if Globals.NUMBER_OF_VOTES / MAX_RAFT_NODES > 0.5 and Globals.NODE_STATE == NodeState.CANDIDATE:
@@ -118,6 +149,7 @@ def _send_heartbeat():
         client._RaftHeartbit(table)
 
 def _ask_for_vote():
+    print("Asking for vote...", Globals.CURRENT_CYCLE)
     candidacy = file_transfer.Candidacy()
     candidacy.cycle_number = Globals.CURRENT_CYCLE
     candidacy.port = Globals.MY_PORT
@@ -139,14 +171,13 @@ class Client:
 
     def _RaftHeartbit(self, table):
         try:
-            call_future = self.conn.RaftHeartbit.future(table)
+            call_future = self.conn.RaftHeartbit.future(table, timeout = Globals.HEARTBEAT_TIMEOUT * 0.9)
             call_future.add_done_callback(functools.partial(_process_heartbeat, self))
-            call_future.
         except e:
             print("Exeption: _RaftHeartbit")
 
     def _RequestVote(self, Candidacy):
-        call_future = self.conn.RequestVote.future(Candidacy)
+        call_future = self.conn.RequestVote.future(Candidacy, timeout = Globals.HEARTBEAT_TIMEOUT * 0.9)
         call_future.add_done_callback(functools.partial(_process_request_for_vote, self))
 
 # server
@@ -207,6 +238,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
             Globals.LEADER_IP = request.ip
             Globals.LEADER_PORT = request.port
             candidacy_response.voted = file_transfer.YES
+            candidacy_response.cycle_number = request.cycle_number
             Globals.NODE_STATE = NodeState.FOLLOWER
             random_timer.reset()
         else:
