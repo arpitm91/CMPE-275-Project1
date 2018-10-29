@@ -24,6 +24,11 @@ class DataTransferServiceStub(object):
         request_serializer=file__transfer__pb2.Candidacy.SerializeToString,
         response_deserializer=file__transfer__pb2.CandidacyResponse.FromString,
         )
+    self.AddFileLog = channel.unary_unary(
+        '/grpc.DataTransferService/AddFileLog',
+        request_serializer=file__transfer__pb2.TableLog.SerializeToString,
+        response_deserializer=file__transfer__pb2.Ack.FromString,
+        )
 
 
 class DataTransferServiceServicer(object):
@@ -44,6 +49,13 @@ class DataTransferServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def AddFileLog(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_DataTransferServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -56,6 +68,11 @@ def add_DataTransferServiceServicer_to_server(servicer, server):
           servicer.RequestVote,
           request_deserializer=file__transfer__pb2.Candidacy.FromString,
           response_serializer=file__transfer__pb2.CandidacyResponse.SerializeToString,
+      ),
+      'AddFileLog': grpc.unary_unary_rpc_method_handler(
+          servicer.AddFileLog,
+          request_deserializer=file__transfer__pb2.TableLog.FromString,
+          response_serializer=file__transfer__pb2.Ack.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

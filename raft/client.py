@@ -46,6 +46,10 @@ class Client:
         call_future = self.conn.RaftHeartbit.future(table)
         call_future.add_done_callback(functools.partial(_process_response, self))
 
+    def _AddFileLog(self, tablelog):
+        call_future = self.conn.AddFileLog.future(tablelog)
+        call_future.add_done_callback(functools.partial(_process_response, self))
+
 # server
 class ChatServer(rpc.DataTransferServiceServicer):
     def __init__(self, username):
@@ -62,6 +66,10 @@ class ChatServer(rpc.DataTransferServiceServicer):
 def main(argv):
     username = argv[1]
 
+    print(username)
+    print(connections.connections)
+    print(connections.connections[username])
+
     for client in connections.connections[username]["clients"]:
         # client
         server_address = client["ip"]
@@ -69,24 +77,16 @@ def main(argv):
         c = Client(username, server_address, server_port)
         lst_clients.append(c)
 
-    cycle = 0
-
-
     table_log = file_transfer.TableLog()
     table_log.file_number = "f0"
     table_log.chunk_number = "c1"
     table_log.ip = "10.0.0.2"
     table_log.port = "10001"
+    table_log.log_index = -1
     table_log.operation = file_transfer.Add
 
-    table = file_transfer.Table()
-    table.cycle_number = 3
-    table.leader_ip = "10.0.0.2"
-    table.leader_port = "10001"
-    table.tableLog.extend([table_log])
-
     for client in lst_clients:
-        client._RaftHeartbit(table)
+        client._AddFileLog(table_log)
 
     # cycle += 1
     # j = 0

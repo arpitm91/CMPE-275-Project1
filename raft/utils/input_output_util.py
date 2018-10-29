@@ -2,6 +2,7 @@ import sys
 import threading
 import time
 import queue
+from datetime import datetime
 
 WHITE = '\033[97m'  # User Input color
 YELLOW = '\033[93m'  # Log output color
@@ -47,8 +48,9 @@ def log_error(string):
     print(ERASE_LINE + RED + string + WHITE)
 
 
-def log_info(string):
-    print(YELLOW + string + WHITE)
+def log_info(*args):
+    print(ERASE_LINE + CYAN + "[{}] ".format(
+        datetime.now().strftime('%H:%M:%S.%f')), YELLOW , args, WHITE)
 
 
 def log_forwarding_info(message):

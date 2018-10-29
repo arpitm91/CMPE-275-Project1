@@ -75,6 +75,10 @@ class Globals:
     LEADER_IP = ""
     HEARTBEAT_TIMEOUT = 2
 
+    LAST_SENT_TABLE_LOG = 0
+
+    CURRENT_LOG_INDEX = 0
+
 def _increment_cycle_and_reset():
     Globals.CURRENT_CYCLE += 1
     Globals.HAS_CURRENT_VOTED = True
@@ -84,9 +88,9 @@ def _increment_cycle_and_reset():
 
 
 def _random_timeout():
-    print("_random_timeout: ", Globals.NODE_STATE, Globals.CURRENT_CYCLE)
+    log_info("_random_timeout: ", Globals.NODE_STATE, Globals.CURRENT_CYCLE)
     if Globals.NODE_STATE == NodeState.FOLLOWER:
-        print("Standing for Election: ", Globals.MY_PORT)
+        log_info("Standing for Election: ", Globals.MY_PORT)
         Globals.NODE_STATE = NodeState.CANDIDATE
         _increment_cycle_and_reset()
         _ask_for_vote()
@@ -102,11 +106,11 @@ def _heartbeat_timeout():
     if Globals.NODE_STATE == NodeState.FOLLOWER:
         pass
     elif Globals.NODE_STATE == NodeState.LEADER:
-        print("_heartbeat_timeout: ", Globals.NODE_STATE, Globals.CURRENT_CYCLE)
-        print("Leader !!")
+        log_info("_heartbeat_timeout: ", Globals.NODE_STATE, Globals.CURRENT_CYCLE)
+        log_info("Leader !!")
         _send_heartbeat()
     elif Globals.NODE_STATE == NodeState.CANDIDATE:
-        print("_heartbeat_timeout: ", Globals.NODE_STATE, Globals.CURRENT_CYCLE)
+        log_info("_heartbeat_timeout: ", Globals.NODE_STATE, Globals.CURRENT_CYCLE)
         _ask_for_vote()
         _send_heartbeat()
     heartbeat_timer.reset()
@@ -114,23 +118,23 @@ def _heartbeat_timeout():
 random_timer = TimerUtil(_random_timeout)
 heartbeat_timer = TimerUtil(_heartbeat_timeout, Globals.HEARTBEAT_TIMEOUT)
 
-def _process_heartbeat(client, call_future):
-    print("_process_heartbeat")
-    # print(client.server_port)
-    # print(call_future.result())
+def _process_heartbeat(client,table, call_future):
+    log_info("_process_heartbeat:",client.server_port)
+    # log_info(client.server_port)
+    # log_info(call_future.result())
 
-def _process_request_for_vote(client, call_future):
+def _process_request_for_vote(client,Candidacy, call_future):
     with ThreadPoolExecutorStackTraced(max_workers=10) as executor:
         try:
             candidacy_response = call_future.result()
         except:
-            print("Exception Error !!", client.server_port)
+            log_info("Exception Error !!", client.server_port)
             return
 
 
     if candidacy_response.voted == file_transfer.YES and candidacy_response.cycle_number == Globals.CURRENT_CYCLE:
         Globals.NUMBER_OF_VOTES += 1
-        print("Got Vote:", Globals.NUMBER_OF_VOTES)
+        log_info("Got Vote:", Globals.NUMBER_OF_VOTES)
         if Globals.NUMBER_OF_VOTES / MAX_RAFT_NODES > 0.5 and Globals.NODE_STATE == NodeState.CANDIDATE:
             Globals.NODE_STATE = NodeState.LEADER
             Globals.LEADER_PORT = Globals.MY_PORT
@@ -143,13 +147,16 @@ def _send_heartbeat():
     table.cycle_number = Globals.CURRENT_CYCLE
     table.leader_ip = Globals.MY_IP
     table.leader_port = Globals.MY_PORT
-    table.tableLog.extend([])
+
+    added_logs = Globals.FILE_LOGS[Globals.LAST_SENT_TABLE_LOG:]
+    Globals.LAST_SENT_TABLE_LOG = len(Globals.FILE_LOGS)
+    table.tableLog.extend(added_logs)
 
     for client in Globals.LST_CLIENTS:
         client._RaftHeartbit(table)
 
 def _ask_for_vote():
-    print("Asking for vote...", Globals.CURRENT_CYCLE)
+    log_info("Asking for vote...", Globals.CURRENT_CYCLE)
     candidacy = file_transfer.Candidacy()
     candidacy.cycle_number = Globals.CURRENT_CYCLE
     candidacy.port = Globals.MY_PORT
@@ -172,13 +179,13 @@ class Client:
     def _RaftHeartbit(self, table):
         try:
             call_future = self.conn.RaftHeartbit.future(table, timeout = Globals.HEARTBEAT_TIMEOUT * 0.9)
-            call_future.add_done_callback(functools.partial(_process_heartbeat, self))
+            call_future.add_done_callback(functools.partial(_process_heartbeat, self,table))
         except e:
-            print("Exeption: _RaftHeartbit")
+            log_info("Exeption: _RaftHeartbit")
 
     def _RequestVote(self, Candidacy):
         call_future = self.conn.RequestVote.future(Candidacy, timeout = Globals.HEARTBEAT_TIMEOUT * 0.9)
-        call_future.add_done_callback(functools.partial(_process_request_for_vote, self))
+        call_future.add_done_callback(functools.partial(_process_request_for_vote, self,Candidacy))
 
 # server
 class ChatServer(rpc.DataTransferServiceServicer):
@@ -187,7 +194,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
 
     def RaftHeartbit(self, request: file_transfer.Table, context):
 
-        print("heartbit arrived: ", len(Globals.FILE_LOGS))
+        log_info("heartbit arrived: ", len(Globals.FILE_LOGS))
         pprint.pprint(request)
 
         ack = file_transfer.Ack()
@@ -216,10 +223,10 @@ class ChatServer(rpc.DataTransferServiceServicer):
             return ack
 
         random_timer.reset()
-        print("MY Leader: ",Globals.LEADER_PORT)
+        log_info("MY Leader: ",Globals.LEADER_PORT, len(Globals.FILE_LOGS))
 
         for tl in request.tableLog:
-            print("LOG Arrived: ")
+            log_info("LOG Arrived: ")
             Globals.FILE_LOGS.append(tl)          
             if tl.operation == file_transfer.Remove:            
                 if tl.file_number in Globals.FILE_INFO_TABLE and tl.chunk_number in Globals.FILE_INFO_TABLE[tl.file_number]:
@@ -264,6 +271,15 @@ class ChatServer(rpc.DataTransferServiceServicer):
 
         return candidacy_response
 
+    def AddFileLog(self, request: file_transfer.TableLog, context):
+        if Globals.NODE_STATE == NodeState.LEADER:
+            request.log_index = Globals.CURRENT_LOG_INDEX
+            Globals.CURRENT_LOG_INDEX += 1
+            Globals.FILE_LOGS.append(request)
+            log_info("LOG ADDED")
+        ack = file_transfer.Ack()
+        ack.id = 1
+        return ack
 
 def start_client(username, server_address, server_port):
     c = Client(username, server_address, server_port)
@@ -275,7 +291,7 @@ def start_server(username, my_port):
     server_object = ChatServer(username)
     rpc.add_DataTransferServiceServicer_to_server(server_object, server)
 
-    print('Starting server. Listening...', my_port)
+    log_info('Starting server. Listening...', my_port)
     server.add_insecure_port('[::]:' + str(my_port))
     server.start()
 
@@ -302,26 +318,6 @@ def main(argv):
         # threading.Thread(target=start_client, args=(username, server_address, server_port), daemon=True).start()
     random_timer.start()
     heartbeat_timer.start()
-
-    # cycle = 0
-    #
-    # while True:
-    #     cycle += 1
-    #     table_log = file_transfer.TableLog()
-    #     table_log.file_number = "f1"
-    #     table_log.chunk_number = "c1"
-    #     table_log.ip = "10.0.0.1"
-    #     table_log.port = "10000"
-    #     table_log.operation = file_transfer.Add
-    #
-    #     table = file_transfer.Table()
-    #     table.cycle_number = cycle
-    #     table.tableLog.extend([table_log])
-    #
-    #     for client in lst_clients:
-    #         client._RaftHeartbit(table)
-    #
-    #     time.sleep(5)
 
     # Server starts in background (another thread) so keep waiting
     while True:
