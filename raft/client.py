@@ -75,12 +75,14 @@ def main(argv):
     table_log = file_transfer.TableLog()
     table_log.file_number = "f0"
     table_log.chunk_number = "c1"
-    table_log.ip = "10.0.0.1"
-    table_log.port = "10000"
-    table_log.operation = file_transfer.Remove
+    table_log.ip = "10.0.0.2"
+    table_log.port = "10001"
+    table_log.operation = file_transfer.Add
 
     table = file_transfer.Table()
-    table.cycle_number = cycle
+    table.cycle_number = 3
+    table.leader_ip = "10.0.0.2"
+    table.leader_port = "10001"
     table.tableLog.extend([table_log])
 
     for client in lst_clients:

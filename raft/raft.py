@@ -186,15 +186,30 @@ class ChatServer(rpc.DataTransferServiceServicer):
         self.username = username
 
     def RaftHeartbit(self, request: file_transfer.Table, context):
+
+        print("heartbit arrived: ", len(Globals.FILE_LOGS))
+        pprint.pprint(request)
+
         ack = file_transfer.Ack()
 
-        if request.cycle_number > Globals.CURRENT_CYCLE and len(request.tableLog) >= len(Globals.FILE_LOGS):
+        if len(request.tableLog) > len(Globals.FILE_LOGS):
+
             Globals.NODE_STATE = NodeState.FOLLOWER
             Globals.CURRENT_CYCLE = request.cycle_number
             Globals.HAS_CURRENT_VOTED = False
             Globals.NUMBER_OF_VOTES = 0
             Globals.LEADER_PORT = request.leader_port
             Globals.LEADER_IP = request.leader_ip
+
+        elif len(request.tableLog) == len(Globals.FILE_LOGS) and request.cycle_number > Globals.CURRENT_CYCLE:
+
+            Globals.NODE_STATE = NodeState.FOLLOWER
+            Globals.CURRENT_CYCLE = request.cycle_number
+            Globals.HAS_CURRENT_VOTED = False
+            Globals.NUMBER_OF_VOTES = 0
+            Globals.LEADER_PORT = request.leader_port
+            Globals.LEADER_IP = request.leader_ip
+
 
         elif request.leader_ip != Globals.LEADER_IP or request.leader_port != Globals.LEADER_PORT:
             ack.id = -1
@@ -203,7 +218,8 @@ class ChatServer(rpc.DataTransferServiceServicer):
         random_timer.reset()
         print("MY Leader: ",Globals.LEADER_PORT)
 
-        for tl in request.tableLog:            
+        for tl in request.tableLog:
+            print("LOG Arrived: ")
             Globals.FILE_LOGS.append(tl)          
             if tl.operation == file_transfer.Remove:            
                 if tl.file_number in Globals.FILE_INFO_TABLE and tl.chunk_number in Globals.FILE_INFO_TABLE[tl.file_number]:

@@ -1,4 +1,4 @@
-MAX_RAFT_NODES = 3
+MAX_RAFT_NODES = 5
 connections = {
 	"arpit_0": {
 		"own": {
@@ -165,20 +165,24 @@ connections = {
 	},
 	"client": {
 		"own": {
-			"ip": "localhost",
+			"ip": "10.0.0.2",
 			"port": "10003"
 		},
 		"clients": [{
-				"ip": "localhost",
+				"ip": "10.0.0.1",
 				"port": "10000"
 			},
 			{
-				"ip": "localhost",
+				"ip": "10.0.0.3",
+				"port": "10000"
+			},
+			{
+				"ip": "10.0.0.3",
 				"port": "10001"
 			},
 			{
-				"ip": "localhost",
-				"port": "10002"
+				"ip": "10.0.0.2",
+				"port": "10000"
 			}
 		]
 	}		
