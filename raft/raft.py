@@ -9,8 +9,8 @@ import grpc, functools
 import time
 import sys
 
-import file_transfer_pb2 as file_transfer
-import file_transfer_pb2_grpc as rpc
+import raft_pb2 as raft
+import raft_pb2_grpc as rpc
 
 from utils.input_output_util import get_input
 from utils.input_output_util import print_msg
@@ -132,7 +132,7 @@ def _process_request_for_vote(client,Candidacy, call_future):
             return
 
 
-    if candidacy_response.voted == file_transfer.YES and candidacy_response.cycle_number == Globals.CURRENT_CYCLE:
+    if candidacy_response.voted == raft.YES and candidacy_response.cycle_number == Globals.CURRENT_CYCLE:
         Globals.NUMBER_OF_VOTES += 1
         log_info("Got Vote:", Globals.NUMBER_OF_VOTES)
         if Globals.NUMBER_OF_VOTES / MAX_RAFT_NODES > 0.5 and Globals.NODE_STATE == NodeState.CANDIDATE:
@@ -143,7 +143,7 @@ def _process_request_for_vote(client,Candidacy, call_future):
             random_timer.reset()
 
 def _send_heartbeat():
-    table = file_transfer.Table()
+    table = raft.Table()
     table.cycle_number = Globals.CURRENT_CYCLE
     table.leader_ip = Globals.MY_IP
     table.leader_port = Globals.MY_PORT
@@ -157,7 +157,7 @@ def _send_heartbeat():
 
 def _ask_for_vote():
     log_info("Asking for vote...", Globals.CURRENT_CYCLE)
-    candidacy = file_transfer.Candidacy()
+    candidacy = raft.Candidacy()
     candidacy.cycle_number = Globals.CURRENT_CYCLE
     candidacy.port = Globals.MY_PORT
     candidacy.ip = Globals.MY_IP
@@ -192,12 +192,12 @@ class ChatServer(rpc.DataTransferServiceServicer):
     def __init__(self, username):
         self.username = username
 
-    def RaftHeartbit(self, request: file_transfer.Table, context):
+    def RaftHeartbit(self, request: raft.Table, context):
 
         log_info("heartbit arrived: ", len(Globals.FILE_LOGS))
         pprint.pprint(request)
 
-        ack = file_transfer.Ack()
+        ack = raft.Ack()
 
         if len(request.tableLog) > len(Globals.FILE_LOGS):
 
@@ -229,11 +229,11 @@ class ChatServer(rpc.DataTransferServiceServicer):
         for tl in request.tableLog:
             log_info("LOG Arrived: ")
             Globals.FILE_LOGS.append(tl)          
-            if tl.operation == file_transfer.Remove:            
+            if tl.operation == raft.Remove:            
                 if tl.file_number in Globals.FILE_INFO_TABLE and tl.chunk_number in Globals.FILE_INFO_TABLE[tl.file_number]:
                     Globals.FILE_INFO_TABLE[tl.file_number][tl.chunk_number].discard((tl.ip, tl.port))
 
-            elif tl.operation == file_transfer.Add:
+            elif tl.operation == raft.Add:
                 if tl.file_number not in Globals.FILE_INFO_TABLE:
                     Globals.FILE_INFO_TABLE[tl.file_number] = {}
                 
@@ -250,35 +250,35 @@ class ChatServer(rpc.DataTransferServiceServicer):
         return ack
 
 
-    def RequestVote(self, request: file_transfer.Candidacy, context):
-        candidacy_response = file_transfer.CandidacyResponse()
+    def RequestVote(self, request: raft.Candidacy, context):
+        candidacy_response = raft.CandidacyResponse()
 
         if request.log_length < len(Globals.FILE_LOGS):
-            candidacy_response.voted = file_transfer.NO
+            candidacy_response.voted = raft.NO
         elif request.cycle_number > Globals.CURRENT_CYCLE or (request.cycle_number == Globals.CURRENT_CYCLE and not Globals.HAS_CURRENT_VOTED):
             Globals.CURRENT_CYCLE = request.cycle_number
             Globals.HAS_CURRENT_VOTED = True
             Globals.NUMBER_OF_VOTES = 0
             Globals.LEADER_IP = request.ip
             Globals.LEADER_PORT = request.port
-            candidacy_response.voted = file_transfer.YES
+            candidacy_response.voted = raft.YES
             candidacy_response.cycle_number = request.cycle_number
             Globals.NODE_STATE = NodeState.FOLLOWER
             random_timer.reset()
             pprint.pprint("###")
             pprint.pprint(request)
         else:
-            candidacy_response.voted = file_transfer.NO
+            candidacy_response.voted = raft.NO
 
         return candidacy_response
 
-    def AddFileLog(self, request: file_transfer.TableLog, context):
+    def AddFileLog(self, request: raft.TableLog, context):
         if Globals.NODE_STATE == NodeState.LEADER:
             request.log_index = Globals.CURRENT_LOG_INDEX
             Globals.CURRENT_LOG_INDEX += 1
             Globals.FILE_LOGS.append(request)
             log_info("LOG ADDED")
-        ack = file_transfer.Ack()
+        ack = raft.Ack()
         ack.id = 1
         return ack
 
