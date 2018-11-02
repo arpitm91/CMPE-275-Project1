@@ -5,7 +5,7 @@ import file_transfer_pb2_grpc as rpc
 
 
 def run():
-    with grpc.insecure_channel('localhost:50051') as channel:
+    with grpc.insecure_channel('localhost:10000') as channel:
         stub = rpc.DataTransferServiceStub(channel)
 
         request = file_transfer.FileInfo()
