@@ -28,18 +28,18 @@ def get_file_chunks(filename):
 
 class Reply(rpc.DataTransferServiceServicer):
 
-    def GetFileLocation(self, request, context):
+    def RequestFileInfo(self, request, context):
         my_reply = file_transfer.FileLocationInfo()
-        my_reply.fileName = request.fileid
+        my_reply.fileName = request.fileName
         my_reply.isFileFound = True
+        my_reply.maxChunks = 1
 
-        first_chunk = file_transfer.ChunkLocationInfo()
-        first_chunk.chunkId = 0
-        first_chunk.ip = "localhost"
-        first_chunk.port = "10010"
+        proxy_info = file_transfer.ProxyInfo()
+        proxy_info.ip = "localhost"
+        proxy_info.port = "10012"
 
-        my_reply.lstChunkLocation.extend([
-            first_chunk
+        my_reply.lstProxy.extend([
+            proxy_info
         ])
         print("Replied to :")
         pprint.pprint(request)

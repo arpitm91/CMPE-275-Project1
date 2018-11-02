@@ -11,8 +11,10 @@ from utils.file_utils import write_file_chunks
 import file_transfer_pb2 as file_transfer
 import file_transfer_pb2_grpc as rpc
 
+threads = []
 
 def download_chunk(file_name, chunk_num, proxy_address, proxy_port):
+    print("requesting for :", file_name, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port)
     with grpc.insecure_channel(proxy_address + ':' + proxy_port) as channel:
         stub = rpc.DataTransferServiceStub(channel)
         request = file_transfer.ChunkInfo()
@@ -21,9 +23,8 @@ def download_chunk(file_name, chunk_num, proxy_address, proxy_port):
         request.startSeqNum = 0
 
         for response in stub.DownloadChunk(request):
-            print("Response received: ",response.seqNum,"/",response.seqMax)
+            print("Response received: ", response.seqNum, "/", response.seqMax)
             write_file_chunks(response)
-
 
 
 def run(argv):
@@ -33,20 +34,24 @@ def run(argv):
         request = file_transfer.FileInfo()
         request.fileName = file_name
 
-        file_location_info = stub.RequestFileInfo(request):
+        file_location_info = stub.RequestFileInfo(request)
         print("Response received: ")
         pprint.pprint(file_location_info)
 
-    for chunk_num in file_location_info["maxChunks"]:
-        proxies = file_location_info["lstProxy"]
-
-        random_proxy_index = random.randint(len(proxies))
+    for chunk_num in range(file_location_info.maxChunks):
+        random_proxy_index = random.randint(0, len(file_location_info.lstProxy) - 1)
         # proxy
-        proxy_address = proxies[random_proxy_index]["ip"]
-        proxy_port = proxies[random_proxy_index]["port"]
+        proxy_address = file_location_info.lstProxy[random_proxy_index].ip
+        proxy_port = file_location_info.lstProxy[random_proxy_index].port
 
-        threading.Thread(target=download_chunk, args=(file_name, chunk_num, proxy_address, proxy_port),
-                         daemon=True).start()
+        threads.append(threading.Thread(target=download_chunk, args=(file_name, chunk_num, proxy_address, proxy_port),
+                         daemon=True))
+        threads[-1].start()
+
+    for t in threads:
+        t.join()
+
+
 
 
 # python3 client.py <raft_ip> <raft_port> <filename>
