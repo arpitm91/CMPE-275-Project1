@@ -18,6 +18,7 @@ def get_file_seqs(filename):
 
 
 def write_file_chunks(message):
-    file_name = message.origin + "_" + str(message.id)
+    os.mkdir(message.fileName)
+    file_name = message.fileName + "/" + message.chunkId
     with open(file_name, "ab") as myfile:
         myfile.write(message.data)

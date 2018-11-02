@@ -1,14 +1,15 @@
 import grpc
-import file_transfer_pb2 as file_transfer
-import file_transfer_pb2_grpc as rpc
 from concurrent import futures
 import time
 import configs.data_center_info as data_center_info
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir,"protos"))
 from utils.file_utils import get_file_seqs
 from utils.file_utils import get_max_file_seqs
+import file_transfer_pb2 as file_transfer
+import file_transfer_pb2_grpc as rpc
 
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
@@ -39,6 +40,7 @@ class DataCenterServer(rpc.DataTransferServiceServicer):
                     yield reply
 
         else:
+            reply = file_transfer.FileMetaData()
             reply.fileName = file_name
             reply.chunkId = chunk_id
             reply.data = str.encode("")
