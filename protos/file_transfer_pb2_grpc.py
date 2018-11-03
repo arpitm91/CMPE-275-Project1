@@ -41,7 +41,7 @@ class DataTransferServiceStub(object):
         )
     self.RequestFileUpload = channel.unary_unary(
         '/grpc.DataTransferService/RequestFileUpload',
-        request_serializer=file__transfer__pb2.FileInfo.SerializeToString,
+        request_serializer=file__transfer__pb2.FileUploadInfo.SerializeToString,
         response_deserializer=file__transfer__pb2.ProxyList.FromString,
         )
 
@@ -123,7 +123,7 @@ def add_DataTransferServiceServicer_to_server(servicer, server):
       ),
       'RequestFileUpload': grpc.unary_unary_rpc_method_handler(
           servicer.RequestFileUpload,
-          request_deserializer=file__transfer__pb2.FileInfo.FromString,
+          request_deserializer=file__transfer__pb2.FileUploadInfo.FromString,
           response_serializer=file__transfer__pb2.ProxyList.SerializeToString,
       ),
   }

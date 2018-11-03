@@ -9,6 +9,11 @@ message FileInfo {
 	string fileName = 1;		// teamname_fileid (unique)
 }
 
+message FileUploadInfo {
+	string fileName = 1;		// teamname_fileid (unique)
+	float fileSize = 2;
+}
+
 message ChunkInfo {
 	string fileName = 1;
 	int64 chunkId = 2;			// Starts from 0 - N
@@ -69,5 +74,5 @@ service DataTransferService {
 
 	// Request File upload get back proxy list to 
 	// return proxylist when raft consensus is reached
-	rpc RequestFileUpload(FileInfo) returns (ProxyList);
+	rpc RequestFileUpload(FileUploadInfo) returns (ProxyList);
 }
