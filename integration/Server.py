@@ -32,7 +32,7 @@ class Reply(rpc.DataTransferServiceServicer):
         my_reply = file_transfer.FileLocationInfo()
         my_reply.fileName = request.fileName
         my_reply.isFileFound = True
-        my_reply.maxChunks = 10
+        my_reply.maxChunks = 2
 
         proxy_info = file_transfer.ProxyInfo()
         proxy_info.ip = "localhost"

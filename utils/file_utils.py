@@ -43,7 +43,7 @@ def get_file_seqs_per_chunk(filename, chunk_num):
         # seek file pointer to start position for chunk before reading file
         f.seek(chunk_num * CHUNK_SIZE)
         total_seq = CHUNK_SIZE / SEQUENCE_SIZE
-        while total_seq >= 0:
+        while total_seq > 0:
             total_seq -= 1
             piece = f.read(SEQUENCE_SIZE)
             if not piece:
