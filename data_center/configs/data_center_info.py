@@ -14,5 +14,9 @@ data_center = {
     "dc_3": {
         "port": "10012",
         "folder": "/Users/arpit/Desktop/DataCenter/DC1"
+    },
+    "dc_4": {
+        "port": "10001",
+        "folder": "/Users/anujchaudhari/Desktop/CMPE275/DataCenter/0"
     }
 }

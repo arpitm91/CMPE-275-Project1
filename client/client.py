@@ -8,10 +8,12 @@ import os
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
 from utils.file_utils import write_file_chunks
+from utils.file_utils import merge_chunks
 import file_transfer_pb2 as file_transfer
 import file_transfer_pb2_grpc as rpc
 
 threads = []
+
 
 def download_chunk(file_name, chunk_num, proxy_address, proxy_port):
     print("requesting for :", file_name, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port)
@@ -24,7 +26,7 @@ def download_chunk(file_name, chunk_num, proxy_address, proxy_port):
 
         for response in stub.DownloadChunk(request):
             print("Response received: ", response.seqNum, "/", response.seqMax)
-            write_file_chunks(response)
+            write_file_chunks(response, os.path.join(os.path.dirname(os.path.realpath(__file__)), "Downloads"))
 
 
 def run(argv):
@@ -45,13 +47,13 @@ def run(argv):
         proxy_port = file_location_info.lstProxy[random_proxy_index].port
 
         threads.append(threading.Thread(target=download_chunk, args=(file_name, chunk_num, proxy_address, proxy_port),
-                         daemon=True))
+                                        daemon=True))
         threads[-1].start()
 
     for t in threads:
         t.join()
 
-
+    merge_chunks(file_location_info.fileName)
 
 
 # python3 client.py <raft_ip> <raft_port> <filename>

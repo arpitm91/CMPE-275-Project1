@@ -21,12 +21,13 @@ def file_upload_iterator(file_name, chunk_num):
     cur_seq_num = 0
     for chunk_buffer in file_utils.get_file_seqs_per_chunk(file_name, chunk_num):
         request = file_transfer.FileUploadData()
-        request.fileName = file_name
+        request.fileName = os.path.basename(file_name)
         request.chunkId = chunk_num
         request.seqMax = seq_max
         request.seqNum = cur_seq_num
         request.data = chunk_buffer
         cur_seq_num += 1
+        print("Sending... Chunk: ", chunk_num, ", Seq: ", cur_seq_num)
         yield request
 
 
@@ -46,16 +47,16 @@ def run(argv):
         request.fileName = file_name
         request.fileSize = file_size
 
-        lst_proxy = stub.RequestFileUpload(request)
-        print("Got list of proxies: ", lst_proxy)
-        pprint.pprint(lst_proxy)
+        response = stub.RequestFileUpload(request)
+        print("Got list of proxies: ", response.lstProxy)
+        pprint.pprint(response.lstProxy)
 
     num_of_chunks = file_utils.get_max_file_chunks(file_name)
 
     for chunk_num in range(num_of_chunks):
-        random_proxy_index = random.randint(0, len(lst_proxy) - 1)
-        proxy_address = lst_proxy[random_proxy_index].ip
-        proxy_port = lst_proxy[random_proxy_index].port
+        random_proxy_index = random.randint(0, len(response.lstProxy) - 1)
+        proxy_address = response.lstProxy[random_proxy_index].ip
+        proxy_port = response.lstProxy[random_proxy_index].port
 
         threads.append(threading.Thread(target=upload_chunk, args=(file_name, chunk_num, proxy_address, proxy_port),
                                         daemon=True))

@@ -21,7 +21,7 @@ def get_total_file_chunks(filename):
 def get_file_chunks(filename):
     with open(filename, 'rb') as f:
         while True:
-            piece = f.read(CHUNK_SIZE);
+            piece = f.read(CHUNK_SIZE)
             if not piece:
                 break
             yield piece
@@ -32,15 +32,30 @@ class Reply(rpc.DataTransferServiceServicer):
         my_reply = file_transfer.FileLocationInfo()
         my_reply.fileName = request.fileName
         my_reply.isFileFound = True
-        my_reply.maxChunks = 1
+        my_reply.maxChunks = 10
 
         proxy_info = file_transfer.ProxyInfo()
         proxy_info.ip = "localhost"
-        proxy_info.port = "10012"
+        proxy_info.port = "10001"
 
         my_reply.lstProxy.extend([
             proxy_info
         ])
+        print("Replied to :")
+        pprint.pprint(request)
+        print("############################")
+        return my_reply
+
+    def RequestFileUpload(self, request, context):
+        my_reply = file_transfer.ProxyList()
+
+        proxy_info = file_transfer.ProxyInfo()
+        proxy_info.ip = "localhost"
+        proxy_info.port = "10001"
+        my_reply.lstProxy.extend([
+            proxy_info
+        ])
+
         print("Replied to :")
         pprint.pprint(request)
         print("############################")
