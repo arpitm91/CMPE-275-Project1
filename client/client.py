@@ -53,8 +53,7 @@ def run(argv):
     for t in threads:
         t.join()
 
-    merge_chunks(file_location_info.fileName)
-
+    merge_chunks(file_location_info.fileName, os.path.join(os.path.dirname(os.path.realpath(__file__)), "Downloads"), file_location_info.maxChunks)
 
 # python3 client.py <raft_ip> <raft_port> <filename>
 if __name__ == '__main__':
