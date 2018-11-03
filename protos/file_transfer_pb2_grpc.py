@@ -39,6 +39,11 @@ class DataTransferServiceStub(object):
         request_serializer=file__transfer__pb2.Empty.SerializeToString,
         response_deserializer=file__transfer__pb2.FileList.FromString,
         )
+    self.RequestFileUpload = channel.unary_unary(
+        '/grpc.DataTransferService/RequestFileUpload',
+        request_serializer=file__transfer__pb2.FileInfo.SerializeToString,
+        response_deserializer=file__transfer__pb2.ProxyList.FromString,
+        )
 
 
 class DataTransferServiceServicer(object):
@@ -80,6 +85,14 @@ class DataTransferServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def RequestFileUpload(self, request, context):
+    """Request File upload get back proxy list to 
+    return proxylist when raft consensus is reached
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_DataTransferServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -107,6 +120,11 @@ def add_DataTransferServiceServicer_to_server(servicer, server):
           servicer.ListFiles,
           request_deserializer=file__transfer__pb2.Empty.FromString,
           response_serializer=file__transfer__pb2.FileList.SerializeToString,
+      ),
+      'RequestFileUpload': grpc.unary_unary_rpc_method_handler(
+          servicer.RequestFileUpload,
+          request_deserializer=file__transfer__pb2.FileInfo.FromString,
+          response_serializer=file__transfer__pb2.ProxyList.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

@@ -25,9 +25,10 @@ message FileMetaData {
 
 message FileUploadData {
 	string fileName = 1;
-	bytes data = 2;
-	int64 seqNum = 3;
-	int64 seqMax = 4;
+	int64 chunkId =2;		// Required to upload file parallely
+	bytes data = 3;
+	int64 seqNum = 4;
+	int64 seqMax = 5;
 }
 
 message  ProxyInfo {
@@ -46,6 +47,10 @@ message FileList {
 	repeated string lstFileNames = 1;
 }
 
+message ProxyList {
+	repeated ProxyInfo lstProxy = 1;
+}
+
 service DataTransferService {
 
 	// From team's client to team's own cluster
@@ -61,9 +66,8 @@ service DataTransferService {
 
 	// Interteam request
 	rpc ListFiles (Empty) returns (FileList);
+
+	// Request File upload get back proxy list to 
+	// return proxylist when raft consensus is reached
+	rpc RequestFileUpload(FileInfo) returns (ProxyList);
 }
-
-
-
-// 1. Upload file
-// 2. List files
