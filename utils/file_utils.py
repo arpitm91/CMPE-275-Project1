@@ -2,6 +2,9 @@ import os
 import math
 import sys
 import glob
+import shutil
+
+import time
 
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "utils"))
@@ -57,13 +60,13 @@ def write_file_chunks(message, folder):
         myfile.write(message.data)
 
 #
-def merge_chunks(file_name_folder):
-    pass
-#     merged_file_name = "merged_file"
-#     with open(merged_file_name, "ab") as merged_file:
-#         for chunks in glob.glob(file_name_folder):
-#             print("chunk: ", chunks)
-#             # for chunks in os.listdir(file_name_folder):
-#             with open(chunks, "rb") as chunk_file:
-#                 merged_file.write(str.encode(chunk_file.read()))
-#         print(chunks)
+def merge_chunks(file_name_folder, folder, maxChunks):
+    merged_file_name = os.path.join(folder, "merged_file" + str(math.ceil(time.time())))
+    download_folder = os.path.join(folder, file_name_folder)
+    with open(merged_file_name, "ab") as merged_file:
+        for chunks in range(maxChunks):
+            with open(os.path.join(download_folder, str(chunks)), "rb") as chunk_file:
+                merged_file.write(chunk_file.read())
+
+    shutil.rmtree(download_folder)
+    os.rename(merged_file_name, download_folder)
