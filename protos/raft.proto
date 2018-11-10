@@ -18,7 +18,7 @@ message Ack {
 
 message TableLog {
     string fileName = 1;
-    string chunkId = 2;
+    int64 chunkId = 2;
     string ip = 3;
     string port = 4;
     int64 log_index = 5;
@@ -48,6 +48,12 @@ message  ProxyInfo {
 	string ip = 1;
 	string port = 2;
 }
+
+message  DataCenterInfo {
+	string ip = 1;
+	string port = 2;
+}
+
 message ProxyList {
 	repeated ProxyInfo lstProxy = 1;
 }
@@ -57,10 +63,23 @@ message FileUploadInfo {
 	float fileSize = 2;
 }
 
+message Empty {
+
+}
+
+message ReplicationInfo {
+    DataCenterInfo fromDatacenter = 1;
+    string fileName = 1;
+    int64 chunkId = 2;
+}
+
 service DataTransferService {
     rpc RaftHeartbit (Table) returns (Ack);
     rpc RequestVote (Candidacy) returns (CandidacyResponse);
     rpc AddFileLog (TableLog) returns (Ack);
+    rpc AddDataCenter (DataCenterInfo) returns (Empty);
+    rpc DataCenterHeartbeat(Empty) returns (Empty);
+    rpc ReplicationInitiate(ReplicationInfo) returns (Ack);
 
     	// Request File upload get back proxy list to
 	// return proxylist when raft consensus is reached
