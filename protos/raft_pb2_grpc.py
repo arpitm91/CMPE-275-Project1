@@ -29,6 +29,21 @@ class DataTransferServiceStub(object):
         request_serializer=raft__pb2.TableLog.SerializeToString,
         response_deserializer=raft__pb2.Ack.FromString,
         )
+    self.AddDataCenter = channel.unary_unary(
+        '/grpc.DataTransferService/AddDataCenter',
+        request_serializer=raft__pb2.DataCenterInfo.SerializeToString,
+        response_deserializer=raft__pb2.Empty.FromString,
+        )
+    self.DataCenterHeartbeat = channel.unary_unary(
+        '/grpc.DataTransferService/DataCenterHeartbeat',
+        request_serializer=raft__pb2.Empty.SerializeToString,
+        response_deserializer=raft__pb2.Empty.FromString,
+        )
+    self.ReplicationInitiate = channel.unary_unary(
+        '/grpc.DataTransferService/ReplicationInitiate',
+        request_serializer=raft__pb2.ReplicationInfo.SerializeToString,
+        response_deserializer=raft__pb2.Ack.FromString,
+        )
     self.RequestFileUpload = channel.unary_unary(
         '/grpc.DataTransferService/RequestFileUpload',
         request_serializer=raft__pb2.FileUploadInfo.SerializeToString,
@@ -61,6 +76,27 @@ class DataTransferServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def AddDataCenter(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def DataCenterHeartbeat(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def ReplicationInitiate(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
   def RequestFileUpload(self, request, context):
     """Request File upload get back proxy list to
     return proxylist when raft consensus is reached
@@ -85,6 +121,21 @@ def add_DataTransferServiceServicer_to_server(servicer, server):
       'AddFileLog': grpc.unary_unary_rpc_method_handler(
           servicer.AddFileLog,
           request_deserializer=raft__pb2.TableLog.FromString,
+          response_serializer=raft__pb2.Ack.SerializeToString,
+      ),
+      'AddDataCenter': grpc.unary_unary_rpc_method_handler(
+          servicer.AddDataCenter,
+          request_deserializer=raft__pb2.DataCenterInfo.FromString,
+          response_serializer=raft__pb2.Empty.SerializeToString,
+      ),
+      'DataCenterHeartbeat': grpc.unary_unary_rpc_method_handler(
+          servicer.DataCenterHeartbeat,
+          request_deserializer=raft__pb2.Empty.FromString,
+          response_serializer=raft__pb2.Empty.SerializeToString,
+      ),
+      'ReplicationInitiate': grpc.unary_unary_rpc_method_handler(
+          servicer.ReplicationInitiate,
+          request_deserializer=raft__pb2.ReplicationInfo.FromString,
           response_serializer=raft__pb2.Ack.SerializeToString,
       ),
       'RequestFileUpload': grpc.unary_unary_rpc_method_handler(

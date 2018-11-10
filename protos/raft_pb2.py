@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='grpc',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\nraft.proto\x12\x04grpc\"\x11\n\x03\x41\x63k\x12\n\n\x02id\x18\x01 \x01(\x03\"\x81\x01\n\x08TableLog\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\t\x12\n\n\x02ip\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\t\x12\x11\n\tlog_index\x18\x05 \x01(\x03\x12%\n\toperation\x18\x06 \x01(\x0e\x32\x12.grpc.LogOperation\"g\n\x05Table\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\x11\n\tleader_ip\x18\x02 \x01(\t\x12\x13\n\x0bleader_port\x18\x03 \x01(\t\x12 \n\x08tableLog\x18\x04 \x03(\x0b\x32\x0e.grpc.TableLog\"O\n\tCandidacy\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\n\n\x02ip\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\x12\x12\n\nlog_length\x18\x04 \x01(\x03\"D\n\x11\x43\x61ndidacyResponse\x12\x19\n\x05voted\x18\x01 \x01(\x0e\x32\n.grpc.Vote\x12\x14\n\x0c\x63ycle_number\x18\x02 \x01(\x03\"%\n\tProxyInfo\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\".\n\tProxyList\x12!\n\x08lstProxy\x18\x01 \x03(\x0b\x32\x0f.grpc.ProxyInfo\"4\n\x0e\x46ileUploadInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x10\n\x08\x66ileSize\x18\x02 \x01(\x02*#\n\x0cLogOperation\x12\x07\n\x03\x41\x64\x64\x10\x00\x12\n\n\x06Remove\x10\x01*\x17\n\x04Vote\x12\x07\n\x03YES\x10\x00\x12\x06\n\x02NO\x10\x01\x32\xdb\x01\n\x13\x44\x61taTransferService\x12&\n\x0cRaftHeartbit\x12\x0b.grpc.Table\x1a\t.grpc.Ack\x12\x37\n\x0bRequestVote\x12\x0f.grpc.Candidacy\x1a\x17.grpc.CandidacyResponse\x12\'\n\nAddFileLog\x12\x0e.grpc.TableLog\x1a\t.grpc.Ack\x12:\n\x11RequestFileUpload\x12\x14.grpc.FileUploadInfo\x1a\x0f.grpc.ProxyListb\x06proto3')
+  serialized_pb=_b('\n\nraft.proto\x12\x04grpc\"\x11\n\x03\x41\x63k\x12\n\n\x02id\x18\x01 \x01(\x03\"\x81\x01\n\x08TableLog\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12\n\n\x02ip\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\t\x12\x11\n\tlog_index\x18\x05 \x01(\x03\x12%\n\toperation\x18\x06 \x01(\x0e\x32\x12.grpc.LogOperation\"g\n\x05Table\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\x11\n\tleader_ip\x18\x02 \x01(\t\x12\x13\n\x0bleader_port\x18\x03 \x01(\t\x12 \n\x08tableLog\x18\x04 \x03(\x0b\x32\x0e.grpc.TableLog\"O\n\tCandidacy\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\n\n\x02ip\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\x12\x12\n\nlog_length\x18\x04 \x01(\x03\"D\n\x11\x43\x61ndidacyResponse\x12\x19\n\x05voted\x18\x01 \x01(\x0e\x32\n.grpc.Vote\x12\x14\n\x0c\x63ycle_number\x18\x02 \x01(\x03\"%\n\tProxyInfo\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\"*\n\x0e\x44\x61taCenterInfo\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\".\n\tProxyList\x12!\n\x08lstProxy\x18\x01 \x03(\x0b\x32\x0f.grpc.ProxyInfo\"4\n\x0e\x46ileUploadInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x10\n\x08\x66ileSize\x18\x02 \x01(\x02\"\x07\n\x05\x45mpty\"b\n\x0fReplicationInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12,\n\x0e\x66romDatacenter\x18\x03 \x01(\x0b\x32\x14.grpc.DataCenterInfo*#\n\x0cLogOperation\x12\x07\n\x03\x41\x64\x64\x10\x00\x12\n\n\x06Remove\x10\x01*\x17\n\x04Vote\x12\x07\n\x03YES\x10\x00\x12\x06\n\x02NO\x10\x01\x32\xf9\x02\n\x13\x44\x61taTransferService\x12&\n\x0cRaftHeartbit\x12\x0b.grpc.Table\x1a\t.grpc.Ack\x12\x37\n\x0bRequestVote\x12\x0f.grpc.Candidacy\x1a\x17.grpc.CandidacyResponse\x12\'\n\nAddFileLog\x12\x0e.grpc.TableLog\x1a\t.grpc.Ack\x12\x32\n\rAddDataCenter\x12\x14.grpc.DataCenterInfo\x1a\x0b.grpc.Empty\x12/\n\x13\x44\x61taCenterHeartbeat\x12\x0b.grpc.Empty\x1a\x0b.grpc.Empty\x12\x37\n\x13ReplicationInitiate\x12\x15.grpc.ReplicationInfo\x1a\t.grpc.Ack\x12:\n\x11RequestFileUpload\x12\x14.grpc.FileUploadInfo\x1a\x0f.grpc.ProxyListb\x06proto3')
 )
 
 _LOGOPERATION = _descriptor.EnumDescriptor(
@@ -40,8 +40,8 @@ _LOGOPERATION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=568,
-  serialized_end=603,
+  serialized_start=721,
+  serialized_end=756,
 )
 _sym_db.RegisterEnumDescriptor(_LOGOPERATION)
 
@@ -63,8 +63,8 @@ _VOTE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=605,
-  serialized_end=628,
+  serialized_start=758,
+  serialized_end=781,
 )
 _sym_db.RegisterEnumDescriptor(_VOTE)
 
@@ -123,8 +123,8 @@ _TABLELOG = _descriptor.Descriptor(
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='chunkId', full_name='grpc.TableLog.chunkId', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      number=2, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
@@ -353,6 +353,44 @@ _PROXYINFO = _descriptor.Descriptor(
 )
 
 
+_DATACENTERINFO = _descriptor.Descriptor(
+  name='DataCenterInfo',
+  full_name='grpc.DataCenterInfo',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='ip', full_name='grpc.DataCenterInfo.ip', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='port', full_name='grpc.DataCenterInfo.port', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=466,
+  serialized_end=508,
+)
+
+
 _PROXYLIST = _descriptor.Descriptor(
   name='ProxyList',
   full_name='grpc.ProxyList',
@@ -379,8 +417,8 @@ _PROXYLIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=466,
-  serialized_end=512,
+  serialized_start=510,
+  serialized_end=556,
 )
 
 
@@ -417,22 +455,95 @@ _FILEUPLOADINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=514,
-  serialized_end=566,
+  serialized_start=558,
+  serialized_end=610,
+)
+
+
+_EMPTY = _descriptor.Descriptor(
+  name='Empty',
+  full_name='grpc.Empty',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=612,
+  serialized_end=619,
+)
+
+
+_REPLICATIONINFO = _descriptor.Descriptor(
+  name='ReplicationInfo',
+  full_name='grpc.ReplicationInfo',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='fileName', full_name='grpc.ReplicationInfo.fileName', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='chunkId', full_name='grpc.ReplicationInfo.chunkId', index=1,
+      number=2, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='fromDatacenter', full_name='grpc.ReplicationInfo.fromDatacenter', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=621,
+  serialized_end=719,
 )
 
 _TABLELOG.fields_by_name['operation'].enum_type = _LOGOPERATION
 _TABLE.fields_by_name['tableLog'].message_type = _TABLELOG
 _CANDIDACYRESPONSE.fields_by_name['voted'].enum_type = _VOTE
 _PROXYLIST.fields_by_name['lstProxy'].message_type = _PROXYINFO
+_REPLICATIONINFO.fields_by_name['fromDatacenter'].message_type = _DATACENTERINFO
 DESCRIPTOR.message_types_by_name['Ack'] = _ACK
 DESCRIPTOR.message_types_by_name['TableLog'] = _TABLELOG
 DESCRIPTOR.message_types_by_name['Table'] = _TABLE
 DESCRIPTOR.message_types_by_name['Candidacy'] = _CANDIDACY
 DESCRIPTOR.message_types_by_name['CandidacyResponse'] = _CANDIDACYRESPONSE
 DESCRIPTOR.message_types_by_name['ProxyInfo'] = _PROXYINFO
+DESCRIPTOR.message_types_by_name['DataCenterInfo'] = _DATACENTERINFO
 DESCRIPTOR.message_types_by_name['ProxyList'] = _PROXYLIST
 DESCRIPTOR.message_types_by_name['FileUploadInfo'] = _FILEUPLOADINFO
+DESCRIPTOR.message_types_by_name['Empty'] = _EMPTY
+DESCRIPTOR.message_types_by_name['ReplicationInfo'] = _REPLICATIONINFO
 DESCRIPTOR.enum_types_by_name['LogOperation'] = _LOGOPERATION
 DESCRIPTOR.enum_types_by_name['Vote'] = _VOTE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -479,6 +590,13 @@ ProxyInfo = _reflection.GeneratedProtocolMessageType('ProxyInfo', (_message.Mess
   ))
 _sym_db.RegisterMessage(ProxyInfo)
 
+DataCenterInfo = _reflection.GeneratedProtocolMessageType('DataCenterInfo', (_message.Message,), dict(
+  DESCRIPTOR = _DATACENTERINFO,
+  __module__ = 'raft_pb2'
+  # @@protoc_insertion_point(class_scope:grpc.DataCenterInfo)
+  ))
+_sym_db.RegisterMessage(DataCenterInfo)
+
 ProxyList = _reflection.GeneratedProtocolMessageType('ProxyList', (_message.Message,), dict(
   DESCRIPTOR = _PROXYLIST,
   __module__ = 'raft_pb2'
@@ -493,6 +611,20 @@ FileUploadInfo = _reflection.GeneratedProtocolMessageType('FileUploadInfo', (_me
   ))
 _sym_db.RegisterMessage(FileUploadInfo)
 
+Empty = _reflection.GeneratedProtocolMessageType('Empty', (_message.Message,), dict(
+  DESCRIPTOR = _EMPTY,
+  __module__ = 'raft_pb2'
+  # @@protoc_insertion_point(class_scope:grpc.Empty)
+  ))
+_sym_db.RegisterMessage(Empty)
+
+ReplicationInfo = _reflection.GeneratedProtocolMessageType('ReplicationInfo', (_message.Message,), dict(
+  DESCRIPTOR = _REPLICATIONINFO,
+  __module__ = 'raft_pb2'
+  # @@protoc_insertion_point(class_scope:grpc.ReplicationInfo)
+  ))
+_sym_db.RegisterMessage(ReplicationInfo)
+
 
 
 _DATATRANSFERSERVICE = _descriptor.ServiceDescriptor(
@@ -501,8 +633,8 @@ _DATATRANSFERSERVICE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=631,
-  serialized_end=850,
+  serialized_start=784,
+  serialized_end=1161,
   methods=[
   _descriptor.MethodDescriptor(
     name='RaftHeartbit',
@@ -532,9 +664,36 @@ _DATATRANSFERSERVICE = _descriptor.ServiceDescriptor(
     serialized_options=None,
   ),
   _descriptor.MethodDescriptor(
+    name='AddDataCenter',
+    full_name='grpc.DataTransferService.AddDataCenter',
+    index=3,
+    containing_service=None,
+    input_type=_DATACENTERINFO,
+    output_type=_EMPTY,
+    serialized_options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='DataCenterHeartbeat',
+    full_name='grpc.DataTransferService.DataCenterHeartbeat',
+    index=4,
+    containing_service=None,
+    input_type=_EMPTY,
+    output_type=_EMPTY,
+    serialized_options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='ReplicationInitiate',
+    full_name='grpc.DataTransferService.ReplicationInitiate',
+    index=5,
+    containing_service=None,
+    input_type=_REPLICATIONINFO,
+    output_type=_ACK,
+    serialized_options=None,
+  ),
+  _descriptor.MethodDescriptor(
     name='RequestFileUpload',
     full_name='grpc.DataTransferService.RequestFileUpload',
-    index=3,
+    index=6,
     containing_service=None,
     input_type=_FILEUPLOADINFO,
     output_type=_PROXYLIST,
