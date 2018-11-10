@@ -8,7 +8,6 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
-from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -20,7 +19,8 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='raft.proto',
   package='grpc',
   syntax='proto3',
-  serialized_pb=_b('\n\nraft.proto\x12\x04grpc\"\x11\n\x03\x41\x63k\x12\n\n\x02id\x18\x01 \x01(\x03\"\x89\x01\n\x08TableLog\x12\x13\n\x0b\x66ile_number\x18\x01 \x01(\t\x12\x14\n\x0c\x63hunk_number\x18\x02 \x01(\t\x12\n\n\x02ip\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\t\x12\x11\n\tlog_index\x18\x05 \x01(\x03\x12%\n\toperation\x18\x06 \x01(\x0e\x32\x12.grpc.LogOperation\"g\n\x05Table\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\x11\n\tleader_ip\x18\x02 \x01(\t\x12\x13\n\x0bleader_port\x18\x03 \x01(\t\x12 \n\x08tableLog\x18\x04 \x03(\x0b\x32\x0e.grpc.TableLog\"O\n\tCandidacy\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\n\n\x02ip\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\x12\x12\n\nlog_length\x18\x04 \x01(\x03\"D\n\x11\x43\x61ndidacyResponse\x12\x19\n\x05voted\x18\x01 \x01(\x0e\x32\n.grpc.Vote\x12\x14\n\x0c\x63ycle_number\x18\x02 \x01(\x03*#\n\x0cLogOperation\x12\x07\n\x03\x41\x64\x64\x10\x00\x12\n\n\x06Remove\x10\x01*\x17\n\x04Vote\x12\x07\n\x03YES\x10\x00\x12\x06\n\x02NO\x10\x01\x32\x9f\x01\n\x13\x44\x61taTransferService\x12&\n\x0cRaftHeartbit\x12\x0b.grpc.Table\x1a\t.grpc.Ack\x12\x37\n\x0bRequestVote\x12\x0f.grpc.Candidacy\x1a\x17.grpc.CandidacyResponse\x12\'\n\nAddFileLog\x12\x0e.grpc.TableLog\x1a\t.grpc.Ackb\x06proto3')
+  serialized_options=None,
+  serialized_pb=_b('\n\nraft.proto\x12\x04grpc\"\x11\n\x03\x41\x63k\x12\n\n\x02id\x18\x01 \x01(\x03\"\x81\x01\n\x08TableLog\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\t\x12\n\n\x02ip\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\t\x12\x11\n\tlog_index\x18\x05 \x01(\x03\x12%\n\toperation\x18\x06 \x01(\x0e\x32\x12.grpc.LogOperation\"g\n\x05Table\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\x11\n\tleader_ip\x18\x02 \x01(\t\x12\x13\n\x0bleader_port\x18\x03 \x01(\t\x12 \n\x08tableLog\x18\x04 \x03(\x0b\x32\x0e.grpc.TableLog\"O\n\tCandidacy\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\n\n\x02ip\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\x12\x12\n\nlog_length\x18\x04 \x01(\x03\"D\n\x11\x43\x61ndidacyResponse\x12\x19\n\x05voted\x18\x01 \x01(\x0e\x32\n.grpc.Vote\x12\x14\n\x0c\x63ycle_number\x18\x02 \x01(\x03\"%\n\tProxyInfo\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\".\n\tProxyList\x12!\n\x08lstProxy\x18\x01 \x03(\x0b\x32\x0f.grpc.ProxyInfo\"4\n\x0e\x46ileUploadInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x10\n\x08\x66ileSize\x18\x02 \x01(\x02*#\n\x0cLogOperation\x12\x07\n\x03\x41\x64\x64\x10\x00\x12\n\n\x06Remove\x10\x01*\x17\n\x04Vote\x12\x07\n\x03YES\x10\x00\x12\x06\n\x02NO\x10\x01\x32\xdb\x01\n\x13\x44\x61taTransferService\x12&\n\x0cRaftHeartbit\x12\x0b.grpc.Table\x1a\t.grpc.Ack\x12\x37\n\x0bRequestVote\x12\x0f.grpc.Candidacy\x1a\x17.grpc.CandidacyResponse\x12\'\n\nAddFileLog\x12\x0e.grpc.TableLog\x1a\t.grpc.Ack\x12:\n\x11RequestFileUpload\x12\x14.grpc.FileUploadInfo\x1a\x0f.grpc.ProxyListb\x06proto3')
 )
 
 _LOGOPERATION = _descriptor.EnumDescriptor(
@@ -31,17 +31,17 @@ _LOGOPERATION = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='Add', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='Remove', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
-  serialized_start=435,
-  serialized_end=470,
+  serialized_options=None,
+  serialized_start=568,
+  serialized_end=603,
 )
 _sym_db.RegisterEnumDescriptor(_LOGOPERATION)
 
@@ -54,17 +54,17 @@ _VOTE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='YES', index=0, number=0,
-      options=None,
+      serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='NO', index=1, number=1,
-      options=None,
+      serialized_options=None,
       type=None),
   ],
   containing_type=None,
-  options=None,
-  serialized_start=472,
-  serialized_end=495,
+  serialized_options=None,
+  serialized_start=605,
+  serialized_end=628,
 )
 _sym_db.RegisterEnumDescriptor(_VOTE)
 
@@ -89,14 +89,14 @@ _ACK = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -115,61 +115,61 @@ _TABLELOG = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='file_number', full_name='grpc.TableLog.file_number', index=0,
+      name='fileName', full_name='grpc.TableLog.fileName', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='chunk_number', full_name='grpc.TableLog.chunk_number', index=1,
+      name='chunkId', full_name='grpc.TableLog.chunkId', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='ip', full_name='grpc.TableLog.ip', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='port', full_name='grpc.TableLog.port', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='log_index', full_name='grpc.TableLog.log_index', index=4,
       number=5, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='operation', full_name='grpc.TableLog.operation', index=5,
       number=6, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
   serialized_start=40,
-  serialized_end=177,
+  serialized_end=169,
 )
 
 
@@ -186,42 +186,42 @@ _TABLE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='leader_ip', full_name='grpc.Table.leader_ip', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='leader_port', full_name='grpc.Table.leader_port', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='tableLog', full_name='grpc.Table.tableLog', index=3,
       number=4, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=179,
-  serialized_end=282,
+  serialized_start=171,
+  serialized_end=274,
 )
 
 
@@ -238,42 +238,42 @@ _CANDIDACY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='ip', full_name='grpc.Candidacy.ip', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='port', full_name='grpc.Candidacy.port', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='log_length', full_name='grpc.Candidacy.log_length', index=3,
       number=4, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=284,
-  serialized_end=363,
+  serialized_start=276,
+  serialized_end=355,
 )
 
 
@@ -290,38 +290,149 @@ _CANDIDACYRESPONSE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='cycle_number', full_name='grpc.CandidacyResponse.cycle_number', index=1,
       number=2, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=365,
-  serialized_end=433,
+  serialized_start=357,
+  serialized_end=425,
+)
+
+
+_PROXYINFO = _descriptor.Descriptor(
+  name='ProxyInfo',
+  full_name='grpc.ProxyInfo',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='ip', full_name='grpc.ProxyInfo.ip', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='port', full_name='grpc.ProxyInfo.port', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=427,
+  serialized_end=464,
+)
+
+
+_PROXYLIST = _descriptor.Descriptor(
+  name='ProxyList',
+  full_name='grpc.ProxyList',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='lstProxy', full_name='grpc.ProxyList.lstProxy', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=466,
+  serialized_end=512,
+)
+
+
+_FILEUPLOADINFO = _descriptor.Descriptor(
+  name='FileUploadInfo',
+  full_name='grpc.FileUploadInfo',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='fileName', full_name='grpc.FileUploadInfo.fileName', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='fileSize', full_name='grpc.FileUploadInfo.fileSize', index=1,
+      number=2, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=514,
+  serialized_end=566,
 )
 
 _TABLELOG.fields_by_name['operation'].enum_type = _LOGOPERATION
 _TABLE.fields_by_name['tableLog'].message_type = _TABLELOG
 _CANDIDACYRESPONSE.fields_by_name['voted'].enum_type = _VOTE
+_PROXYLIST.fields_by_name['lstProxy'].message_type = _PROXYINFO
 DESCRIPTOR.message_types_by_name['Ack'] = _ACK
 DESCRIPTOR.message_types_by_name['TableLog'] = _TABLELOG
 DESCRIPTOR.message_types_by_name['Table'] = _TABLE
 DESCRIPTOR.message_types_by_name['Candidacy'] = _CANDIDACY
 DESCRIPTOR.message_types_by_name['CandidacyResponse'] = _CANDIDACYRESPONSE
+DESCRIPTOR.message_types_by_name['ProxyInfo'] = _PROXYINFO
+DESCRIPTOR.message_types_by_name['ProxyList'] = _PROXYLIST
+DESCRIPTOR.message_types_by_name['FileUploadInfo'] = _FILEUPLOADINFO
 DESCRIPTOR.enum_types_by_name['LogOperation'] = _LOGOPERATION
 DESCRIPTOR.enum_types_by_name['Vote'] = _VOTE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -361,6 +472,27 @@ CandidacyResponse = _reflection.GeneratedProtocolMessageType('CandidacyResponse'
   ))
 _sym_db.RegisterMessage(CandidacyResponse)
 
+ProxyInfo = _reflection.GeneratedProtocolMessageType('ProxyInfo', (_message.Message,), dict(
+  DESCRIPTOR = _PROXYINFO,
+  __module__ = 'raft_pb2'
+  # @@protoc_insertion_point(class_scope:grpc.ProxyInfo)
+  ))
+_sym_db.RegisterMessage(ProxyInfo)
+
+ProxyList = _reflection.GeneratedProtocolMessageType('ProxyList', (_message.Message,), dict(
+  DESCRIPTOR = _PROXYLIST,
+  __module__ = 'raft_pb2'
+  # @@protoc_insertion_point(class_scope:grpc.ProxyList)
+  ))
+_sym_db.RegisterMessage(ProxyList)
+
+FileUploadInfo = _reflection.GeneratedProtocolMessageType('FileUploadInfo', (_message.Message,), dict(
+  DESCRIPTOR = _FILEUPLOADINFO,
+  __module__ = 'raft_pb2'
+  # @@protoc_insertion_point(class_scope:grpc.FileUploadInfo)
+  ))
+_sym_db.RegisterMessage(FileUploadInfo)
+
 
 
 _DATATRANSFERSERVICE = _descriptor.ServiceDescriptor(
@@ -368,9 +500,9 @@ _DATATRANSFERSERVICE = _descriptor.ServiceDescriptor(
   full_name='grpc.DataTransferService',
   file=DESCRIPTOR,
   index=0,
-  options=None,
-  serialized_start=498,
-  serialized_end=657,
+  serialized_options=None,
+  serialized_start=631,
+  serialized_end=850,
   methods=[
   _descriptor.MethodDescriptor(
     name='RaftHeartbit',
@@ -379,7 +511,7 @@ _DATATRANSFERSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_TABLE,
     output_type=_ACK,
-    options=None,
+    serialized_options=None,
   ),
   _descriptor.MethodDescriptor(
     name='RequestVote',
@@ -388,7 +520,7 @@ _DATATRANSFERSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_CANDIDACY,
     output_type=_CANDIDACYRESPONSE,
-    options=None,
+    serialized_options=None,
   ),
   _descriptor.MethodDescriptor(
     name='AddFileLog',
@@ -397,7 +529,16 @@ _DATATRANSFERSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_TABLELOG,
     output_type=_ACK,
-    options=None,
+    serialized_options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='RequestFileUpload',
+    full_name='grpc.DataTransferService.RequestFileUpload',
+    index=3,
+    containing_service=None,
+    input_type=_FILEUPLOADINFO,
+    output_type=_PROXYLIST,
+    serialized_options=None,
   ),
 ])
 _sym_db.RegisterServiceDescriptor(_DATATRANSFERSERVICE)

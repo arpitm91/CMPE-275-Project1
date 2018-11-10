@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package grpc;
+
+enum LogOperation {
+    Add = 0;
+    Remove = 1;
+}
+
+enum Vote {
+    YES = 0;
+    NO = 1;
+}
+
+message Ack {
+	int64 id = 1;
+}
+
+message TableLog {
+    string fileName = 1;
+    string chunkId = 2;
+    string ip = 3;
+    string port = 4;
+    int64 log_index = 5;
+    LogOperation operation = 6;
+}
+
+message Table {
+    int64 cycle_number = 1;
+    string leader_ip = 2;
+    string leader_port = 3;
+    repeated TableLog tableLog = 4;
+}
+
+message Candidacy {
+    int64 cycle_number = 1;
+    string ip = 2;
+    string port = 3;
+    int64 log_length = 4;
+}
+
+message CandidacyResponse {
+    Vote voted = 1;
+    int64 cycle_number = 2;
+}
+
+message  ProxyInfo {
+	string ip = 1;
+	string port = 2;
+}
+message ProxyList {
+	repeated ProxyInfo lstProxy = 1;
+}
+
+message FileUploadInfo {
+	string fileName = 1;		// teamname_fileid (unique)
+	float fileSize = 2;
+}
+
+service DataTransferService {
+    rpc RaftHeartbit (Table) returns (Ack);
+    rpc RequestVote (Candidacy) returns (CandidacyResponse);
+    rpc AddFileLog (TableLog) returns (Ack);
+
+    	// Request File upload get back proxy list to
+	// return proxylist when raft consensus is reached
+	rpc RequestFileUpload(FileUploadInfo) returns (ProxyList);
+}

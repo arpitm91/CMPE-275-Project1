@@ -16,6 +16,11 @@
 
 3. Raft
     3.1 Create proper tables                -Anuj
+        3.1.1 File_log
+        3.1.2 File_info_table
+        3.1.3 DC_available_table
+        3.1.4 Proxy_available_table
+
     3.2 Handle upload file request          -Anuj
         - Check file exists or not
         - Create entry in table
