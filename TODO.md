@@ -6,9 +6,13 @@
     Replication execution (Download from other dc)
 
 2. Client
-    Download - Thread fail checking -Aartee
-    Upload - Thread fail checking   -Aartee
-    Ask for catalogue               -Aartee
+    Download - Thread fail checking                     -Aartee
+    Upload - Thread fail checking                       -Aartee
+    Ask for catalogue                                   -Aartee
+    Optimize merge delete chunks once read for merge if file size    -Aartee
+    Use temp folder                                                  -Aartee
+
+
 
 3. Raft
     3.1 Create proper tables                -Anuj
@@ -34,3 +38,11 @@
 
 
 
+## Optimizations
+
+1. Use cache on datacenter to improve performance 
+2. Queueing mechanism on proxy
+3. Random number proxy selection
+4. Research about Async behaviour (using queue)
+
+5. Client file: threading vs futures
