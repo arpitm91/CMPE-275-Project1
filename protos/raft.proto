@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package grpc;
+
+enum LogOperation {
+    UploadRequested = 0;
+    Uploaded = 1;
+    UploadFaied = 2;
+    Deleted = 3;
+}
+
+enum Vote {
+    YES = 0;
+    NO = 1;
+}
+
+message Ack {
+	int64 id = 1;
+}
+
+message TableLog {
+    string fileName = 1;
+    int64 chunkId = 2;
+    string ip = 3;
+    string port = 4;
+    int64 log_index = 5;
+    LogOperation operation = 6;
+}
+
+message Table {
+    int64 cycle_number = 1;
+    string leader_ip = 2;
+    string leader_port = 3;
+    repeated TableLog tableLog = 4;
+}
+
+message Candidacy {
+    int64 cycle_number = 1;
+    string ip = 2;
+    string port = 3;
+    int64 log_length = 4;
+}
+
+message CandidacyResponse {
+    Vote voted = 1;
+    int64 cycle_number = 2;
+}
+
+message  ProxyInfo {
+	string ip = 1;
+	string port = 2;
+}
+
+message  DataCenterInfo {
+	string ip = 1;
+	string port = 2;
+}
+
+message ProxyList {
+	repeated ProxyInfo lstProxy = 1;
+}
+
+message FileUploadInfo {
+	string fileName = 1;		// teamname_fileid (unique)
+	float fileSize = 2;
+}
+
+message Empty {
+
+}
+
+message ReplicationInfo {
+    string fileName = 1;
+    int64 chunkId = 2;
+    DataCenterInfo fromDatacenter = 3;
+}
+
+service DataTransferService {
+    rpc RaftHeartbit (Table) returns (Ack);
+    rpc RequestVote (Candidacy) returns (CandidacyResponse);
+    rpc AddFileLog (TableLog) returns (Ack);
+    rpc AddDataCenter (DataCenterInfo) returns (Empty);
+    rpc DataCenterHeartbeat(Empty) returns (Empty);
+    rpc ReplicationInitiate(ReplicationInfo) returns (Ack);
+
+    	// Request File upload get back proxy list to
+	// return proxylist when raft consensus is reached
+	rpc RequestFileUpload(FileUploadInfo) returns (ProxyList);
+}

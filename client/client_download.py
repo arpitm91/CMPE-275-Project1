@@ -2,6 +2,7 @@ import threading
 import random
 import pprint
 
+import google
 import grpc
 import sys
 import os
@@ -30,14 +31,15 @@ def download_chunk(file_name, chunk_num, startSeqNum, proxy_address, proxy_port)
         request.fileName = file_name
         request.chunkId = chunk_num
         request.startSeqNum = startSeqNum
-        for response in stub.DownloadChunk(request):
-            print("Response received: ", response.seqNum, "/", response.seqMax)
-            next_sequence_to_download[chunk_num] = response.seqNum + 1
-            maximum_number_of_sequences[chunk_num] = response.seqMax
-            write_file_chunks(response, os.path.join(os.path.dirname(os.path.realpath(__file__)), "Downloads"))
-            print(chunk_num, "last seq :",next_sequence_to_download[chunk_num],"max seq :",maximum_number_of_sequences[chunk_num])
-        # except:
-        #     print("download exception !!!")
+        try:
+            for response in stub.DownloadChunk(request):
+                print("Response received: ", response.seqNum, "/", response.seqMax)
+                next_sequence_to_download[chunk_num] = response.seqNum + 1
+                maximum_number_of_sequences[chunk_num] = response.seqMax
+                write_file_chunks(response, os.path.join(os.path.dirname(os.path.realpath(__file__)), "Downloads"))
+                print(chunk_num, "last seq :",next_sequence_to_download[chunk_num],"max seq :",maximum_number_of_sequences[chunk_num])
+        except:
+            print("Failed to connect to data center..Retrying !!")
 
         print("request completed for :", file_name, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port,"last seq :",next_sequence_to_download[chunk_num],"max seq :",maximum_number_of_sequences[chunk_num])
 

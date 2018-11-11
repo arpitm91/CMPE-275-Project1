@@ -3,6 +3,7 @@ import math
 import sys
 import glob
 import shutil
+import pathlib
 
 import time
 
@@ -53,11 +54,10 @@ def get_file_seqs_per_chunk(filename, chunk_num):
 
 def write_file_chunks(message, folder):
     path = os.path.join(folder, message.fileName)
-    if not os.path.exists(path):
-        os.makedirs(path)
+    pathlib.Path(path).mkdir(exist_ok=True)
     file_name = os.path.join(folder, message.fileName, str(message.chunkId))
-    with open(file_name, "ab") as myfile:
-        myfile.write(message.data)
+    with open(file_name, "ab") as my_file:
+        my_file.write(message.data)
 
 def merge_chunks(file_name_folder, folder, maxChunks):
     merged_file_name = os.path.join(folder, file_name_folder + "_" + str(math.ceil(time.time())))
