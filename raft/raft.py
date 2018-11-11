@@ -1,40 +1,37 @@
 import threading
 from concurrent import futures
-from collections import defaultdict
-from random import random
-from enum import Enum
 
 import pprint
 import grpc, functools
 import time
 import sys
+import os
+import math
+
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "utils"))
 
 import raft_pb2 as raft
 import raft_pb2_grpc as rpc
 
-from utils.input_output_util import get_input
-from utils.input_output_util import print_msg
-from utils.input_output_util import log_error
-from utils.input_output_util import log_info
-from utils.input_output_util import print_take_input_msg
-from utils.input_output_util import log_forwarding_info
-from utils.input_output_util import print_file_info
+from input_output_util import log_info
+from timer_utils import TimerUtil
 
-from utils.file_utils import get_file_chunks
-from utils.file_utils import write_file_chunks
-from utils.file_utils import get_total_file_chunks
+from constants import CHUNK_SIZE
 
-from utils.timer_utils import TimerUtil
 import configs.connections as connections
-
 from configs.connections import MAX_RAFT_NODES
 
-import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 
-class ThreadPoolExecutorStackTraced(ThreadPoolExecutor):
+from globals import Globals
+from globals import NodeState
+from tables import Tables
 
+
+class ThreadPoolExecutorStackTraced(ThreadPoolExecutor):
     def submit(self, fn, *args, **kwargs):
         """Submits the wrapped function instead of `fn`"""
 
@@ -50,34 +47,10 @@ class ThreadPoolExecutorStackTraced(ThreadPoolExecutor):
             return fn(*args, **kwargs)
         except Exception:
             raise sys.exc_info()[0](traceback.format_exc())  # Creates an
-                                                             # exception of the
-                                                             # same type with the
-                                                             # traceback as
-                                                             # message
-
-class NodeState(Enum):
-    CANDIDATE   = 0
-    FOLLOWER    = 1
-    LEADER      = 2
-
-class Globals:
-    LST_CLIENTS = []
-    FILE_LOGS = []
-    FILE_INFO_TABLE = {}
-
-    NODE_STATE = NodeState.FOLLOWER
-    CURRENT_CYCLE = 0
-    HAS_CURRENT_VOTED = False
-    MY_PORT = ""
-    MY_IP = ""
-    NUMBER_OF_VOTES = 0
-    LEADER_PORT = ""
-    LEADER_IP = ""
-    HEARTBEAT_TIMEOUT = 2
-
-    LAST_SENT_TABLE_LOG = 0
-
-    CURRENT_LOG_INDEX = 0
+            # exception of the
+            # same type with the
+            # traceback as
+            # message
 
 def _increment_cycle_and_reset():
     Globals.CURRENT_CYCLE += 1
@@ -102,6 +75,7 @@ def _random_timeout():
 
     random_timer.reset()
 
+
 def _heartbeat_timeout():
     if Globals.NODE_STATE == NodeState.FOLLOWER:
         pass
@@ -115,22 +89,24 @@ def _heartbeat_timeout():
         _send_heartbeat()
     heartbeat_timer.reset()
 
+
 random_timer = TimerUtil(_random_timeout)
 heartbeat_timer = TimerUtil(_heartbeat_timeout, Globals.HEARTBEAT_TIMEOUT)
 
-def _process_heartbeat(client,table, call_future):
-    log_info("_process_heartbeat:",client.server_port)
+
+def _process_heartbeat(client, table, call_future):
+    log_info("_process_heartbeat:", client.server_port)
     # log_info(client.server_port)
     # log_info(call_future.result())
 
-def _process_request_for_vote(client,Candidacy, call_future):
+
+def _process_request_for_vote(client, Candidacy, call_future):
     with ThreadPoolExecutorStackTraced(max_workers=10) as executor:
         try:
             candidacy_response = call_future.result()
         except:
             log_info("Exception Error !!", client.server_port)
             return
-
 
     if candidacy_response.voted == raft.YES and candidacy_response.cycle_number == Globals.CURRENT_CYCLE:
         Globals.NUMBER_OF_VOTES += 1
@@ -142,18 +118,20 @@ def _process_request_for_vote(client,Candidacy, call_future):
             _send_heartbeat()
             random_timer.reset()
 
+
 def _send_heartbeat():
     table = raft.Table()
     table.cycle_number = Globals.CURRENT_CYCLE
     table.leader_ip = Globals.MY_IP
     table.leader_port = Globals.MY_PORT
 
-    # added_logs = Globals.FILE_LOGS[Globals.LAST_SENT_TABLE_LOG:]
-    Globals.LAST_SENT_TABLE_LOG = len(Globals.FILE_LOGS)
-    table.tableLog.extend(Globals.FILE_LOGS)
+    # added_logs = Tables.FILE_LOGS[Globals.LAST_SENT_TABLE_LOG:]
+    Globals.LAST_SENT_TABLE_LOG = len(Tables.FILE_LOGS)
+    table.tableLog.extend(Tables.FILE_LOGS)
 
     for client in Globals.LST_CLIENTS:
         client._RaftHeartbit(table)
+
 
 def _ask_for_vote():
     log_info("Asking for vote...", Globals.CURRENT_CYCLE)
@@ -161,14 +139,16 @@ def _ask_for_vote():
     candidacy.cycle_number = Globals.CURRENT_CYCLE
     candidacy.port = Globals.MY_PORT
     candidacy.ip = Globals.MY_IP
-    candidacy.log_length = len(Globals.FILE_LOGS)
+    candidacy.log_length = len(Tables.FILE_LOGS)
 
     for client in Globals.LST_CLIENTS:
         client._RequestVote(candidacy)
 
+
 class Client:
     def __init__(self, username, server_address, server_port):
         self.username = username
+        self.server_address = server_address
         self.server_port = server_port
         # create a gRPC channel + stub
         channel = grpc.insecure_channel(server_address + ':' + str(server_port))
@@ -178,28 +158,36 @@ class Client:
 
     def _RaftHeartbit(self, table):
         try:
-            call_future = self.conn.RaftHeartbit.future(table, timeout = Globals.HEARTBEAT_TIMEOUT * 0.9)
-            call_future.add_done_callback(functools.partial(_process_heartbeat, self,table))
-        except e:
+            call_future = self.conn.RaftHeartbit.future(table, timeout=Globals.HEARTBEAT_TIMEOUT * 0.9)
+            call_future.add_done_callback(functools.partial(_process_heartbeat, self, table))
+        except:
             log_info("Exeption: _RaftHeartbit")
 
     def _RequestVote(self, Candidacy):
-        call_future = self.conn.RequestVote.future(Candidacy, timeout = Globals.HEARTBEAT_TIMEOUT * 0.9)
-        call_future.add_done_callback(functools.partial(_process_request_for_vote, self,Candidacy))
+        call_future = self.conn.RequestVote.future(Candidacy, timeout=Globals.HEARTBEAT_TIMEOUT * 0.9)
+        call_future.add_done_callback(functools.partial(_process_request_for_vote, self, Candidacy))
+
+    def _RequestFileUpload(self, FileUploadInfo):
+        return self.conn.RequestFileUpload(FileUploadInfo)
+
 
 # server
 class ChatServer(rpc.DataTransferServiceServicer):
     def __init__(self, username):
         self.username = username
 
-    def RaftHeartbit(self, request: raft.Table, context):
+    '''
+    request: raft.Table
+    context:
+    '''
 
-        log_info("heartbit arrived: ", len(Globals.FILE_LOGS))
-        pprint.pprint(request)
+    def RaftHeartbit(self, request, context):
+
+        log_info("heartbit arrived: ", len(Tables.FILE_LOGS))
 
         ack = raft.Ack()
 
-        if len(request.tableLog) > len(Globals.FILE_LOGS):
+        if len(request.tableLog) > len(Tables.FILE_LOGS):
 
             Globals.NODE_STATE = NodeState.FOLLOWER
             Globals.CURRENT_CYCLE = request.cycle_number
@@ -208,7 +196,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
             Globals.LEADER_PORT = request.leader_port
             Globals.LEADER_IP = request.leader_ip
 
-        elif len(request.tableLog) == len(Globals.FILE_LOGS) and request.cycle_number > Globals.CURRENT_CYCLE:
+        elif len(request.tableLog) == len(Tables.FILE_LOGS) and request.cycle_number > Globals.CURRENT_CYCLE:
 
             Globals.NODE_STATE = NodeState.FOLLOWER
             Globals.CURRENT_CYCLE = request.cycle_number
@@ -216,46 +204,35 @@ class ChatServer(rpc.DataTransferServiceServicer):
             Globals.NUMBER_OF_VOTES = 0
             Globals.LEADER_PORT = request.leader_port
             Globals.LEADER_IP = request.leader_ip
-
 
         elif request.leader_ip != Globals.LEADER_IP or request.leader_port != Globals.LEADER_PORT:
             ack.id = -1
             return ack
 
         random_timer.reset()
-        log_info("MY Leader: ",Globals.LEADER_PORT, len(Globals.FILE_LOGS))
+        log_info("MY Leader: ", Globals.LEADER_PORT, len(Tables.FILE_LOGS))
 
-        Globals.FILE_LOGS = []
-        for tl in request.tableLog:
-            log_info("LOG Arrived: ")
-            Globals.FILE_LOGS.append(tl)          
-            if tl.operation == raft.Remove:            
-                if tl.file_number in Globals.FILE_INFO_TABLE and tl.chunk_number in Globals.FILE_INFO_TABLE[tl.file_number]:
-                    Globals.FILE_INFO_TABLE[tl.file_number][tl.chunk_number].discard((tl.ip, tl.port))
+        # Update Table_log and File_info_table
+        Tables.set_file_log(request.tableLog)
 
-            elif tl.operation == raft.Add:
-                if tl.file_number not in Globals.FILE_INFO_TABLE:
-                    Globals.FILE_INFO_TABLE[tl.file_number] = {}
-                
-                if tl.chunk_number not in Globals.FILE_INFO_TABLE[tl.file_number]:
-                    Globals.FILE_INFO_TABLE[tl.file_number][tl.chunk_number] = set()
-                
-                Globals.FILE_INFO_TABLE[tl.file_number][tl.chunk_number].add((tl.ip, tl.port))
-        
+        ack.id = len(Tables.FILE_LOGS)
 
-        ack.id = len(Globals.FILE_LOGS)
-
-        # pprint.pprint(Globals.FILE_INFO_TABLE)
+        pprint.pprint(Tables.TABLE_FILE_INFO)
 
         return ack
 
+    '''
+    request: raft.Candidacy
+    context:
+    '''
 
-    def RequestVote(self, request: raft.Candidacy, context):
+    def RequestVote(self, request, context):
         candidacy_response = raft.CandidacyResponse()
 
-        if request.log_length < len(Globals.FILE_LOGS):
+        if request.log_length < len(Tables.FILE_LOGS):
             candidacy_response.voted = raft.NO
-        elif request.cycle_number > Globals.CURRENT_CYCLE or (request.cycle_number == Globals.CURRENT_CYCLE and not Globals.HAS_CURRENT_VOTED):
+        elif request.cycle_number > Globals.CURRENT_CYCLE or (
+                        request.cycle_number == Globals.CURRENT_CYCLE and not Globals.HAS_CURRENT_VOTED):
             Globals.CURRENT_CYCLE = request.cycle_number
             Globals.HAS_CURRENT_VOTED = True
             Globals.NUMBER_OF_VOTES = 0
@@ -272,15 +249,77 @@ class ChatServer(rpc.DataTransferServiceServicer):
 
         return candidacy_response
 
-    def AddFileLog(self, request: raft.TableLog, context):
+    '''
+    request: raft.TableLog
+    context:
+    '''
+
+    def AddFileLog(self, request, context):
         if Globals.NODE_STATE == NodeState.LEADER:
-            request.log_index = Globals.CURRENT_LOG_INDEX
-            Globals.CURRENT_LOG_INDEX += 1
-            Globals.FILE_LOGS.append(request)
+            request.log_index = Globals.get_next_log_index()
+            Tables.FILE_LOGS.append(request)
             log_info("LOG ADDED")
+
+            # Update Table_log and File_info_table
+            Tables.set_file_log(Tables.FILE_LOGS)
+
         ack = raft.Ack()
         ack.id = 1
         return ack
+
+    '''
+    request: raft.FileUploadInfo
+    context:
+    '''
+
+    def RequestFileUpload(self, request, context):
+
+        if Globals.NODE_STATE == NodeState.LEADER:
+            my_reply = raft.ProxyList()
+
+            file_name = request.fileName
+            file_size = request.fileSize
+            total_chunks = math.ceil(file_size / CHUNK_SIZE)
+
+            if Tables.is_file_exists(file_name):
+                return my_reply
+
+            for chunk_id in range(total_chunks):
+                random_dcs = Tables.get_random_available_dc(Globals.REPLICATION_FACTOR)
+                Tables.insert_file_chunk_info_to_file_log(file_name, chunk_id, random_dcs, raft.UploadRequested)
+
+            pprint.pprint("TABLE_FILE_INFO")
+            pprint.pprint(Tables.TABLE_FILE_INFO)
+
+            lst_proxies = Tables.get_all_available_proxies()
+            lst_proxy_info = []
+            for ip, port in lst_proxies:
+                proxy_info = raft.ProxyInfo()
+                proxy_info.ip = ip
+                proxy_info.port = port
+                lst_proxy_info.append(proxy_info)
+
+            my_reply.lstProxy.extend(lst_proxy_info)
+
+            print("Replied to :")
+            pprint.pprint(request)
+            pprint.pprint(my_reply)
+            print("############################")
+            return my_reply
+
+        else:
+            client = None
+            for c in Globals.LST_CLIENTS:
+                if c.server_address == Globals.LEADER_IP and c.server_port == Globals.LEADER_PORT:
+                    client = c
+                    break
+
+            if client:
+                my_reply = client._RequestFileUpload(request)
+                return my_reply
+            else:
+                return raft.ProxyList()
+
 
 def start_client(username, server_address, server_port):
     c = Client(username, server_address, server_port)
@@ -301,13 +340,17 @@ def start_server(username, my_port):
         time.sleep(64 * 64 * 100)
 
 
-
 def main(argv):
     username = argv[1]
     Globals.MY_PORT = connections.connections[username]["own"]["port"]
     Globals.MY_IP = connections.connections[username]["own"]["ip"]
 
     threading.Thread(target=start_server, args=(username, Globals.MY_PORT), daemon=True).start()
+
+    # Init Data-center Table
+    Tables.init_dc(connections.data_centers)
+    # Init Proxies Table
+    Tables.init_proxies(connections.lst_proxies)
 
     for client in connections.connections[username]["clients"]:
         # client
@@ -328,10 +371,10 @@ def main(argv):
 if __name__ == '__main__':
     main(sys.argv[:])
 
-# TODO:
-# 1. Make TABLE_LOG a set
-# 2. Node should have map for last_log_index sent to each other node (last_log_index is updated on ack)
-# 3. Should only sent TABLE_LOG to other node starting from last_log_index for that node
-#
-# 4. Should not commit log before acknowledged from more than half of the nodes
-# 5. Instead of using MAX_RAFT_NODES, MAX_RAFT_NODES should be calculated from array
+    # TODO:
+    # 1. Make TABLE_LOG a set
+    # 2. Node should have map for last_log_index sent to each other node (last_log_index is updated on ack)
+    # 3. Should only sent TABLE_LOG to other node starting from last_log_index for that node
+    #
+    # 4. Should not commit log before acknowledged from more than half of the nodes
+    # 5. Instead of using MAX_RAFT_NODES, MAX_RAFT_NODES should be calculated from array

@@ -3,8 +3,10 @@ syntax = "proto3";
 package grpc;
 
 enum LogOperation {
-    Add = 0;
-    Remove = 1;
+    UploadRequested = 0;
+    Uploaded = 1;
+    UploadFaied = 2;
+    Deleted = 3;
 }
 
 enum Vote {

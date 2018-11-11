@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='grpc',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\nraft.proto\x12\x04grpc\"\x11\n\x03\x41\x63k\x12\n\n\x02id\x18\x01 \x01(\x03\"\x81\x01\n\x08TableLog\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12\n\n\x02ip\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\t\x12\x11\n\tlog_index\x18\x05 \x01(\x03\x12%\n\toperation\x18\x06 \x01(\x0e\x32\x12.grpc.LogOperation\"g\n\x05Table\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\x11\n\tleader_ip\x18\x02 \x01(\t\x12\x13\n\x0bleader_port\x18\x03 \x01(\t\x12 \n\x08tableLog\x18\x04 \x03(\x0b\x32\x0e.grpc.TableLog\"O\n\tCandidacy\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\n\n\x02ip\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\x12\x12\n\nlog_length\x18\x04 \x01(\x03\"D\n\x11\x43\x61ndidacyResponse\x12\x19\n\x05voted\x18\x01 \x01(\x0e\x32\n.grpc.Vote\x12\x14\n\x0c\x63ycle_number\x18\x02 \x01(\x03\"%\n\tProxyInfo\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\"*\n\x0e\x44\x61taCenterInfo\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\".\n\tProxyList\x12!\n\x08lstProxy\x18\x01 \x03(\x0b\x32\x0f.grpc.ProxyInfo\"4\n\x0e\x46ileUploadInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x10\n\x08\x66ileSize\x18\x02 \x01(\x02\"\x07\n\x05\x45mpty\"b\n\x0fReplicationInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12,\n\x0e\x66romDatacenter\x18\x03 \x01(\x0b\x32\x14.grpc.DataCenterInfo*#\n\x0cLogOperation\x12\x07\n\x03\x41\x64\x64\x10\x00\x12\n\n\x06Remove\x10\x01*\x17\n\x04Vote\x12\x07\n\x03YES\x10\x00\x12\x06\n\x02NO\x10\x01\x32\xf9\x02\n\x13\x44\x61taTransferService\x12&\n\x0cRaftHeartbit\x12\x0b.grpc.Table\x1a\t.grpc.Ack\x12\x37\n\x0bRequestVote\x12\x0f.grpc.Candidacy\x1a\x17.grpc.CandidacyResponse\x12\'\n\nAddFileLog\x12\x0e.grpc.TableLog\x1a\t.grpc.Ack\x12\x32\n\rAddDataCenter\x12\x14.grpc.DataCenterInfo\x1a\x0b.grpc.Empty\x12/\n\x13\x44\x61taCenterHeartbeat\x12\x0b.grpc.Empty\x1a\x0b.grpc.Empty\x12\x37\n\x13ReplicationInitiate\x12\x15.grpc.ReplicationInfo\x1a\t.grpc.Ack\x12:\n\x11RequestFileUpload\x12\x14.grpc.FileUploadInfo\x1a\x0f.grpc.ProxyListb\x06proto3')
+  serialized_pb=_b('\n\nraft.proto\x12\x04grpc\"\x11\n\x03\x41\x63k\x12\n\n\x02id\x18\x01 \x01(\x03\"\x81\x01\n\x08TableLog\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12\n\n\x02ip\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\t\x12\x11\n\tlog_index\x18\x05 \x01(\x03\x12%\n\toperation\x18\x06 \x01(\x0e\x32\x12.grpc.LogOperation\"g\n\x05Table\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\x11\n\tleader_ip\x18\x02 \x01(\t\x12\x13\n\x0bleader_port\x18\x03 \x01(\t\x12 \n\x08tableLog\x18\x04 \x03(\x0b\x32\x0e.grpc.TableLog\"O\n\tCandidacy\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\n\n\x02ip\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\x12\x12\n\nlog_length\x18\x04 \x01(\x03\"D\n\x11\x43\x61ndidacyResponse\x12\x19\n\x05voted\x18\x01 \x01(\x0e\x32\n.grpc.Vote\x12\x14\n\x0c\x63ycle_number\x18\x02 \x01(\x03\"%\n\tProxyInfo\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\"*\n\x0e\x44\x61taCenterInfo\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\".\n\tProxyList\x12!\n\x08lstProxy\x18\x01 \x03(\x0b\x32\x0f.grpc.ProxyInfo\"4\n\x0e\x46ileUploadInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x10\n\x08\x66ileSize\x18\x02 \x01(\x02\"\x07\n\x05\x45mpty\"b\n\x0fReplicationInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12,\n\x0e\x66romDatacenter\x18\x03 \x01(\x0b\x32\x14.grpc.DataCenterInfo*O\n\x0cLogOperation\x12\x13\n\x0fUploadRequested\x10\x00\x12\x0c\n\x08Uploaded\x10\x01\x12\x0f\n\x0bUploadFaied\x10\x02\x12\x0b\n\x07\x44\x65leted\x10\x03*\x17\n\x04Vote\x12\x07\n\x03YES\x10\x00\x12\x06\n\x02NO\x10\x01\x32\xf9\x02\n\x13\x44\x61taTransferService\x12&\n\x0cRaftHeartbit\x12\x0b.grpc.Table\x1a\t.grpc.Ack\x12\x37\n\x0bRequestVote\x12\x0f.grpc.Candidacy\x1a\x17.grpc.CandidacyResponse\x12\'\n\nAddFileLog\x12\x0e.grpc.TableLog\x1a\t.grpc.Ack\x12\x32\n\rAddDataCenter\x12\x14.grpc.DataCenterInfo\x1a\x0b.grpc.Empty\x12/\n\x13\x44\x61taCenterHeartbeat\x12\x0b.grpc.Empty\x1a\x0b.grpc.Empty\x12\x37\n\x13ReplicationInitiate\x12\x15.grpc.ReplicationInfo\x1a\t.grpc.Ack\x12:\n\x11RequestFileUpload\x12\x14.grpc.FileUploadInfo\x1a\x0f.grpc.ProxyListb\x06proto3')
 )
 
 _LOGOPERATION = _descriptor.EnumDescriptor(
@@ -30,18 +30,26 @@ _LOGOPERATION = _descriptor.EnumDescriptor(
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='Add', index=0, number=0,
+      name='UploadRequested', index=0, number=0,
       serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='Remove', index=1, number=1,
+      name='Uploaded', index=1, number=1,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='UploadFaied', index=2, number=2,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='Deleted', index=3, number=3,
       serialized_options=None,
       type=None),
   ],
   containing_type=None,
   serialized_options=None,
   serialized_start=721,
-  serialized_end=756,
+  serialized_end=800,
 )
 _sym_db.RegisterEnumDescriptor(_LOGOPERATION)
 
@@ -63,14 +71,16 @@ _VOTE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=758,
-  serialized_end=781,
+  serialized_start=802,
+  serialized_end=825,
 )
 _sym_db.RegisterEnumDescriptor(_VOTE)
 
 Vote = enum_type_wrapper.EnumTypeWrapper(_VOTE)
-Add = 0
-Remove = 1
+UploadRequested = 0
+Uploaded = 1
+UploadFaied = 2
+Deleted = 3
 YES = 0
 NO = 1
 
@@ -633,8 +643,8 @@ _DATATRANSFERSERVICE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=784,
-  serialized_end=1161,
+  serialized_start=828,
+  serialized_end=1205,
   methods=[
   _descriptor.MethodDescriptor(
     name='RaftHeartbit',
