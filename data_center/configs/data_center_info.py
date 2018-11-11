@@ -1,6 +1,6 @@
 data_center = {
-    "dc_0": {
-        "port": "10010",
+    "dc_aartee": {
+        "port": "10001",
         "folder": "/Users/aarteekasliwal/Desktop/DataCenter/0"
     },
     "dc_1": {

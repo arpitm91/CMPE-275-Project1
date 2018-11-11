@@ -59,14 +59,15 @@ def write_file_chunks(message, folder):
     with open(file_name, "ab") as myfile:
         myfile.write(message.data)
 
-#
 def merge_chunks(file_name_folder, folder, maxChunks):
-    merged_file_name = os.path.join(folder, "merged_file" + str(math.ceil(time.time())))
+    merged_file_name = os.path.join(folder, file_name_folder + "_" + str(math.ceil(time.time())))
     download_folder = os.path.join(folder, file_name_folder)
     with open(merged_file_name, "ab") as merged_file:
         for chunks in range(maxChunks):
-            with open(os.path.join(download_folder, str(chunks)), "rb") as chunk_file:
-                merged_file.write(chunk_file.read())
-
-    shutil.rmtree(download_folder)
-    os.rename(merged_file_name, download_folder)
+            try:
+                with open(os.path.join(download_folder, str(chunks)), "rb") as chunk_file:
+                    merged_file.write(chunk_file.read())
+            except:
+                print("exception in merge chunk !!")
+    if os.path.exists(download_folder):
+        shutil.rmtree(download_folder)

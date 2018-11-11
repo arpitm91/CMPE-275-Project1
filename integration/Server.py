@@ -19,12 +19,15 @@ def get_total_file_chunks(filename):
 
 
 def get_file_chunks(filename):
-    with open(filename, 'rb') as f:
-        while True:
-            piece = f.read(CHUNK_SIZE)
-            if not piece:
-                break
-            yield piece
+    try:
+        with open(filename, 'rb') as f:
+            while True:
+                piece = f.read(CHUNK_SIZE)
+                if not piece:
+                    break
+                yield piece
+    except:
+        print("chunk reading exception..")
 
 class Reply(rpc.DataTransferServiceServicer):
 
