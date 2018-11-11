@@ -2,7 +2,8 @@ syntax = "proto3";
 
 package grpc;
 
-message Empty {
+message RequestFileList {
+ 	bool isClient=1;		// true then client else other team
 }
 
 message FileInfo {
@@ -70,9 +71,15 @@ service DataTransferService {
 	rpc UploadFile (stream FileUploadData) returns (FileInfo);
 
 	// Interteam request
-	rpc ListFiles (Empty) returns (FileList);
+	rpc ListFiles (RequestFileList) returns (FileList);
 
-	// Request File upload get back proxy list to 
+
+	// Request File upload get back proxy list to
 	// return proxylist when raft consensus is reached
 	rpc RequestFileUpload(FileUploadInfo) returns (ProxyList);
 }
+
+
+
+// 1. Upload file
+// 2. List files
