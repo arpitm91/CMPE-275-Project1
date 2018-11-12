@@ -70,7 +70,7 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
                     reply.seqMax = total_seq
                     print("Sent...", file_name, "chunk", chunk_id, "seq", current_seq)
                     current_seq += 1
-                    time.sleep(1)
+                    # time.sleep(1)
                     yield reply
                 else:
                     current_seq += 1

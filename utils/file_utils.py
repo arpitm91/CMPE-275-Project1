@@ -67,6 +67,7 @@ def merge_chunks(file_name_folder, folder, maxChunks):
             try:
                 with open(os.path.join(download_folder, str(chunks)), "rb") as chunk_file:
                     merged_file.write(chunk_file.read())
+                    os.remove(os.path.join(download_folder, str(chunks)))
             except:
                 print("exception in merge chunk !!")
     if os.path.exists(download_folder):
