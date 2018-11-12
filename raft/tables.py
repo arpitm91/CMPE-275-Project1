@@ -33,7 +33,7 @@ class Tables:
     # Key: (ip1, port1), Value: True/False (DC Available or Not)
     TABLE_DC_INFO = {}
 
-    # Key: (ip1, port1), Value: True/False (DC Available or Not)
+    # Key: (ip1, port1), Value: True/False (Proxy Available or Not)
     TABLE_PROXY_INFO = {}
 
     @staticmethod
@@ -144,3 +144,25 @@ class Tables:
 
         if chunk_id not in Tables.TABLE_FILE_INFO[file_name]:
             Tables.TABLE_FILE_INFO[file_name][chunk_id] = {}
+
+    @staticmethod
+    def get_all_available_file_list():
+        file_list = []
+        for file_name in Tables.TABLE_FILE_INFO.keys():
+            total_chunks = len(Tables.TABLE_FILE_INFO[file_name].keys())
+            uploaded_chunks = 0
+            for chunk_id in Tables.TABLE_FILE_INFO[file_name].keys():
+                for dc in Tables.TABLE_FILE_INFO[file_name][chunk_id].keys():
+                    # TODO: Add below condition before returning file list, after we mark file/chunk status to uploaded
+                    # if Tables.TABLE_FILE_INFO[file_name][chunk_id][dc] == raft.Uploaded:
+                    uploaded_chunks += 1
+                    break
+            if total_chunks == uploaded_chunks:
+                file_list.append(file_name)
+        return file_list
+
+
+
+
+
+

@@ -52,6 +52,7 @@ class ThreadPoolExecutorStackTraced(ThreadPoolExecutor):
             # traceback as
             # message
 
+
 def _increment_cycle_and_reset():
     Globals.CURRENT_CYCLE += 1
     Globals.HAS_CURRENT_VOTED = True
@@ -76,7 +77,7 @@ def _random_timeout():
     random_timer.reset()
 
 
-def _heartbeat_timeout():
+def _raft_heartbeat_timeout():
     if Globals.NODE_STATE == NodeState.FOLLOWER:
         pass
     elif Globals.NODE_STATE == NodeState.LEADER:
@@ -87,11 +88,18 @@ def _heartbeat_timeout():
         log_info("_heartbeat_timeout: ", Globals.NODE_STATE, Globals.CURRENT_CYCLE)
         _ask_for_vote()
         _send_heartbeat()
-    heartbeat_timer.reset()
+    raft_heartbeat_timer.reset()
+
+
+def _dc_heartbeat_timeout():
+    if Globals.NODE_STATE == NodeState.LEADER:
+        pass
+    dc_heartbeat_timer.reset()
 
 
 random_timer = TimerUtil(_random_timeout)
-heartbeat_timer = TimerUtil(_heartbeat_timeout, Globals.HEARTBEAT_TIMEOUT)
+raft_heartbeat_timer = TimerUtil(_raft_heartbeat_timeout, Globals.RAFT_HEARTBEAT_TIMEOUT)
+dc_heartbeat_timer = TimerUtil(_dc_heartbeat_timeout, Globals.DC_HEARTBEAT_TIMEOUT)
 
 
 def _process_heartbeat(client, table, call_future):
@@ -145,6 +153,15 @@ def _ask_for_vote():
         client._RequestVote(candidacy)
 
 
+def get_leader_client():
+    client = None
+    for c in Globals.LST_CLIENTS:
+        if c.server_address == Globals.LEADER_IP and c.server_port == Globals.LEADER_PORT:
+            client = c
+            break
+    return client
+
+
 class Client:
     def __init__(self, username, server_address, server_port):
         self.username = username
@@ -158,17 +175,20 @@ class Client:
 
     def _RaftHeartbit(self, table):
         try:
-            call_future = self.conn.RaftHeartbit.future(table, timeout=Globals.HEARTBEAT_TIMEOUT * 0.9)
+            call_future = self.conn.RaftHeartbit.future(table, timeout=Globals.RAFT_HEARTBEAT_TIMEOUT * 0.9)
             call_future.add_done_callback(functools.partial(_process_heartbeat, self, table))
         except:
             log_info("Exeption: _RaftHeartbit")
 
     def _RequestVote(self, Candidacy):
-        call_future = self.conn.RequestVote.future(Candidacy, timeout=Globals.HEARTBEAT_TIMEOUT * 0.9)
+        call_future = self.conn.RequestVote.future(Candidacy, timeout=Globals.RAFT_HEARTBEAT_TIMEOUT * 0.9)
         call_future.add_done_callback(functools.partial(_process_request_for_vote, self, Candidacy))
 
     def _RequestFileUpload(self, FileUploadInfo):
         return self.conn.RequestFileUpload(FileUploadInfo)
+
+    def _ListFile(self, RequestFileList):
+        return self.conn.ListFiles(RequestFileList)
 
 
 # server
@@ -308,17 +328,68 @@ class ChatServer(rpc.DataTransferServiceServicer):
             return my_reply
 
         else:
-            client = None
-            for c in Globals.LST_CLIENTS:
-                if c.server_address == Globals.LEADER_IP and c.server_port == Globals.LEADER_PORT:
-                    client = c
-                    break
-
+            client = get_leader_client()
             if client:
                 my_reply = client._RequestFileUpload(request)
                 return my_reply
             else:
                 return raft.ProxyList()
+
+    '''
+    request: raft.RequestFileList
+    context:
+    '''
+
+    def ListFiles(self, request, context):
+
+        if Globals.NODE_STATE == NodeState.LEADER:
+            my_reply = raft.FileList()
+            my_reply.lstFileNames.extend(Tables.get_all_available_file_list())
+            return my_reply
+        else:
+            client = get_leader_client()
+            if client:
+                my_reply = client._ListFile(request)
+                return my_reply
+            else:
+                return raft.FileList()
+
+    '''
+    request: raft.FileInfo
+    context:
+    '''
+
+    def RequestFileInfo(self, request, context):
+        my_reply = raft.FileLocationInfo()
+        file_name = request.fileName
+        is_file_found = True
+        if file_name not in Tables.TABLE_FILE_INFO.keys():
+            is_file_found = False
+
+        max_chunks = len(Tables.TABLE_FILE_INFO[file_name].keys())
+
+        lst_proxies = Tables.get_all_available_proxies()
+        lst_proxy_info = []
+        for ip, port in lst_proxies:
+            proxy_info = raft.ProxyInfo()
+            proxy_info.ip = ip
+            proxy_info.port = port
+            lst_proxy_info.append(proxy_info)
+
+        my_reply.fileName = file_name
+        my_reply.maxChunks = max_chunks
+        my_reply.lstProxy.extend(lst_proxy_info)
+        my_reply.isFileFound = is_file_found
+        return my_reply
+
+    '''
+    request: raft.DataCenterInfo
+    context:
+    '''
+
+    def AddDataCenter(self, request, context):
+        Tables.register_dc(request.ip, request.port)
+        return raft.Empty()
 
 
 def start_client(username, server_address, server_port):
@@ -361,7 +432,7 @@ def main(argv):
 
         # threading.Thread(target=start_client, args=(username, server_address, server_port), daemon=True).start()
     random_timer.start()
-    heartbeat_timer.start()
+    raft_heartbeat_timer.start()
 
     # Server starts in background (another thread) so keep waiting
     while True:

@@ -44,10 +44,25 @@ class DataTransferServiceStub(object):
         request_serializer=raft__pb2.ReplicationInfo.SerializeToString,
         response_deserializer=raft__pb2.Ack.FromString,
         )
+    self.RequestFileInfo = channel.unary_unary(
+        '/grpc.DataTransferService/RequestFileInfo',
+        request_serializer=raft__pb2.FileInfo.SerializeToString,
+        response_deserializer=raft__pb2.FileLocationInfo.FromString,
+        )
+    self.GetFileLocation = channel.unary_unary(
+        '/grpc.DataTransferService/GetFileLocation',
+        request_serializer=raft__pb2.FileInfo.SerializeToString,
+        response_deserializer=raft__pb2.FileLocationInfo.FromString,
+        )
     self.RequestFileUpload = channel.unary_unary(
         '/grpc.DataTransferService/RequestFileUpload',
         request_serializer=raft__pb2.FileUploadInfo.SerializeToString,
         response_deserializer=raft__pb2.ProxyList.FromString,
+        )
+    self.ListFiles = channel.unary_unary(
+        '/grpc.DataTransferService/ListFiles',
+        request_serializer=raft__pb2.RequestFileList.SerializeToString,
+        response_deserializer=raft__pb2.FileList.FromString,
         )
 
 
@@ -97,9 +112,30 @@ class DataTransferServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def RequestFileInfo(self, request, context):
+    """From team's client to team's own cluster
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def GetFileLocation(self, request, context):
+    """From team-1 cluster to rest of the nodes of other teams
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
   def RequestFileUpload(self, request, context):
     """Request File upload get back proxy list to
     return proxylist when raft consensus is reached
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def ListFiles(self, request, context):
+    """Interteam request
     """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
@@ -138,10 +174,25 @@ def add_DataTransferServiceServicer_to_server(servicer, server):
           request_deserializer=raft__pb2.ReplicationInfo.FromString,
           response_serializer=raft__pb2.Ack.SerializeToString,
       ),
+      'RequestFileInfo': grpc.unary_unary_rpc_method_handler(
+          servicer.RequestFileInfo,
+          request_deserializer=raft__pb2.FileInfo.FromString,
+          response_serializer=raft__pb2.FileLocationInfo.SerializeToString,
+      ),
+      'GetFileLocation': grpc.unary_unary_rpc_method_handler(
+          servicer.GetFileLocation,
+          request_deserializer=raft__pb2.FileInfo.FromString,
+          response_serializer=raft__pb2.FileLocationInfo.SerializeToString,
+      ),
       'RequestFileUpload': grpc.unary_unary_rpc_method_handler(
           servicer.RequestFileUpload,
           request_deserializer=raft__pb2.FileUploadInfo.FromString,
           response_serializer=raft__pb2.ProxyList.SerializeToString,
+      ),
+      'ListFiles': grpc.unary_unary_rpc_method_handler(
+          servicer.ListFiles,
+          request_deserializer=raft__pb2.RequestFileList.FromString,
+          response_serializer=raft__pb2.FileList.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
