@@ -54,6 +54,7 @@ def run(argv):
         file_location_info = stub.RequestFileInfo(request)
         print("Response received: ")
         pprint.pprint(file_location_info)
+        print(file_location_info.maxChunks)
 
         global next_sequence_to_download
         global maximum_number_of_sequences
@@ -66,6 +67,7 @@ def run(argv):
             # proxy
             proxy_address = file_location_info.lstProxy[random_proxy_index].ip
             proxy_port = file_location_info.lstProxy[random_proxy_index].port
+            print("proxy selected", proxy_address, proxy_port)
 
             threads.append(
                 threading.Thread(target=download_chunk, args=(

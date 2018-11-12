@@ -37,12 +37,27 @@ class Reply(rpc.DataTransferServiceServicer):
         my_reply.isFileFound = True
         my_reply.maxChunks = 2
 
-        proxy_info = file_transfer.ProxyInfo()
-        proxy_info.ip = "localhost"
-        proxy_info.port = "10001"
+        proxy_info_0 = file_transfer.ProxyInfo()
+        proxy_info_0.ip = "localhost"
+        proxy_info_0.port = "10004"
+
+        proxy_info_1 = file_transfer.ProxyInfo()
+        proxy_info_1.ip = "localhost"
+        proxy_info_1.port = "10001"
+
+        proxy_info_2 = file_transfer.ProxyInfo()
+        proxy_info_2.ip = "localhost"
+        proxy_info_2.port = "10002"
+
+        proxy_info_3 = file_transfer.ProxyInfo()
+        proxy_info_3.ip = "localhost"
+        proxy_info_3.port = "10003"
 
         my_reply.lstProxy.extend([
-            proxy_info
+            proxy_info_0,
+            proxy_info_1,
+            proxy_info_2,
+            proxy_info_3
         ])
         print("Replied to :")
         pprint.pprint(request)
@@ -67,12 +82,12 @@ class Reply(rpc.DataTransferServiceServicer):
     def DownloadChunk(self, request, context):
         current_chunk = 1
 
-        for file_buffer in get_file_chunks(filename):
+        for file_buffer in get_file_chunks(request.filename):
             my_reply = file_transfer.FileMetaData()
 
             my_reply.fileName = request.fileName
             my_reply.chunkId = request.chunkId
-            my_reply.seqMax = get_total_file_chunks(filename)
+            my_reply.seqMax = get_total_file_chunks(request.filename)
             current_chunk += 1
 
             print("Replied to :")

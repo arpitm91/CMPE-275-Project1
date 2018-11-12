@@ -1,15 +1,19 @@
 data_center = {
-    "dc_aartee": {
+    "dc_aartee_1": {
         "port": "10001",
-        "folder": "/Users/aarteekasliwal/Desktop/DataCenter/0"
-    },
-    "dc_1": {
-        "port": "10011",
         "folder": "/Users/aarteekasliwal/Desktop/DataCenter/1"
     },
-    "dc_2": {
-        "port": "10012",
+    "dc_aartee_2": {
+        "port": "10002",
         "folder": "/Users/aarteekasliwal/Desktop/DataCenter/2"
+    },
+    "dc_aartee_3": {
+        "port": "10003",
+        "folder": "/Users/aarteekasliwal/Desktop/DataCenter/3"
+    },
+    "dc_aartee_4": {
+        "port": "10004",
+        "folder": "/Users/aarteekasliwal/Desktop/DataCenter/4"
     },
     "dc_3": {
         "port": "10012",
