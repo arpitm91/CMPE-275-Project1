@@ -25,13 +25,13 @@ data_center = {
         "folder": "/Users/arpit/Desktop/DataCenter/DC1"
     },
     "dc_4": {
-        "ip": "10.0.1.2",
-        "port": "10001",
+        "ip": "localhost",
+        "port": "12000",
         "folder": "/Users/anujchaudhari/Desktop/CMPE275/DataCenter/0"
     },
     "dc_5": {
-        "ip": "10.0.1.2",
-        "port": "12000",
-        "folder": "/Users/anujchaudhari/Desktop/CMPE275/DataCenter/0"
+        "ip": "localhost",
+        "port": "12001",
+        "folder": "/Users/anujchaudhari/Desktop/CMPE275/DataCenter/1"
     }
 }

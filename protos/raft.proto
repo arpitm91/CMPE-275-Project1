@@ -7,11 +7,19 @@ enum LogOperation {
     Uploaded = 1;
     UploadFaied = 2;
     Deleted = 3;
+    TemporaryUnavailable = 4;
 }
 
 enum Vote {
     YES = 0;
     NO = 1;
+}
+
+enum ReplicationState {
+    ReplicationPending = 0;
+    ReplicationRequested = 1;
+    ReplicationStarted = 2;
+    ReplicationCompleted = 3;
 }
 
 message Ack {
@@ -60,6 +68,16 @@ message ReplicationInfo {
     DataCenterInfo fromDatacenter = 3;
 }
 
+message ChunkUploadInfo {
+    int64 chunkId = 1;
+    DataCenterInfo uploadedDatacenter = 2;
+}
+
+message UploadCompleteFileInfo {
+    string fileName = 1;
+    repeated ChunkUploadInfo lstChunkUploadInfo = 2;
+}
+
 service RaftService {
     rpc RaftHeartbit (Table) returns (Ack);
     rpc RequestVote (Candidacy) returns (CandidacyResponse);
@@ -67,4 +85,6 @@ service RaftService {
     rpc AddDataCenter (DataCenterInfo) returns (Empty);
     rpc DataCenterHeartbeat(Empty) returns (Empty);
     rpc ReplicationInitiate(ReplicationInfo) returns (Ack);
+
+    rpc FileUploadCompleted(UploadCompleteFileInfo) returns(Empty);
 }

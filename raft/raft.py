@@ -25,34 +25,12 @@ from constants import CHUNK_SIZE
 import configs.connections as connections
 from configs.connections import MAX_RAFT_NODES
 
-import traceback
-from concurrent.futures import ThreadPoolExecutor
-
 from globals import Globals
 from globals import NodeState
+from globals import ThreadPoolExecutorStackTraced
 from tables import Tables
-
-
-class ThreadPoolExecutorStackTraced(ThreadPoolExecutor):
-    def submit(self, fn, *args, **kwargs):
-        """Submits the wrapped function instead of `fn`"""
-
-        return super(ThreadPoolExecutorStackTraced, self).submit(
-            self._function_wrapper, fn, *args, **kwargs)
-
-    def _function_wrapper(self, fn, *args, **kwargs):
-        """Wraps `fn` in order to preserve the traceback of any kind of
-        raised exception
-
-        """
-        try:
-            return fn(*args, **kwargs)
-        except Exception:
-            raise sys.exc_info()[0](traceback.format_exc())  # Creates an
-            # exception of the
-            # same type with the
-            # traceback as
-            # message
+from tables import dc_heartbeat_timer
+from tables import DCGlobals
 
 
 def _increment_cycle_and_reset():
@@ -93,15 +71,21 @@ def _raft_heartbeat_timeout():
     raft_heartbeat_timer.reset()
 
 
-def _dc_heartbeat_timeout():
+def _check_and_send_replication_request():
+    replication_list = Tables.get_file_chunks_to_be_replicated_with_dc_info()
+    pprint.pprint("$$$$$$$$$$$$$$$ REPLICATION LIST ########################")
+    pprint.pprint(replication_list)
+
+
+def _dc_replication_timeout():
     if Globals.NODE_STATE == NodeState.LEADER:
-        pass
-    dc_heartbeat_timer.reset()
+        _check_and_send_replication_request()
+    dc_replication_timer.reset()
 
 
 random_timer = TimerUtil(_random_timeout)
 raft_heartbeat_timer = TimerUtil(_raft_heartbeat_timeout, Globals.RAFT_HEARTBEAT_TIMEOUT)
-dc_heartbeat_timer = TimerUtil(_dc_heartbeat_timeout, Globals.DC_HEARTBEAT_TIMEOUT)
+dc_replication_timer = TimerUtil(_dc_replication_timeout, DCGlobals.DC_REPLICATION_TIMEOUT)
 
 
 def _process_heartbeat(client, table, call_future):
@@ -139,7 +123,7 @@ def _send_heartbeat():
     Globals.LAST_SENT_TABLE_LOG = len(Tables.FILE_LOGS)
     table.tableLog.extend(Tables.FILE_LOGS)
 
-    for client in Globals.LST_CLIENTS:
+    for client in Globals.LST_RAFT_CLIENTS:
         client._RaftHeartbit(table)
 
 
@@ -151,13 +135,13 @@ def _ask_for_vote():
     candidacy.ip = Globals.MY_IP
     candidacy.log_length = len(Tables.FILE_LOGS)
 
-    for client in Globals.LST_CLIENTS:
+    for client in Globals.LST_RAFT_CLIENTS:
         client._RequestVote(candidacy)
 
 
 def get_leader_client():
     client = None
-    for c in Globals.LST_CLIENTS:
+    for c in Globals.LST_RAFT_CLIENTS:
         if c.server_address == Globals.LEADER_IP and c.server_port == Globals.LEADER_PORT:
             client = c
             break
@@ -193,6 +177,8 @@ class Client:
     def _ListFile(self, RequestFileList):
         return self.file_transfer_stub.ListFiles(RequestFileList)
 
+    def _FileUploadCompleted(self, UploadCompleteFileInfo):
+        return self.raft_stub.FileUploadCompleted(UploadCompleteFileInfo)
 
 # server
 class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.DataTransferServiceServicer):
@@ -308,7 +294,7 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
                 return my_reply
 
             for chunk_id in range(total_chunks):
-                random_dcs = Tables.get_random_available_dc(Globals.REPLICATION_FACTOR)
+                random_dcs = Tables.get_random_available_dc(1)
                 Tables.insert_file_chunk_info_to_file_log(file_name, chunk_id, random_dcs, raft_proto.UploadRequested)
 
             pprint.pprint("TABLE_FILE_INFO")
@@ -394,6 +380,26 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
         Tables.register_dc(request.ip, request.port)
         return raft_proto.Empty()
 
+    '''
+    request: raft.UploadCompleteFileInfo
+    '''
+
+    def FileUploadCompleted(self, request, context):
+        if Globals.NODE_STATE == NodeState.LEADER:
+            for chunk_info in request.lstChunkUploadInfo:
+                chunk_id = chunk_info.chunkId
+                lst_dc = [(chunk_info.uploadedDatacenter.ip, chunk_info.uploadedDatacenter.port)]
+                Tables.insert_file_chunk_info_to_file_log(request.fileName, chunk_id, lst_dc, raft_proto.Uploaded)
+
+        else:
+            client = get_leader_client()
+            if client:
+                my_reply = client._FileUploadCompleted(request)
+                return my_reply
+            else:
+                return raft_proto.Empty()
+        return raft_proto.Empty()
+
 
 def start_client(username, server_address, server_port):
     c = Client(username, server_address, server_port)
@@ -431,11 +437,13 @@ def main(argv):
         server_address = client["ip"]
         server_port = client["port"]
         c = Client(username, server_address, server_port)
-        Globals.LST_CLIENTS.append(c)
+        Globals.LST_RAFT_CLIENTS.append(c)
 
         # threading.Thread(target=start_client, args=(username, server_address, server_port), daemon=True).start()
     random_timer.start()
     raft_heartbeat_timer.start()
+    dc_heartbeat_timer.start()
+    dc_replication_timer.start()
 
     # Server starts in background (another thread) so keep waiting
     while True:

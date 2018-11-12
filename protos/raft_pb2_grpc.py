@@ -44,6 +44,11 @@ class RaftServiceStub(object):
         request_serializer=raft__pb2.ReplicationInfo.SerializeToString,
         response_deserializer=raft__pb2.Ack.FromString,
         )
+    self.FileUploadCompleted = channel.unary_unary(
+        '/grpc.RaftService/FileUploadCompleted',
+        request_serializer=raft__pb2.UploadCompleteFileInfo.SerializeToString,
+        response_deserializer=raft__pb2.Empty.FromString,
+        )
 
 
 class RaftServiceServicer(object):
@@ -92,6 +97,13 @@ class RaftServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def FileUploadCompleted(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_RaftServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -124,6 +136,11 @@ def add_RaftServiceServicer_to_server(servicer, server):
           servicer.ReplicationInitiate,
           request_deserializer=raft__pb2.ReplicationInfo.FromString,
           response_serializer=raft__pb2.Ack.SerializeToString,
+      ),
+      'FileUploadCompleted': grpc.unary_unary_rpc_method_handler(
+          servicer.FileUploadCompleted,
+          request_deserializer=raft__pb2.UploadCompleteFileInfo.FromString,
+          response_serializer=raft__pb2.Empty.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

@@ -235,9 +235,11 @@ connections = {
     }
 }
 
-data_centers = [("localhost", "10001"), ("localhost", "10002"), ("localhost", "10003"), ("localhost", "10004")]
-lst_proxies = [("localhost", "10001"), ("localhost", "10002"), ("localhost", "10003"), ("localhost", "10004")]
-
+data_centers = [("localhost", "12000"), ("localhost", "12001")]
+lst_proxies = [("localhost", "12000")]
+# data_centers = [("localhost", "10001"), ("localhost", "10002"), ("localhost", "10003"), ("localhost", "10004")]
+# lst_proxies = [("localhost", "10001"), ("localhost", "10002"), ("localhost", "10003"), ("localhost", "10004")]
+#
 # data_centers = [("localhost", "11000"),("localhost", "11001"),("localhost", "11002")]
 # lst_proxies = [("localhost", "12000")]
 # lst_proxies = [("localhost", "12000"),("localhost", "12001"),("localhost", "12002")]
