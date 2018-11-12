@@ -19,7 +19,11 @@ import raft_pb2_grpc as our_proto_rpc
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
-class DataCenterServer(common_proto_rpc.DataTransferServiceServicer, our_proto_rpc.DataTransferServiceServicer):
+class RaftService(our_proto_rpc.RaftServiceServicer):
+    pass
+
+
+class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
     def UploadFile(self, request_itreator, context):
         file_name = ""
         for request in request_itreator:
@@ -85,7 +89,7 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer, our_proto_r
 def start_server(username, my_port):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     common_proto_rpc.add_DataTransferServiceServicer_to_server(DataCenterServer(), server)
-    our_proto_rpc.add_DataTransferServiceServicer_to_server(DataCenterServer(), server)
+    our_proto_rpc.add_RaftServiceServicer_to_server(RaftService(), server)
     server.add_insecure_port('[::]:' + str(my_port))
     server.start()
     print("server started at port : ", my_port, "username :", username)
@@ -96,18 +100,21 @@ def start_server(username, my_port):
         server.stop(0)
 
 
-def register_dc(raft_ip, raft_port):
+def register_dc(raft_ip, raft_port, my_ip, my_port):
     pass
 
 
+# python3 datacenter.py <dc_name from data_center_info> <raft ip to register to> <raft port to register to>
 if __name__ == '__main__':
     data_center_name = sys.argv[1]
-    port = data_center_info.data_center[data_center_name]["port"]
+
+    my_ip = data_center_info.data_center[data_center_name]["ip"]
+    my_port = data_center_info.data_center[data_center_name]["port"]
     FOLDER = data_center_info.data_center[data_center_name]["folder"]
 
-    threading.Thread(target=start_server, args=(data_center_name, port)).start()
+    threading.Thread(target=start_server, args=(data_center_name, my_port)).start()
 
-    register_dc(sys.argv[2], sys.argv[3])
+    register_dc(sys.argv[2], sys.argv[3], my_ip, my_port)
 
     try:
         while True:
