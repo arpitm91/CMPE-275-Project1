@@ -20,13 +20,18 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
 class RaftService(our_proto_rpc.RaftServiceServicer):
-    pass
+    def DataCenterHeartbeat(self, request, context):
+        reply = our_proto.Empty()
+        return reply
+
+    def ReplicationInitiate(self, request, context):
+        pass
 
 
 class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
-    def UploadFile(self, request_itreator, context):
+    def UploadFile(self, request_iterator, context):
         file_name = ""
-        for request in request_itreator:
+        for request in request_iterator:
             file_name = request.fileName
             chunk_id = request.chunkId
             seq_num = request.seqNum
@@ -42,10 +47,6 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
         my_reply.fileName = file_name
 
         return my_reply
-
-    def DataCenterHeartbeat(self, request, context):
-        reply = our_proto.Empty()
-        return reply
 
     def DownloadChunk(self, request, context):
         file_name = request.fileName
@@ -86,13 +87,13 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
         print("Download request completed for", file_name, "chunk", chunk_id, "seq", start_seq_num)
 
 
-def start_server(username, my_port):
+def start_server(username, port):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     common_proto_rpc.add_DataTransferServiceServicer_to_server(DataCenterServer(), server)
     our_proto_rpc.add_RaftServiceServicer_to_server(RaftService(), server)
-    server.add_insecure_port('[::]:' + str(my_port))
+    server.add_insecure_port('[::]:' + str(port))
     server.start()
-    print("server started at port : ", my_port, "username :", username)
+    print("server started at port : ", port, "username :", username)
     try:
         while True:
             time.sleep(_ONE_DAY_IN_SECONDS)
@@ -100,8 +101,21 @@ def start_server(username, my_port):
         server.stop(0)
 
 
-def register_dc(raft_ip, raft_port, my_ip, my_port):
-    pass
+def register_dc(raft_ip, raft_port, ip, port):
+    with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
+        stub = our_proto_rpc.RaftServiceStub(channel)
+
+        request = our_proto.DataCenterInfo()
+        request.ip = ip
+        request.port = port
+        while True:
+            try:
+                stub.AddDataCenter(request)
+                print("Registered with raft ip :", raft_ip, ",port :", raft_port)
+                break
+            except grpc.RpcError:
+                print("Could not register with raft ip :", raft_ip, ",port :", raft_port)
+                time.sleep(2)
 
 
 # python3 datacenter.py <dc_name from data_center_info> <raft ip to register to> <raft port to register to>
@@ -114,7 +128,7 @@ if __name__ == '__main__':
 
     threading.Thread(target=start_server, args=(data_center_name, my_port)).start()
 
-    register_dc(sys.argv[2], sys.argv[3], my_ip, my_port)
+    threading.Thread(target=register_dc, args=(sys.argv[2], sys.argv[3], my_ip, my_port)).start()
 
     try:
         while True:
