@@ -36,7 +36,7 @@ class DataTransferServiceStub(object):
         )
     self.ListFiles = channel.unary_unary(
         '/grpc.DataTransferService/ListFiles',
-        request_serializer=file__transfer__pb2.Empty.SerializeToString,
+        request_serializer=file__transfer__pb2.RequestFileList.SerializeToString,
         response_deserializer=file__transfer__pb2.FileList.FromString,
         )
     self.RequestFileUpload = channel.unary_unary(
@@ -86,7 +86,7 @@ class DataTransferServiceServicer(object):
     raise NotImplementedError('Method not implemented!')
 
   def RequestFileUpload(self, request, context):
-    """Request File upload get back proxy list to 
+    """Request File upload get back proxy list to
     return proxylist when raft consensus is reached
     """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -118,7 +118,7 @@ def add_DataTransferServiceServicer_to_server(servicer, server):
       ),
       'ListFiles': grpc.unary_unary_rpc_method_handler(
           servicer.ListFiles,
-          request_deserializer=file__transfer__pb2.Empty.FromString,
+          request_deserializer=file__transfer__pb2.RequestFileList.FromString,
           response_serializer=file__transfer__pb2.FileList.SerializeToString,
       ),
       'RequestFileUpload': grpc.unary_unary_rpc_method_handler(

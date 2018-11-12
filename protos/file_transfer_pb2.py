@@ -19,19 +19,26 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='grpc',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x13\x66ile_transfer.proto\x12\x04grpc\"\x07\n\x05\x45mpty\"\x1c\n\x08\x46ileInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\"4\n\x0e\x46ileUploadInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x10\n\x08\x66ileSize\x18\x02 \x01(\x02\"C\n\tChunkInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12\x13\n\x0bstartSeqNum\x18\x03 \x01(\x03\"_\n\x0c\x46ileMetaData\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x12\x0e\n\x06seqNum\x18\x04 \x01(\x03\x12\x0e\n\x06seqMax\x18\x05 \x01(\x03\"a\n\x0e\x46ileUploadData\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x12\x0e\n\x06seqNum\x18\x04 \x01(\x03\x12\x0e\n\x06seqMax\x18\x05 \x01(\x03\"%\n\tProxyInfo\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\"o\n\x10\x46ileLocationInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x11\n\tmaxChunks\x18\x02 \x01(\x03\x12!\n\x08lstProxy\x18\x03 \x03(\x0b\x32\x0f.grpc.ProxyInfo\x12\x13\n\x0bisFileFound\x18\x04 \x01(\x08\" \n\x08\x46ileList\x12\x14\n\x0clstFileNames\x18\x01 \x03(\t\".\n\tProxyList\x12!\n\x08lstProxy\x18\x01 \x03(\x0b\x32\x0f.grpc.ProxyInfo2\xdf\x02\n\x13\x44\x61taTransferService\x12\x39\n\x0fRequestFileInfo\x12\x0e.grpc.FileInfo\x1a\x16.grpc.FileLocationInfo\x12\x39\n\x0fGetFileLocation\x12\x0e.grpc.FileInfo\x1a\x16.grpc.FileLocationInfo\x12\x36\n\rDownloadChunk\x12\x0f.grpc.ChunkInfo\x1a\x12.grpc.FileMetaData0\x01\x12\x34\n\nUploadFile\x12\x14.grpc.FileUploadData\x1a\x0e.grpc.FileInfo(\x01\x12(\n\tListFiles\x12\x0b.grpc.Empty\x1a\x0e.grpc.FileList\x12:\n\x11RequestFileUpload\x12\x14.grpc.FileUploadInfo\x1a\x0f.grpc.ProxyListb\x06proto3')
+  serialized_pb=_b('\n\x13\x66ile_transfer.proto\x12\x04grpc\"#\n\x0fRequestFileList\x12\x10\n\x08isClient\x18\x01 \x01(\x08\"\x1c\n\x08\x46ileInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\"4\n\x0e\x46ileUploadInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x10\n\x08\x66ileSize\x18\x02 \x01(\x02\"C\n\tChunkInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12\x13\n\x0bstartSeqNum\x18\x03 \x01(\x03\"_\n\x0c\x46ileMetaData\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x12\x0e\n\x06seqNum\x18\x04 \x01(\x03\x12\x0e\n\x06seqMax\x18\x05 \x01(\x03\"a\n\x0e\x46ileUploadData\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\x12\x0e\n\x06seqNum\x18\x04 \x01(\x03\x12\x0e\n\x06seqMax\x18\x05 \x01(\x03\"%\n\tProxyInfo\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\"o\n\x10\x46ileLocationInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x11\n\tmaxChunks\x18\x02 \x01(\x03\x12!\n\x08lstProxy\x18\x03 \x03(\x0b\x32\x0f.grpc.ProxyInfo\x12\x13\n\x0bisFileFound\x18\x04 \x01(\x08\" \n\x08\x46ileList\x12\x14\n\x0clstFileNames\x18\x01 \x03(\t\".\n\tProxyList\x12!\n\x08lstProxy\x18\x01 \x03(\x0b\x32\x0f.grpc.ProxyInfo2\xe9\x02\n\x13\x44\x61taTransferService\x12\x39\n\x0fRequestFileInfo\x12\x0e.grpc.FileInfo\x1a\x16.grpc.FileLocationInfo\x12\x39\n\x0fGetFileLocation\x12\x0e.grpc.FileInfo\x1a\x16.grpc.FileLocationInfo\x12\x36\n\rDownloadChunk\x12\x0f.grpc.ChunkInfo\x1a\x12.grpc.FileMetaData0\x01\x12\x34\n\nUploadFile\x12\x14.grpc.FileUploadData\x1a\x0e.grpc.FileInfo(\x01\x12\x32\n\tListFiles\x12\x15.grpc.RequestFileList\x1a\x0e.grpc.FileList\x12:\n\x11RequestFileUpload\x12\x14.grpc.FileUploadInfo\x1a\x0f.grpc.ProxyListb\x06proto3')
 )
 
 
 
 
-_EMPTY = _descriptor.Descriptor(
-  name='Empty',
-  full_name='grpc.Empty',
+_REQUESTFILELIST = _descriptor.Descriptor(
+  name='RequestFileList',
+  full_name='grpc.RequestFileList',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
+    _descriptor.FieldDescriptor(
+      name='isClient', full_name='grpc.RequestFileList.isClient', index=0,
+      number=1, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -45,7 +52,7 @@ _EMPTY = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=29,
-  serialized_end=36,
+  serialized_end=64,
 )
 
 
@@ -75,8 +82,8 @@ _FILEINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=38,
-  serialized_end=66,
+  serialized_start=66,
+  serialized_end=94,
 )
 
 
@@ -113,8 +120,8 @@ _FILEUPLOADINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=68,
-  serialized_end=120,
+  serialized_start=96,
+  serialized_end=148,
 )
 
 
@@ -158,8 +165,8 @@ _CHUNKINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=122,
-  serialized_end=189,
+  serialized_start=150,
+  serialized_end=217,
 )
 
 
@@ -217,8 +224,8 @@ _FILEMETADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=191,
-  serialized_end=286,
+  serialized_start=219,
+  serialized_end=314,
 )
 
 
@@ -276,8 +283,8 @@ _FILEUPLOADDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=288,
-  serialized_end=385,
+  serialized_start=316,
+  serialized_end=413,
 )
 
 
@@ -314,8 +321,8 @@ _PROXYINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=387,
-  serialized_end=424,
+  serialized_start=415,
+  serialized_end=452,
 )
 
 
@@ -366,8 +373,8 @@ _FILELOCATIONINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=426,
-  serialized_end=537,
+  serialized_start=454,
+  serialized_end=565,
 )
 
 
@@ -397,8 +404,8 @@ _FILELIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=539,
-  serialized_end=571,
+  serialized_start=567,
+  serialized_end=599,
 )
 
 
@@ -428,13 +435,13 @@ _PROXYLIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=573,
-  serialized_end=619,
+  serialized_start=601,
+  serialized_end=647,
 )
 
 _FILELOCATIONINFO.fields_by_name['lstProxy'].message_type = _PROXYINFO
 _PROXYLIST.fields_by_name['lstProxy'].message_type = _PROXYINFO
-DESCRIPTOR.message_types_by_name['Empty'] = _EMPTY
+DESCRIPTOR.message_types_by_name['RequestFileList'] = _REQUESTFILELIST
 DESCRIPTOR.message_types_by_name['FileInfo'] = _FILEINFO
 DESCRIPTOR.message_types_by_name['FileUploadInfo'] = _FILEUPLOADINFO
 DESCRIPTOR.message_types_by_name['ChunkInfo'] = _CHUNKINFO
@@ -446,12 +453,12 @@ DESCRIPTOR.message_types_by_name['FileList'] = _FILELIST
 DESCRIPTOR.message_types_by_name['ProxyList'] = _PROXYLIST
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-Empty = _reflection.GeneratedProtocolMessageType('Empty', (_message.Message,), dict(
-  DESCRIPTOR = _EMPTY,
+RequestFileList = _reflection.GeneratedProtocolMessageType('RequestFileList', (_message.Message,), dict(
+  DESCRIPTOR = _REQUESTFILELIST,
   __module__ = 'file_transfer_pb2'
-  # @@protoc_insertion_point(class_scope:grpc.Empty)
+  # @@protoc_insertion_point(class_scope:grpc.RequestFileList)
   ))
-_sym_db.RegisterMessage(Empty)
+_sym_db.RegisterMessage(RequestFileList)
 
 FileInfo = _reflection.GeneratedProtocolMessageType('FileInfo', (_message.Message,), dict(
   DESCRIPTOR = _FILEINFO,
@@ -524,8 +531,8 @@ _DATATRANSFERSERVICE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=622,
-  serialized_end=973,
+  serialized_start=650,
+  serialized_end=1011,
   methods=[
   _descriptor.MethodDescriptor(
     name='RequestFileInfo',
@@ -568,7 +575,7 @@ _DATATRANSFERSERVICE = _descriptor.ServiceDescriptor(
     full_name='grpc.DataTransferService.ListFiles',
     index=4,
     containing_service=None,
-    input_type=_EMPTY,
+    input_type=_REQUESTFILELIST,
     output_type=_FILELIST,
     serialized_options=None,
   ),

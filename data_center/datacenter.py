@@ -55,8 +55,12 @@ class DataCenterServer(rpc.DataTransferServiceServicer):
                     reply.data = chunk_buffer
                     reply.seqNum = current_seq
                     reply.seqMax = total_seq
+                    print("Sent...", file_name, "chunk", chunk_id, "seq", current_seq)
                     current_seq += 1
+                    time.sleep(1)
                     yield reply
+                else:
+                    current_seq += 1
         else:
             reply = file_transfer.FileMetaData()
             reply.fileName = file_name
