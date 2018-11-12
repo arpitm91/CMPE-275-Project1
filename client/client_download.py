@@ -1,8 +1,6 @@
 import threading
 import random
 import pprint
-
-import google
 import grpc
 import sys
 import os
@@ -20,7 +18,7 @@ next_sequence_to_download = []
 maximum_number_of_sequences = []
 
 
-def download_chunk(file_name, chunk_num, startSeqNum, proxy_address, proxy_port, downloads_folder="Downloads"):
+def download_chunk(file_name, chunk_num, start_seq_num, proxy_address, proxy_port, downloads_folder="Downloads"):
     print("requesting for :", file_name, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port)
 
     global next_sequence_to_download
@@ -30,7 +28,7 @@ def download_chunk(file_name, chunk_num, startSeqNum, proxy_address, proxy_port,
         request = file_transfer.ChunkInfo()
         request.fileName = file_name
         request.chunkId = chunk_num
-        request.startSeqNum = startSeqNum
+        request.startSeqNum = start_seq_num
         try:
             for response in stub.DownloadChunk(request):
                 print("Response received: ", response.seqNum, "/", response.seqMax)
@@ -45,43 +43,54 @@ def download_chunk(file_name, chunk_num, startSeqNum, proxy_address, proxy_port,
         print("request completed for :", file_name, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port,
               "last seq :", next_sequence_to_download[chunk_num], "max seq :", maximum_number_of_sequences[chunk_num])
 
-def getFileLocation(stub, request):
+
+def get_file_location(stub, request):
     file_location_info = stub.RequestFileInfo(request)
     print("Response received: ")
     pprint.pprint(file_location_info)
     print(file_location_info.maxChunks)
     return file_location_info
 
-def run(raft_ip, raft_port, file_name, chunks="all",downloads_folder = "Downloads"):
-    with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
-        stub = rpc.DataTransferServiceStub(channel)
-        request = file_transfer.FileInfo()
-        request.fileName = file_name
 
-        file_location_info = getFileLocation(stub, request)
+def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", dc_ip="", dc_port=""):
+    global next_sequence_to_download
+    global maximum_number_of_sequences
 
-        global next_sequence_to_download
-        global maximum_number_of_sequences
+    file_location_info = file_transfer.FileLocationInfo()
 
-        if chunks=="all":
+    if chunks == -1:
+        with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
+            stub = rpc.DataTransferServiceStub(channel)
+            request = file_transfer.FileInfo()
+            request.fileName = file_name
+
+            file_location_info = get_file_location(stub, request)
+
             next_sequence_to_download = [0] * file_location_info.maxChunks
             maximum_number_of_sequences = [float('inf')] * file_location_info.maxChunks
-        else:
-            next_sequence_to_download = [0] * file_location_info.maxChunks
-            maximum_number_of_sequences = [0] * file_location_info.maxChunks
-            maximum_number_of_sequences[int(chunks)] = float('inf')
+    else:
+        next_sequence_to_download = [0] * (chunks + 1)
+        maximum_number_of_sequences = [0] * (chunks + 1)
+        maximum_number_of_sequences[chunks] = float('inf')
 
-    while not wholeFileDownloaded():
+    while not whole_file_downloaded():
         for chunk_num in failed_chunks.keys():
-            random_proxy_index = random.randint(0, len(file_location_info.lstProxy) - 1)
-            # proxy
-            proxy_address = file_location_info.lstProxy[random_proxy_index].ip
-            proxy_port = file_location_info.lstProxy[random_proxy_index].port
-            print("proxy selected", proxy_address, proxy_port)
+            if chunks == -1:
+                random_proxy_index = random.randint(0, len(file_location_info.lstProxy) - 1)
+                # proxy
+                proxy_address = file_location_info.lstProxy[random_proxy_index].ip
+                proxy_port = file_location_info.lstProxy[random_proxy_index].port
+                print("proxy selected", proxy_address, proxy_port)
+            else:
+                # data_center direct
+                proxy_address = dc_ip
+                proxy_port = dc_port
+                print("data center selected", proxy_address, proxy_port)
 
             threads.append(
                 threading.Thread(target=download_chunk, args=(
-                    file_name, chunk_num, next_sequence_to_download[chunk_num], proxy_address, proxy_port,downloads_folder)))
+                    file_name, chunk_num, next_sequence_to_download[chunk_num], proxy_address, proxy_port,
+                    downloads_folder)))
             threads[-1].start()
         for t in threads:
             t.join()
@@ -92,23 +101,23 @@ def run(raft_ip, raft_port, file_name, chunks="all",downloads_folder = "Download
 
     threads.clear()
 
-    if chunks == "all":
+    if chunks == -1:
         print("calling merge ")
         merge_chunks(file_location_info.fileName,
                      os.path.join(os.path.dirname(os.path.realpath(__file__)), "Downloads"),
                      file_location_info.maxChunks)
 
 
-def wholeFileDownloaded():
-    isWholeFileDownloaded = True
+def whole_file_downloaded():
+    is_whole_file_downloaded = True
 
     for i in range(len(next_sequence_to_download)):
         if next_sequence_to_download[i] < maximum_number_of_sequences[i]:
             global failed_chunks
             failed_chunks[i] = next_sequence_to_download[i]
-            isWholeFileDownloaded = False
+            is_whole_file_downloaded = False
 
-    return isWholeFileDownloaded
+    return is_whole_file_downloaded
 
 
 # python3 client_download.py <raft_ip> <raft_port> <filename>
