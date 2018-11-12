@@ -4,20 +4,24 @@ import time
 import configs.data_center_info as data_center_info
 import os
 import sys
+import threading
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
 from utils.file_utils import get_file_seqs
 from utils.file_utils import get_max_file_seqs
 from utils.file_utils import write_file_chunks
-import file_transfer_pb2 as file_transfer
-import file_transfer_pb2_grpc as rpc
+import file_transfer_pb2 as common_proto
+import file_transfer_pb2_grpc as common_proto_rpc
+import raft_pb2 as our_proto
+import raft_pb2_grpc as our_proto_rpc
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
-class DataCenterServer(rpc.DataTransferServiceServicer):
+class DataCenterServer(common_proto_rpc.DataTransferServiceServicer, our_proto_rpc.DataTransferServiceServicer):
     def UploadFile(self, request_itreator, context):
+        file_name = ""
         for request in request_itreator:
             file_name = request.fileName
             chunk_id = request.chunkId
@@ -30,10 +34,14 @@ class DataCenterServer(rpc.DataTransferServiceServicer):
                     os.remove(os.path.join(file_path, str(chunk_id)))
             write_file_chunks(request, FOLDER)
 
-        my_reply = file_transfer.FileInfo()
+        my_reply = common_proto.FileInfo()
         my_reply.fileName = file_name
 
         return my_reply
+
+    def DataCenterHeartbeat(self, request, context):
+        reply = our_proto.Empty()
+        return reply
 
     def DownloadChunk(self, request, context):
         file_name = request.fileName
@@ -49,7 +57,7 @@ class DataCenterServer(rpc.DataTransferServiceServicer):
 
             for chunk_buffer in get_file_seqs(chunk_path):
                 if current_seq >= start_seq_num:
-                    reply = file_transfer.FileMetaData()
+                    reply = common_proto.FileMetaData()
                     reply.fileName = file_name
                     reply.chunkId = chunk_id
                     reply.data = chunk_buffer
@@ -62,7 +70,7 @@ class DataCenterServer(rpc.DataTransferServiceServicer):
                 else:
                     current_seq += 1
         else:
-            reply = file_transfer.FileMetaData()
+            reply = common_proto.FileMetaData()
             reply.fileName = file_name
             reply.chunkId = chunk_id
             reply.data = str.encode("")
@@ -76,10 +84,11 @@ class DataCenterServer(rpc.DataTransferServiceServicer):
 
 def start_server(username, my_port):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    rpc.add_DataTransferServiceServicer_to_server(DataCenterServer(), server)
+    common_proto_rpc.add_DataTransferServiceServicer_to_server(DataCenterServer(), server)
+    our_proto_rpc.add_DataTransferServiceServicer_to_server(DataCenterServer(), server)
     server.add_insecure_port('[::]:' + str(my_port))
     server.start()
-    print("server started at port : ", my_port)
+    print("server started at port : ", my_port, "username :", username)
     try:
         while True:
             time.sleep(_ONE_DAY_IN_SECONDS)
@@ -87,8 +96,21 @@ def start_server(username, my_port):
         server.stop(0)
 
 
+def register_dc(raft_ip, raft_port):
+    pass
+
+
 if __name__ == '__main__':
     data_center_name = sys.argv[1]
     port = data_center_info.data_center[data_center_name]["port"]
     FOLDER = data_center_info.data_center[data_center_name]["folder"]
-    start_server(data_center_name, port)
+
+    threading.Thread(target=start_server, args=(data_center_name, port)).start()
+
+    register_dc(sys.argv[2], sys.argv[3])
+
+    try:
+        while True:
+            time.sleep(_ONE_DAY_IN_SECONDS)
+    except KeyboardInterrupt:
+        exit()
