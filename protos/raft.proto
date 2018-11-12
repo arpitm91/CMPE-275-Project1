@@ -46,27 +46,12 @@ message CandidacyResponse {
     int64 cycle_number = 2;
 }
 
-message  ProxyInfo {
-	string ip = 1;
-	string port = 2;
-}
-
 message  DataCenterInfo {
 	string ip = 1;
 	string port = 2;
 }
 
-message ProxyList {
-	repeated ProxyInfo lstProxy = 1;
-}
-
-message FileUploadInfo {
-	string fileName = 1;		// teamname_fileid (unique)
-	float fileSize = 2;
-}
-
 message Empty {
-
 }
 
 message ReplicationInfo {
@@ -75,43 +60,11 @@ message ReplicationInfo {
     DataCenterInfo fromDatacenter = 3;
 }
 
-message RequestFileList {
- 	bool isClient=1;		// true then client else other team
-}
-
-message FileList {
-	repeated string lstFileNames = 1;
-}
-
-message FileInfo {
-	string fileName = 1;		// teamname_fileid (unique)
-}
-
-message FileLocationInfo {
-	string fileName = 1;
-	int64 maxChunks = 2;
-	repeated ProxyInfo lstProxy = 3;
-	bool isFileFound = 4;
-}
-
-service DataTransferService {
+service RaftService {
     rpc RaftHeartbit (Table) returns (Ack);
     rpc RequestVote (Candidacy) returns (CandidacyResponse);
     rpc AddFileLog (TableLog) returns (Ack);
     rpc AddDataCenter (DataCenterInfo) returns (Empty);
     rpc DataCenterHeartbeat(Empty) returns (Empty);
     rpc ReplicationInitiate(ReplicationInfo) returns (Ack);
-
-	// From team's client to team's own cluster
-	rpc RequestFileInfo (FileInfo) returns (FileLocationInfo);
-
-	// From team-1 cluster to rest of the nodes of other teams
-	rpc GetFileLocation (FileInfo) returns (FileLocationInfo);
-
-    	// Request File upload get back proxy list to
-	// return proxylist when raft consensus is reached
-	rpc RequestFileUpload(FileUploadInfo) returns (ProxyList);
-
-    // Interteam request
-	rpc ListFiles (RequestFileList) returns (FileList);
 }

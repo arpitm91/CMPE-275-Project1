@@ -4,7 +4,7 @@ import grpc
 import raft_pb2 as raft__pb2
 
 
-class DataTransferServiceStub(object):
+class RaftServiceStub(object):
   # missing associated documentation comment in .proto file
   pass
 
@@ -15,58 +15,38 @@ class DataTransferServiceStub(object):
       channel: A grpc.Channel.
     """
     self.RaftHeartbit = channel.unary_unary(
-        '/grpc.DataTransferService/RaftHeartbit',
+        '/grpc.RaftService/RaftHeartbit',
         request_serializer=raft__pb2.Table.SerializeToString,
         response_deserializer=raft__pb2.Ack.FromString,
         )
     self.RequestVote = channel.unary_unary(
-        '/grpc.DataTransferService/RequestVote',
+        '/grpc.RaftService/RequestVote',
         request_serializer=raft__pb2.Candidacy.SerializeToString,
         response_deserializer=raft__pb2.CandidacyResponse.FromString,
         )
     self.AddFileLog = channel.unary_unary(
-        '/grpc.DataTransferService/AddFileLog',
+        '/grpc.RaftService/AddFileLog',
         request_serializer=raft__pb2.TableLog.SerializeToString,
         response_deserializer=raft__pb2.Ack.FromString,
         )
     self.AddDataCenter = channel.unary_unary(
-        '/grpc.DataTransferService/AddDataCenter',
+        '/grpc.RaftService/AddDataCenter',
         request_serializer=raft__pb2.DataCenterInfo.SerializeToString,
         response_deserializer=raft__pb2.Empty.FromString,
         )
     self.DataCenterHeartbeat = channel.unary_unary(
-        '/grpc.DataTransferService/DataCenterHeartbeat',
+        '/grpc.RaftService/DataCenterHeartbeat',
         request_serializer=raft__pb2.Empty.SerializeToString,
         response_deserializer=raft__pb2.Empty.FromString,
         )
     self.ReplicationInitiate = channel.unary_unary(
-        '/grpc.DataTransferService/ReplicationInitiate',
+        '/grpc.RaftService/ReplicationInitiate',
         request_serializer=raft__pb2.ReplicationInfo.SerializeToString,
         response_deserializer=raft__pb2.Ack.FromString,
         )
-    self.RequestFileInfo = channel.unary_unary(
-        '/grpc.DataTransferService/RequestFileInfo',
-        request_serializer=raft__pb2.FileInfo.SerializeToString,
-        response_deserializer=raft__pb2.FileLocationInfo.FromString,
-        )
-    self.GetFileLocation = channel.unary_unary(
-        '/grpc.DataTransferService/GetFileLocation',
-        request_serializer=raft__pb2.FileInfo.SerializeToString,
-        response_deserializer=raft__pb2.FileLocationInfo.FromString,
-        )
-    self.RequestFileUpload = channel.unary_unary(
-        '/grpc.DataTransferService/RequestFileUpload',
-        request_serializer=raft__pb2.FileUploadInfo.SerializeToString,
-        response_deserializer=raft__pb2.ProxyList.FromString,
-        )
-    self.ListFiles = channel.unary_unary(
-        '/grpc.DataTransferService/ListFiles',
-        request_serializer=raft__pb2.RequestFileList.SerializeToString,
-        response_deserializer=raft__pb2.FileList.FromString,
-        )
 
 
-class DataTransferServiceServicer(object):
+class RaftServiceServicer(object):
   # missing associated documentation comment in .proto file
   pass
 
@@ -112,37 +92,8 @@ class DataTransferServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
-  def RequestFileInfo(self, request, context):
-    """From team's client to team's own cluster
-    """
-    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-    context.set_details('Method not implemented!')
-    raise NotImplementedError('Method not implemented!')
 
-  def GetFileLocation(self, request, context):
-    """From team-1 cluster to rest of the nodes of other teams
-    """
-    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-    context.set_details('Method not implemented!')
-    raise NotImplementedError('Method not implemented!')
-
-  def RequestFileUpload(self, request, context):
-    """Request File upload get back proxy list to
-    return proxylist when raft consensus is reached
-    """
-    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-    context.set_details('Method not implemented!')
-    raise NotImplementedError('Method not implemented!')
-
-  def ListFiles(self, request, context):
-    """Interteam request
-    """
-    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-    context.set_details('Method not implemented!')
-    raise NotImplementedError('Method not implemented!')
-
-
-def add_DataTransferServiceServicer_to_server(servicer, server):
+def add_RaftServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
       'RaftHeartbit': grpc.unary_unary_rpc_method_handler(
           servicer.RaftHeartbit,
@@ -174,27 +125,7 @@ def add_DataTransferServiceServicer_to_server(servicer, server):
           request_deserializer=raft__pb2.ReplicationInfo.FromString,
           response_serializer=raft__pb2.Ack.SerializeToString,
       ),
-      'RequestFileInfo': grpc.unary_unary_rpc_method_handler(
-          servicer.RequestFileInfo,
-          request_deserializer=raft__pb2.FileInfo.FromString,
-          response_serializer=raft__pb2.FileLocationInfo.SerializeToString,
-      ),
-      'GetFileLocation': grpc.unary_unary_rpc_method_handler(
-          servicer.GetFileLocation,
-          request_deserializer=raft__pb2.FileInfo.FromString,
-          response_serializer=raft__pb2.FileLocationInfo.SerializeToString,
-      ),
-      'RequestFileUpload': grpc.unary_unary_rpc_method_handler(
-          servicer.RequestFileUpload,
-          request_deserializer=raft__pb2.FileUploadInfo.FromString,
-          response_serializer=raft__pb2.ProxyList.SerializeToString,
-      ),
-      'ListFiles': grpc.unary_unary_rpc_method_handler(
-          servicer.ListFiles,
-          request_deserializer=raft__pb2.RequestFileList.FromString,
-          response_serializer=raft__pb2.FileList.SerializeToString,
-      ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
-      'grpc.DataTransferService', rpc_method_handlers)
+      'grpc.RaftService', rpc_method_handlers)
   server.add_generic_rpc_handlers((generic_handler,))
