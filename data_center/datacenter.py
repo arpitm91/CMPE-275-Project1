@@ -15,6 +15,7 @@ import file_transfer_pb2 as common_proto
 import file_transfer_pb2_grpc as common_proto_rpc
 import raft_pb2 as our_proto
 import raft_pb2_grpc as our_proto_rpc
+from client.client_download import run as download_as_client
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
@@ -25,7 +26,20 @@ class RaftService(our_proto_rpc.RaftServiceServicer):
         return reply
 
     def ReplicationInitiate(self, request, context):
-        pass
+        from_datacenter_ip = request.fromDatacenter.ip
+        from_datacenter_port = request.fromDatacenter.port
+        chunk = request.chunkId
+        filename = request.fileName
+        global FOLDER
+        file_path = os.path.join(FOLDER, filename)
+
+        print("Initiating replication of :", filename, "chunk :", chunk, "from ip:", from_datacenter_ip, ",port :",
+              from_datacenter_port)
+        threading.Thread(target=download_as_client,
+                         args=("", "", filename, chunk, file_path, from_datacenter_ip, from_datacenter_port)).start()
+        reply = our_proto.Ack()
+        reply.id = 1
+        return reply
 
 
 class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
