@@ -12,8 +12,10 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.par
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "utils"))
 
-import raft_pb2 as raft
-import raft_pb2_grpc as rpc
+import raft_pb2 as our_proto
+import raft_pb2_grpc as our_proto_rpc
+import file_transfer_pb2 as common_proto
+import file_transfer_pb2_grpc as common_proto_rpc
 
 from input_output_util import log_info
 from timer_utils import TimerUtil
@@ -116,7 +118,7 @@ def _process_request_for_vote(client, Candidacy, call_future):
             log_info("Exception Error !!", client.server_port)
             return
 
-    if candidacy_response.voted == raft.YES and candidacy_response.cycle_number == Globals.CURRENT_CYCLE:
+    if candidacy_response.voted == our_proto.YES and candidacy_response.cycle_number == Globals.CURRENT_CYCLE:
         Globals.NUMBER_OF_VOTES += 1
         log_info("Got Vote:", Globals.NUMBER_OF_VOTES)
         if Globals.NUMBER_OF_VOTES / MAX_RAFT_NODES > 0.5 and Globals.NODE_STATE == NodeState.CANDIDATE:
@@ -128,7 +130,7 @@ def _process_request_for_vote(client, Candidacy, call_future):
 
 
 def _send_heartbeat():
-    table = raft.Table()
+    table = our_proto.Table()
     table.cycle_number = Globals.CURRENT_CYCLE
     table.leader_ip = Globals.MY_IP
     table.leader_port = Globals.MY_PORT
@@ -143,7 +145,7 @@ def _send_heartbeat():
 
 def _ask_for_vote():
     log_info("Asking for vote...", Globals.CURRENT_CYCLE)
-    candidacy = raft.Candidacy()
+    candidacy = our_proto.Candidacy()
     candidacy.cycle_number = Globals.CURRENT_CYCLE
     candidacy.port = Globals.MY_PORT
     candidacy.ip = Globals.MY_IP
@@ -169,7 +171,7 @@ class Client:
         self.server_port = server_port
         # create a gRPC channel + stub
         channel = grpc.insecure_channel(server_address + ':' + str(server_port))
-        self.conn = rpc.DataTransferServiceStub(channel)
+        self.conn = our_proto_rpc.RaftServiceStub(channel)
         # create new listening thread for when new message streams come in
         # threading.Thread(target=self._RaftHeartbit, daemon=True).start()
 
@@ -192,7 +194,7 @@ class Client:
 
 
 # server
-class ChatServer(rpc.DataTransferServiceServicer):
+class ChatServer(our_proto_rpc.RaftServiceServicer, common_proto_rpc.DataTransferServiceServicer):
     def __init__(self, username):
         self.username = username
 
@@ -205,7 +207,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
 
         log_info("heartbit arrived: ", len(Tables.FILE_LOGS))
 
-        ack = raft.Ack()
+        ack = our_proto.Ack()
 
         if len(request.tableLog) > len(Tables.FILE_LOGS):
 
@@ -247,10 +249,10 @@ class ChatServer(rpc.DataTransferServiceServicer):
     '''
 
     def RequestVote(self, request, context):
-        candidacy_response = raft.CandidacyResponse()
+        candidacy_response = our_proto.CandidacyResponse()
 
         if request.log_length < len(Tables.FILE_LOGS):
-            candidacy_response.voted = raft.NO
+            candidacy_response.voted = our_proto.NO
         elif request.cycle_number > Globals.CURRENT_CYCLE or (
                         request.cycle_number == Globals.CURRENT_CYCLE and not Globals.HAS_CURRENT_VOTED):
             Globals.CURRENT_CYCLE = request.cycle_number
@@ -258,14 +260,14 @@ class ChatServer(rpc.DataTransferServiceServicer):
             Globals.NUMBER_OF_VOTES = 0
             Globals.LEADER_IP = request.ip
             Globals.LEADER_PORT = request.port
-            candidacy_response.voted = raft.YES
+            candidacy_response.voted = our_proto.YES
             candidacy_response.cycle_number = request.cycle_number
             Globals.NODE_STATE = NodeState.FOLLOWER
             random_timer.reset()
             pprint.pprint("###")
             pprint.pprint(request)
         else:
-            candidacy_response.voted = raft.NO
+            candidacy_response.voted = our_proto.NO
 
         return candidacy_response
 
@@ -283,7 +285,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
             # Update Table_log and File_info_table
             Tables.set_file_log(Tables.FILE_LOGS)
 
-        ack = raft.Ack()
+        ack = our_proto.Ack()
         ack.id = 1
         return ack
 
@@ -295,7 +297,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
     def RequestFileUpload(self, request, context):
 
         if Globals.NODE_STATE == NodeState.LEADER:
-            my_reply = raft.ProxyList()
+            my_reply = our_proto.ProxyList()
 
             file_name = request.fileName
             file_size = request.fileSize
@@ -306,7 +308,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
 
             for chunk_id in range(total_chunks):
                 random_dcs = Tables.get_random_available_dc(Globals.REPLICATION_FACTOR)
-                Tables.insert_file_chunk_info_to_file_log(file_name, chunk_id, random_dcs, raft.UploadRequested)
+                Tables.insert_file_chunk_info_to_file_log(file_name, chunk_id, random_dcs, our_proto.UploadRequested)
 
             pprint.pprint("TABLE_FILE_INFO")
             pprint.pprint(Tables.TABLE_FILE_INFO)
@@ -314,7 +316,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
             lst_proxies = Tables.get_all_available_proxies()
             lst_proxy_info = []
             for ip, port in lst_proxies:
-                proxy_info = raft.ProxyInfo()
+                proxy_info = our_proto.ProxyInfo()
                 proxy_info.ip = ip
                 proxy_info.port = port
                 lst_proxy_info.append(proxy_info)
@@ -333,7 +335,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
                 my_reply = client._RequestFileUpload(request)
                 return my_reply
             else:
-                return raft.ProxyList()
+                return our_proto.ProxyList()
 
     '''
     request: raft.RequestFileList
@@ -343,7 +345,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
     def ListFiles(self, request, context):
 
         if Globals.NODE_STATE == NodeState.LEADER:
-            my_reply = raft.FileList()
+            my_reply = our_proto.FileList()
             my_reply.lstFileNames.extend(Tables.get_all_available_file_list())
             return my_reply
         else:
@@ -352,7 +354,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
                 my_reply = client._ListFile(request)
                 return my_reply
             else:
-                return raft.FileList()
+                return our_proto.FileList()
 
     '''
     request: raft.FileInfo
@@ -360,7 +362,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
     '''
 
     def RequestFileInfo(self, request, context):
-        my_reply = raft.FileLocationInfo()
+        my_reply = our_proto.FileLocationInfo()
         file_name = request.fileName
         is_file_found = True
         if file_name not in Tables.TABLE_FILE_INFO.keys():
@@ -371,7 +373,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
         lst_proxies = Tables.get_all_available_proxies()
         lst_proxy_info = []
         for ip, port in lst_proxies:
-            proxy_info = raft.ProxyInfo()
+            proxy_info = our_proto.ProxyInfo()
             proxy_info.ip = ip
             proxy_info.port = port
             lst_proxy_info.append(proxy_info)
@@ -389,7 +391,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
 
     def AddDataCenter(self, request, context):
         Tables.register_dc(request.ip, request.port)
-        return raft.Empty()
+        return our_proto.Empty()
 
 
 def start_client(username, server_address, server_port):
@@ -400,8 +402,8 @@ def start_server(username, my_port):
     # create a gRPC server
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     server_object = ChatServer(username)
-    rpc.add_DataTransferServiceServicer_to_server(server_object, server)
-
+    our_proto_rpc.add_RaftServiceServicer_to_server(server_object, server)
+    common_proto_rpc.add_DataTransferServiceServicer_to_server(server_object, server)
     log_info('Starting server. Listening...', my_port)
     server.add_insecure_port('[::]:' + str(my_port))
     server.start()
