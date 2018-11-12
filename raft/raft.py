@@ -367,7 +367,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
             is_file_found = False
 
         max_chunks = len(Tables.TABLE_FILE_INFO[file_name].keys())
-
+        print("max_chunks from raft ", max_chunks)
         lst_proxies = Tables.get_all_available_proxies()
         lst_proxy_info = []
         for ip, port in lst_proxies:
