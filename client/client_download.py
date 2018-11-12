@@ -20,7 +20,7 @@ next_sequence_to_download = []
 maximum_number_of_sequences = []
 
 
-def download_chunk(file_name, chunk_num, startSeqNum, proxy_address, proxy_port):
+def download_chunk(file_name, chunk_num, startSeqNum, proxy_address, proxy_port, downloads_folder="Downloads"):
     print("requesting for :", file_name, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port)
 
     global next_sequence_to_download
@@ -36,30 +36,40 @@ def download_chunk(file_name, chunk_num, startSeqNum, proxy_address, proxy_port)
                 print("Response received: ", response.seqNum, "/", response.seqMax)
                 next_sequence_to_download[chunk_num] = response.seqNum + 1
                 maximum_number_of_sequences[chunk_num] = response.seqMax
-                write_file_chunks(response, os.path.join(os.path.dirname(os.path.realpath(__file__)), "Downloads"))
-                print(chunk_num, "last seq :",next_sequence_to_download[chunk_num],"max seq :",maximum_number_of_sequences[chunk_num])
-        except:
+                write_file_chunks(response, os.path.join(os.path.dirname(os.path.realpath(__file__)), downloads_folder))
+                print(chunk_num, "last seq :", next_sequence_to_download[chunk_num], "max seq :",
+                      maximum_number_of_sequences[chunk_num])
+        except grpc.RpcError:
             print("Failed to connect to data center..Retrying !!")
 
-        print("request completed for :", file_name, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port,"last seq :",next_sequence_to_download[chunk_num],"max seq :",maximum_number_of_sequences[chunk_num])
+        print("request completed for :", file_name, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port,
+              "last seq :", next_sequence_to_download[chunk_num], "max seq :", maximum_number_of_sequences[chunk_num])
 
+def getFileLocation(stub, request):
+    file_location_info = stub.RequestFileInfo(request)
+    print("Response received: ")
+    pprint.pprint(file_location_info)
+    print(file_location_info.maxChunks)
+    return file_location_info
 
-def run(argv):
-    with grpc.insecure_channel(str(argv[1]) + ':' + str(argv[2])) as channel:
+def run(raft_ip, raft_port, file_name, chunks="all",downloads_folder = "Downloads"):
+    with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
         stub = rpc.DataTransferServiceStub(channel)
-        file_name = str(argv[3])
         request = file_transfer.FileInfo()
         request.fileName = file_name
 
-        file_location_info = stub.RequestFileInfo(request)
-        print("Response received: ")
-        pprint.pprint(file_location_info)
-        print(file_location_info.maxChunks)
+        file_location_info = getFileLocation(stub, request)
 
         global next_sequence_to_download
         global maximum_number_of_sequences
-        next_sequence_to_download = [0] * file_location_info.maxChunks
-        maximum_number_of_sequences = [150] * file_location_info.maxChunks
+
+        if chunks=="all":
+            next_sequence_to_download = [0] * file_location_info.maxChunks
+            maximum_number_of_sequences = [float('inf')] * file_location_info.maxChunks
+        else:
+            next_sequence_to_download = [0] * file_location_info.maxChunks
+            maximum_number_of_sequences = [0] * file_location_info.maxChunks
+            maximum_number_of_sequences[int(chunks)] = float('inf')
 
     while not wholeFileDownloaded():
         for chunk_num in failed_chunks.keys():
@@ -71,7 +81,7 @@ def run(argv):
 
             threads.append(
                 threading.Thread(target=download_chunk, args=(
-                    file_name, chunk_num, next_sequence_to_download[chunk_num], proxy_address, proxy_port)))
+                    file_name, chunk_num, next_sequence_to_download[chunk_num], proxy_address, proxy_port,downloads_folder)))
             threads[-1].start()
         for t in threads:
             t.join()
@@ -80,12 +90,13 @@ def run(argv):
         print("number_of_sequences_downloaded ", next_sequence_to_download)
         print("maximum_number_of_sequences ", maximum_number_of_sequences)
 
-        threads.clear()
+    threads.clear()
 
-    print("calling merge ")
-    merge_chunks(file_location_info.fileName,
-                 os.path.join(os.path.dirname(os.path.realpath(__file__)), "Downloads"),
-                 file_location_info.maxChunks)
+    if chunks == "all":
+        print("calling merge ")
+        merge_chunks(file_location_info.fileName,
+                     os.path.join(os.path.dirname(os.path.realpath(__file__)), "Downloads"),
+                     file_location_info.maxChunks)
 
 
 def wholeFileDownloaded():
@@ -105,4 +116,5 @@ def wholeFileDownloaded():
 # python3 integration/Server.py
 # python3 data_center/datacenter.py dc_aartee
 if __name__ == '__main__':
-    run(sys.argv[:])
+    # run(sys.argv[:])
+    run(str(sys.argv[1]), str(sys.argv[2]), str(sys.argv[3]))
