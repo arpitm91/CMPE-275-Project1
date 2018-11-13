@@ -31,12 +31,11 @@ class RaftService(our_proto_rpc.RaftServiceServicer):
         chunk = request.chunkId
         filename = request.fileName
         global FOLDER
-        file_path = os.path.join(FOLDER, filename)
 
         print("Initiating replication of :", filename, "chunk :", chunk, "from ip:", from_datacenter_ip, ",port :",
               from_datacenter_port)
         threading.Thread(target=download_as_client,
-                         args=("", "", filename, chunk, file_path, from_datacenter_ip, from_datacenter_port)).start()
+                         args=("", "", filename, chunk, FOLDER, from_datacenter_ip, from_datacenter_port)).start()
         reply = our_proto.Ack()
         reply.id = 1
         return reply
