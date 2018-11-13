@@ -49,6 +49,7 @@ def get_file_location(stub, request):
     print("Response received: ")
     pprint.pprint(file_location_info)
     print(file_location_info.maxChunks)
+    print("is file found :", file_location_info.isFileFound)
     return file_location_info
 
 
@@ -65,6 +66,8 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
             request.fileName = file_name
 
             file_location_info = get_file_location(stub, request)
+            print("file_location_info")
+            pprint.pprint(file_location_info)
 
             next_sequence_to_download = [0] * file_location_info.maxChunks
             maximum_number_of_sequences = [float('inf')] * file_location_info.maxChunks

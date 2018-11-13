@@ -11,14 +11,16 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.par
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "utils"))
 
 import file_utils
-import raft_pb2 as raft
-import raft_pb2_grpc as rpc
+import raft_pb2 as raft_proto
+import raft_pb2_grpc as raft_rpc
+import file_transfer_pb2 as file_transfer
+import file_transfer_pb2_grpc as file_transfer_rpc
 
 def run(argv):
     with grpc.insecure_channel(str(argv[1]) + ':' + str(argv[2])) as channel:
-        stub = rpc.DataTransferServiceStub(channel)
+        stub = file_transfer_rpc.DataTransferServiceStub(channel)
 
-        request = raft.RequestFileList()
+        request = file_transfer.RequestFileList()
         request.isClient = True
 
         response = stub.ListFiles(request)

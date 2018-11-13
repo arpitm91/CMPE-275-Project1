@@ -148,6 +148,40 @@ def get_leader_client():
     return client
 
 
+def request_file_info_from_other_raft_nodes(request):
+    for node in connections.other_raft_nodes:
+        try:
+            with grpc.insecure_channel(node["ip"] + ':' + node["port"]) as channel:
+                stub = file_transfer_proto_rpc.DataTransferServiceStub(channel)
+                file_location_info = stub.GetFileLocation(request)
+                print("Response received From other Raft: ")
+                pprint.pprint(file_location_info)
+                print(file_location_info.maxChunks)
+                print("is file found in other Raft:", file_location_info.isFileFound)
+                if file_location_info.isFileFound:
+                    return file_location_info
+        except:
+            print("Fail to connnect to: ", node["ip"], node["port"])
+    file_location_info = file_transfer_proto.FileLocationInfo()
+    file_location_info.isFileFound = False
+    return file_location_info
+
+
+def request_file_list_from_other_raft_nodes(request):
+    request.isClient = False
+    lst_files = []
+    for node in connections.other_raft_nodes:
+        try:
+            with grpc.insecure_channel(node["ip"] + ':' + node["port"]) as channel:
+                stub = file_transfer_proto_rpc.DataTransferServiceStub(channel)
+                files = stub.ListFiles(request)
+                lst_files += files.lstFileNames
+        except:
+            print("Fail to connnect to: ", node["ip"], node["port"])
+    return lst_files
+
+
+
 class Client:
     def __init__(self, username, server_address, server_port):
         self.username = username
@@ -330,18 +364,18 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
     '''
 
     def ListFiles(self, request, context):
+        lst_files = []
+        if request.isClient:
+            lst_files = request_file_list_from_other_raft_nodes(request)
 
-        if Globals.NODE_STATE == NodeState.LEADER:
-            my_reply = file_transfer_proto.FileList()
-            my_reply.lstFileNames.extend(Tables.get_all_available_file_list())
-            return my_reply
-        else:
-            client = get_leader_client()
-            if client:
-                my_reply = client._ListFile(request)
-                return my_reply
-            else:
-                return file_transfer_proto.FileList()
+        lst_files = lst_files + Tables.get_all_available_file_list()
+        my_reply = file_transfer_proto.FileList()
+        pprint.pprint("lst_files")
+        pprint.pprint(lst_files)
+        if len(lst_files) > 0:
+            my_reply.lstFileNames.extend(lst_files)
+        return my_reply
+
 
     '''
     request: raft.FileInfo
@@ -353,7 +387,36 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
         file_name = request.fileName
         is_file_found = True
         if file_name not in Tables.TABLE_FILE_INFO.keys():
-            is_file_found = False
+            my_reply = request_file_info_from_other_raft_nodes(request)
+            return my_reply
+        else:
+            max_chunks = len(Tables.TABLE_FILE_INFO[file_name].keys())
+            print("max_chunks from raft ", max_chunks)
+            lst_proxies = Tables.get_all_available_proxies()
+            lst_proxy_info = []
+            for ip, port in lst_proxies:
+                proxy_info = file_transfer_proto.ProxyInfo()
+                proxy_info.ip = ip
+                proxy_info.port = port
+                lst_proxy_info.append(proxy_info)
+
+        my_reply.fileName = file_name
+        my_reply.maxChunks = max_chunks
+        my_reply.lstProxy.extend(lst_proxy_info)
+        my_reply.isFileFound = is_file_found
+        return my_reply
+
+    '''
+    request: raft.FileInfo
+    '''
+
+    def GetFileLocation(self, request, context):
+        my_reply = file_transfer_proto.FileLocationInfo()
+        file_name = request.fileName
+        is_file_found = True
+        if file_name not in Tables.TABLE_FILE_INFO.keys():
+            # is_file_found = False
+            return my_reply
 
         max_chunks = len(Tables.TABLE_FILE_INFO[file_name].keys())
         print("max_chunks from raft ", max_chunks)
