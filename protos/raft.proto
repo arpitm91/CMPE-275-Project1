@@ -59,6 +59,11 @@ message  DataCenterInfo {
 	string port = 2;
 }
 
+message  ProxyInfo {
+	string ip = 1;
+	string port = 2;
+}
+
 message Empty {
 }
 
@@ -78,6 +83,18 @@ message UploadCompleteFileInfo {
     repeated ChunkUploadInfo lstChunkUploadInfo = 2;
 }
 
+message RequestChunkInfo {
+	string fileName = 1;
+	int64 chunkId = 2;			// Starts from 0 - N
+}
+
+message ChunkLocationInfo {
+	string fileName = 1;
+	int64 chunkId = 2;
+	repeated DataCenterInfo lstDataCenter = 3;
+	bool isChunkFound = 4;
+}
+
 service RaftService {
     rpc RaftHeartbit (Table) returns (Ack);
     rpc RequestVote (Candidacy) returns (CandidacyResponse);
@@ -85,6 +102,10 @@ service RaftService {
     rpc AddDataCenter (DataCenterInfo) returns (Empty);
     rpc DataCenterHeartbeat(Empty) returns (Empty);
     rpc ReplicationInitiate(ReplicationInfo) returns (Ack);
+    rpc AddProxy (ProxyInfo) returns (Empty);
+    rpc ProxyHeartbeat(Empty) returns (Empty);
 
     rpc FileUploadCompleted(UploadCompleteFileInfo) returns(Empty);
+
+    rpc GetDataCenterListForFileChunk(RequestChunkInfo) returns(ChunkLocationInfo);
 }
