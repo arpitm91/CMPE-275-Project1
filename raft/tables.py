@@ -277,6 +277,29 @@ def _mark_dc_available(dc_client):
                                                                 raft_proto.Uploaded)
 
 
+def Check_and_send_replication_request():
+    replication_list = Tables.get_file_chunks_to_be_replicated_with_dc_info()
+    pprint.pprint("$$$$$$$$$$$$$$$ REPLICATION LIST ########################")
+    pprint.pprint(replication_list)
+
+    for replication_info in replication_list:
+        file_name = replication_info[0]
+        chunk_id = replication_info[1]
+        to_dc = replication_info[2]
+        from_dc = replication_info[3]
+        for dc_client in Globals.LST_DC_CLIENTS:
+            if dc_client.server_address == to_dc[0] and dc_client.server_port == to_dc[1]:
+
+                log_info("REQUESTING REPLICATION FOR FILE:", file_name, "CHUNK:", chunk_id, "TO:", to_dc, "FROM:", from_dc)
+
+                replication_info_request = raft_proto.ReplicationInfo()
+                replication_info_request.fileName = file_name
+                replication_info_request.chunkId = chunk_id
+                replication_info_request.fromDatacenter.ip = from_dc[0]
+                replication_info_request.fromDatacenter.port = from_dc[1]
+                dc_client._ReplicationInitiate(replication_info_request)
+
+
 def _process_datacenter_heartbeat(dc_client, call_future):
     log_info("_process_datacenter_heartbeat:", dc_client.server_port)
     with ThreadPoolExecutorStackTraced(max_workers=10) as executor:
@@ -290,6 +313,19 @@ def _process_datacenter_heartbeat(dc_client, call_future):
             if dc_client.heartbeat_fail_count > Globals.MAX_ALLOWED_FAILED_HEARTBEAT_COUNT_BEFORE_REPLICATION:
                 _mark_dc_failed(dc_client)
 
+
+def _process_datacenter_replication_initiate(dc_client, ReplicationInfo, call_future):
+    with ThreadPoolExecutorStackTraced(max_workers=10) as executor:
+        try:
+            call_future.result()
+            file_name = ReplicationInfo.fileName
+            chunk_id = ReplicationInfo.chunkId
+            dc_ip = ReplicationInfo.fromDatacenter.ip
+            dc_port = ReplicationInfo.fromDatacenter.port
+            lst_dc = [(dc_ip, dc_port)]
+            Tables.insert_file_chunk_info_to_file_log(file_name, chunk_id, lst_dc, raft_proto.UploadRequested)
+        except:
+            pass
 
 class DatacenterClient:
     def __init__(self, username, server_address, server_port):
@@ -311,6 +347,15 @@ class DatacenterClient:
             call_future.add_done_callback(functools.partial(_process_datacenter_heartbeat, self))
         except:
             log_info("Exeption: _SendDataCenterHeartbeat")
+
+    def _ReplicationInitiate(self, ReplicationInfo):
+        try:
+            log_info("Sending replication request to:", self.server_address, self.server_port)
+            call_future = self.raft_stub.ReplicationInitiate.future(ReplicationInfo, timeout=DCGlobals.DC_HEARTBEAT_TIMEOUT * 0.9)
+            call_future.add_done_callback(functools.partial(_process_datacenter_replication_initiate, self, ReplicationInfo))
+        except:
+            log_info("Execption: _ReplicationInitiate")
+
 
 
 dc_heartbeat_timer = TimerUtil(_dc_heartbeat_timeout, DCGlobals.DC_HEARTBEAT_TIMEOUT)

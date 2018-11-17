@@ -31,7 +31,7 @@ from globals import ThreadPoolExecutorStackTraced
 from tables import Tables
 from tables import dc_heartbeat_timer
 from tables import DCGlobals
-
+from tables import Check_and_send_replication_request
 
 def _increment_cycle_and_reset():
     Globals.CURRENT_CYCLE += 1
@@ -71,15 +71,9 @@ def _raft_heartbeat_timeout():
     raft_heartbeat_timer.reset()
 
 
-def _check_and_send_replication_request():
-    replication_list = Tables.get_file_chunks_to_be_replicated_with_dc_info()
-    pprint.pprint("$$$$$$$$$$$$$$$ REPLICATION LIST ########################")
-    pprint.pprint(replication_list)
-
-
 def _dc_replication_timeout():
     if Globals.NODE_STATE == NodeState.LEADER:
-        _check_and_send_replication_request()
+        Check_and_send_replication_request()
     dc_replication_timer.reset()
 
 
