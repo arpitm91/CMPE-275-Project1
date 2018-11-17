@@ -46,7 +46,7 @@ class RaftServiceStub(object):
         )
     self.AddProxy = channel.unary_unary(
         '/grpc.RaftService/AddProxy',
-        request_serializer=raft__pb2.ProxyInfo.SerializeToString,
+        request_serializer=raft__pb2.ProxyInfoRaft.SerializeToString,
         response_deserializer=raft__pb2.Empty.FromString,
         )
     self.ProxyHeartbeat = channel.unary_unary(
@@ -175,7 +175,7 @@ def add_RaftServiceServicer_to_server(servicer, server):
       ),
       'AddProxy': grpc.unary_unary_rpc_method_handler(
           servicer.AddProxy,
-          request_deserializer=raft__pb2.ProxyInfo.FromString,
+          request_deserializer=raft__pb2.ProxyInfoRaft.FromString,
           response_serializer=raft__pb2.Empty.SerializeToString,
       ),
       'ProxyHeartbeat': grpc.unary_unary_rpc_method_handler(
