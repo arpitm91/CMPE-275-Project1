@@ -44,10 +44,25 @@ class RaftServiceStub(object):
         request_serializer=raft__pb2.ReplicationInfo.SerializeToString,
         response_deserializer=raft__pb2.Ack.FromString,
         )
+    self.AddProxy = channel.unary_unary(
+        '/grpc.RaftService/AddProxy',
+        request_serializer=raft__pb2.ProxyInfo.SerializeToString,
+        response_deserializer=raft__pb2.Empty.FromString,
+        )
+    self.ProxyHeartbeat = channel.unary_unary(
+        '/grpc.RaftService/ProxyHeartbeat',
+        request_serializer=raft__pb2.Empty.SerializeToString,
+        response_deserializer=raft__pb2.Empty.FromString,
+        )
     self.FileUploadCompleted = channel.unary_unary(
         '/grpc.RaftService/FileUploadCompleted',
         request_serializer=raft__pb2.UploadCompleteFileInfo.SerializeToString,
         response_deserializer=raft__pb2.Empty.FromString,
+        )
+    self.GetDataCenterListForFileChunk = channel.unary_unary(
+        '/grpc.RaftService/GetDataCenterListForFileChunk',
+        request_serializer=raft__pb2.RequestChunkInfo.SerializeToString,
+        response_deserializer=raft__pb2.ChunkLocationInfo.FromString,
         )
 
 
@@ -97,7 +112,28 @@ class RaftServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def AddProxy(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def ProxyHeartbeat(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
   def FileUploadCompleted(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def GetDataCenterListForFileChunk(self, request, context):
     # missing associated documentation comment in .proto file
     pass
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -137,10 +173,25 @@ def add_RaftServiceServicer_to_server(servicer, server):
           request_deserializer=raft__pb2.ReplicationInfo.FromString,
           response_serializer=raft__pb2.Ack.SerializeToString,
       ),
+      'AddProxy': grpc.unary_unary_rpc_method_handler(
+          servicer.AddProxy,
+          request_deserializer=raft__pb2.ProxyInfo.FromString,
+          response_serializer=raft__pb2.Empty.SerializeToString,
+      ),
+      'ProxyHeartbeat': grpc.unary_unary_rpc_method_handler(
+          servicer.ProxyHeartbeat,
+          request_deserializer=raft__pb2.Empty.FromString,
+          response_serializer=raft__pb2.Empty.SerializeToString,
+      ),
       'FileUploadCompleted': grpc.unary_unary_rpc_method_handler(
           servicer.FileUploadCompleted,
           request_deserializer=raft__pb2.UploadCompleteFileInfo.FromString,
           response_serializer=raft__pb2.Empty.SerializeToString,
+      ),
+      'GetDataCenterListForFileChunk': grpc.unary_unary_rpc_method_handler(
+          servicer.GetDataCenterListForFileChunk,
+          request_deserializer=raft__pb2.RequestChunkInfo.FromString,
+          response_serializer=raft__pb2.ChunkLocationInfo.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

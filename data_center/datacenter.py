@@ -151,8 +151,8 @@ def register_dc():
         stub = our_proto_rpc.RaftServiceStub(channel)
 
         request = our_proto.DataCenterInfo()
-        request.ip = ip
-        request.port = port
+        request.ip = my_ip
+        request.port = my_port
         while True:
             try:
                 stub.AddDataCenter(request)
