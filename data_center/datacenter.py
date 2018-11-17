@@ -44,6 +44,7 @@ class RaftService(our_proto_rpc.RaftServiceServicer):
 class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
     def UploadFile(self, request_iterator, context):
         file_name = ""
+        chunk_id = None
         for request in request_iterator:
             file_name = request.fileName
             chunk_id = request.chunkId
@@ -58,6 +59,9 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
 
         my_reply = common_proto.FileInfo()
         my_reply.fileName = file_name
+
+        if chunk_id is not None:
+            upload_completed(file_name, chunk_id)
 
         return my_reply
 
@@ -114,7 +118,35 @@ def start_server(username, port):
         server.stop(0)
 
 
-def register_dc(raft_ip, raft_port, ip, port):
+def upload_completed(file_name, chunk_id):
+    global raft_ip, raft_port, my_ip, my_port
+    with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
+        stub = our_proto_rpc.RaftServiceStub(channel)
+
+        request = our_proto.UploadCompleteFileInfo()
+
+        chunk_info = our_proto.ChunkUploadInfo()
+        chunk_info.chunkId = chunk_id
+        chunk_info.uploadedDatacenter.ip = my_ip
+        chunk_info.uploadedDatacenter.port = my_port
+
+        request.fileName = file_name
+        request.lstChunkUploadInfo.extend([
+            chunk_info
+        ])
+
+        while True:
+            try:
+                stub.FileUploadCompleted(request)
+                print("Upload completed sent to raft ip :", raft_ip, ",port :", raft_port)
+                break
+            except grpc.RpcError:
+                print("Could not sent upload complete to raft ip :", raft_ip, ",port :", raft_port)
+                time.sleep(2)
+
+
+def register_dc():
+    global raft_ip, raft_port, my_ip, my_port
     with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
         stub = our_proto_rpc.RaftServiceStub(channel)
 
@@ -138,10 +170,12 @@ if __name__ == '__main__':
     my_ip = data_center_info.data_center[data_center_name]["ip"]
     my_port = data_center_info.data_center[data_center_name]["port"]
     FOLDER = data_center_info.data_center[data_center_name]["folder"]
+    raft_ip = sys.argv[2]
+    raft_port = sys.argv[3]
 
     threading.Thread(target=start_server, args=(data_center_name, my_port)).start()
 
-    threading.Thread(target=register_dc, args=(sys.argv[2], sys.argv[3], my_ip, my_port)).start()
+    threading.Thread(target=register_dc, args=()).start()
 
     try:
         while True:
