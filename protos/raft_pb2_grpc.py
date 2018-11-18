@@ -59,8 +59,8 @@ class RaftServiceStub(object):
         request_serializer=raft__pb2.UploadCompleteFileInfo.SerializeToString,
         response_deserializer=raft__pb2.Empty.FromString,
         )
-    self.GetDataCenterListForFileChunk = channel.unary_unary(
-        '/grpc.RaftService/GetDataCenterListForFileChunk',
+    self.GetChunkLocationInfo = channel.unary_unary(
+        '/grpc.RaftService/GetChunkLocationInfo',
         request_serializer=raft__pb2.RequestChunkInfo.SerializeToString,
         response_deserializer=raft__pb2.ChunkLocationInfo.FromString,
         )
@@ -133,7 +133,7 @@ class RaftServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
-  def GetDataCenterListForFileChunk(self, request, context):
+  def GetChunkLocationInfo(self, request, context):
     # missing associated documentation comment in .proto file
     pass
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -188,8 +188,8 @@ def add_RaftServiceServicer_to_server(servicer, server):
           request_deserializer=raft__pb2.UploadCompleteFileInfo.FromString,
           response_serializer=raft__pb2.Empty.SerializeToString,
       ),
-      'GetDataCenterListForFileChunk': grpc.unary_unary_rpc_method_handler(
-          servicer.GetDataCenterListForFileChunk,
+      'GetChunkLocationInfo': grpc.unary_unary_rpc_method_handler(
+          servicer.GetChunkLocationInfo,
           request_deserializer=raft__pb2.RequestChunkInfo.FromString,
           response_serializer=raft__pb2.ChunkLocationInfo.SerializeToString,
       ),

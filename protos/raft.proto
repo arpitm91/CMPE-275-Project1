@@ -108,5 +108,5 @@ service RaftService {
 
     rpc FileUploadCompleted(UploadCompleteFileInfo) returns(Empty);
 
-    rpc GetDataCenterListForFileChunk(RequestChunkInfo) returns(ChunkLocationInfo);
+    rpc GetChunkLocationInfo(RequestChunkInfo) returns(ChunkLocationInfo);
 }
