@@ -59,7 +59,7 @@ message  DataCenterInfo {
 	string port = 2;
 }
 
-message  ProxyInfo {
+message  ProxyInfoRaft {
 	string ip = 1;
 	string port = 2;
 }
@@ -102,7 +102,7 @@ service RaftService {
     rpc AddDataCenter (DataCenterInfo) returns (Empty);
     rpc DataCenterHeartbeat(Empty) returns (Empty);
     rpc ReplicationInitiate(ReplicationInfo) returns (Ack);
-    rpc AddProxy (ProxyInfo) returns (Empty);
+    rpc AddProxy (ProxyInfoRaft) returns (Empty);
     rpc ProxyHeartbeat(Empty) returns (Empty);
 
     rpc FileUploadCompleted(UploadCompleteFileInfo) returns(Empty);
