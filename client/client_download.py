@@ -13,7 +13,6 @@ import file_transfer_pb2 as file_transfer
 import file_transfer_pb2_grpc as rpc
 
 threads = []
-failed_chunks = {}
 next_sequence_to_download = []
 maximum_number_of_sequences = []
 
@@ -57,6 +56,18 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
     global next_sequence_to_download
     global maximum_number_of_sequences
 
+    failed_chunks = {}
+
+    def whole_file_downloaded(failed_chunks):
+        is_whole_file_downloaded = True
+
+        for i in range(len(next_sequence_to_download)):
+            if next_sequence_to_download[i] < maximum_number_of_sequences[i]:
+                failed_chunks[i] = next_sequence_to_download[i]
+                is_whole_file_downloaded = False
+
+        return is_whole_file_downloaded
+
     file_location_info = file_transfer.FileLocationInfo()
 
     if chunks == -1:
@@ -76,7 +87,7 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
         maximum_number_of_sequences = [0] * (chunks + 1)
         maximum_number_of_sequences[chunks] = float('inf')
 
-    while not whole_file_downloaded():
+    while not whole_file_downloaded(failed_chunks):
         for chunk_num in failed_chunks.keys():
             if chunks == -1:
                 random_proxy_index = random.randint(0, len(file_location_info.lstProxy) - 1)
@@ -111,16 +122,6 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
                      file_location_info.maxChunks)
 
 
-def whole_file_downloaded():
-    is_whole_file_downloaded = True
-
-    for i in range(len(next_sequence_to_download)):
-        if next_sequence_to_download[i] < maximum_number_of_sequences[i]:
-            global failed_chunks
-            failed_chunks[i] = next_sequence_to_download[i]
-            is_whole_file_downloaded = False
-
-    return is_whole_file_downloaded
 
 
 # python3 client_download.py <raft_ip> <raft_port> <filename>
