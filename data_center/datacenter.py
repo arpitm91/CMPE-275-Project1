@@ -45,12 +45,15 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
     def UploadFile(self, request_iterator, context):
         file_name = ""
         chunk_id = None
+        seq_num = 0
+        seq_max = float('inf')
         for request in request_iterator:
             file_name = request.fileName
             chunk_id = request.chunkId
             seq_num = request.seqNum
+            seq_max = request.seqMax
             file_path = os.path.join(FOLDER, file_name)
-            print("Received... Chunk: ", chunk_id, ", Seq: ", seq_num)
+            print("Received... Chunk: ", chunk_id, ", Seq: ", seq_num, "/", seq_max)
             if seq_num == 0:
                 print("Upload request received for", file_name, "chunk", chunk_id)
                 if os.path.isfile(os.path.join(file_path, str(chunk_id))):
@@ -61,7 +64,10 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
         my_reply.fileName = file_name
 
         if chunk_id is not None:
-            upload_completed(file_name, chunk_id)
+            if seq_num == seq_max - 1:
+                upload_completed(file_name, chunk_id, True)
+            else:
+                upload_completed(file_name, chunk_id, False)
 
         return my_reply
 
@@ -118,22 +124,18 @@ def start_server(username, port):
         server.stop(0)
 
 
-def upload_completed(file_name, chunk_id):
+def upload_completed(file_name, chunk_id, is_success):
     global raft_ip, raft_port, my_ip, my_port
     with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
         stub = our_proto_rpc.RaftServiceStub(channel)
 
         request = our_proto.UploadCompleteFileInfo()
 
-        chunk_info = our_proto.ChunkUploadInfo()
-        chunk_info.chunkId = chunk_id
-        chunk_info.uploadedDatacenter.ip = my_ip
-        chunk_info.uploadedDatacenter.port = my_port
-
         request.fileName = file_name
-        request.lstChunkUploadInfo.extend([
-            chunk_info
-        ])
+        request.lstChunkUploadInfo.chunkId = chunk_id
+        request.lstChunkUploadInfo.uploadedDatacenter.ip = my_ip
+        request.lstChunkUploadInfo.uploadedDatacenter.port = my_port
+        request.isSuccess = is_success
 
         while True:
             try:
