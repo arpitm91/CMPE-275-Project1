@@ -14,6 +14,8 @@ class Globals:
 
     LST_DC_CLIENTS = []
 
+    LST_PROXY_CLIENTS = []
+
     REPLICATION_FACTOR = 2
     MAX_ALLOWED_FAILED_HEARTBEAT_COUNT_BEFORE_REPLICATION = 10
 
@@ -27,6 +29,9 @@ class Globals:
     LEADER_IP = ""
 
     RAFT_HEARTBEAT_TIMEOUT = 2
+    PROXY_HEARTBEAT_TIMEOUT = 2
+    DC_HEARTBEAT_TIMEOUT = 2
+    DC_REPLICATION_TIMEOUT = 10
 
     LAST_SENT_TABLE_LOG = 0
 
@@ -47,6 +52,15 @@ class Globals:
         if not is_exists:
             Globals.LST_DC_CLIENTS.append(dc_client)
 
+    @staticmethod
+    def add_proxy_client(proxy_client):
+        is_exists = False
+        for client in Globals.LST_PROXY_CLIENTS:
+            if client.server_address == proxy_client.server_address and client.server_port == proxy_client.server_port:
+                is_exists = True
+                break
+        if not is_exists:
+            Globals.LST_PROXY_CLIENTS.append(proxy_client)
 
 class ThreadPoolExecutorStackTraced(ThreadPoolExecutor):
     def submit(self, fn, *args, **kwargs):

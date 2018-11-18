@@ -79,7 +79,7 @@ def _dc_replication_timeout():
 
 random_timer = TimerUtil(_random_timeout)
 raft_heartbeat_timer = TimerUtil(_raft_heartbeat_timeout, Globals.RAFT_HEARTBEAT_TIMEOUT)
-dc_replication_timer = TimerUtil(_dc_replication_timeout, DCGlobals.DC_REPLICATION_TIMEOUT)
+dc_replication_timer = TimerUtil(_dc_replication_timeout, Globals.DC_REPLICATION_TIMEOUT)
 
 
 def _process_heartbeat(client, table, call_future):
@@ -438,15 +438,23 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
         return raft_proto.Empty()
 
     '''
+    request: raft.DataCenterInfo
+    context:
+    '''
+
+    def AddProxy(self, request, context):
+        Tables.register_proxy(request.ip, request.port)
+        return raft_proto.Empty()
+
+    '''
     request: raft.UploadCompleteFileInfo
     '''
 
     def FileUploadCompleted(self, request, context):
         if Globals.NODE_STATE == NodeState.LEADER:
-            for chunk_info in request.lstChunkUploadInfo:
-                chunk_id = chunk_info.chunkId
-                lst_dc = [(chunk_info.uploadedDatacenter.ip, chunk_info.uploadedDatacenter.port)]
-                Tables.insert_file_chunk_info_to_file_log(request.fileName, chunk_id, lst_dc, raft_proto.Uploaded)
+            chunk_id = request.chunkUploadInfo.chunkId
+            lst_dc = [(request.chunkUploadInfo.uploadedDatacenter.ip, request.chunkUploadInfo.uploadedDatacenter.port)]
+            Tables.insert_file_chunk_info_to_file_log(request.fileName, chunk_id, lst_dc, raft_proto.Uploaded)
 
         else:
             client = get_leader_client()
@@ -456,6 +464,30 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
             else:
                 return raft_proto.Empty()
         return raft_proto.Empty()
+
+    '''
+        request: raft.RequestChunkInfo
+    '''
+
+    def GetChunkLocationInfo(self, request, context):
+        lst_dc = []
+        is_chunk_found = False
+
+        for dc in Tables.TABLE_FILE_INFO[request.fileName][request.chunkId].keys():
+            if Tables.TABLE_FILE_INFO[request.fileName][request.chunkId][dc] == raft_proto.Uploaded:
+                dc_info = raft_proto.DataCenterInfo()
+                dc_info.ip = dc[0]
+                dc_info.port = dc[1]
+                lst_dc.append(dc_info)
+                is_chunk_found = True
+
+        chunk_location_info = raft_proto.ChunkLocationInfo()
+        chunk_location_info.fileName = request.fileName
+        chunk_location_info.chunkId = request.chunkId
+        chunk_location_info.lstDataCenter.extends(lst_dc)
+        chunk_location_info.isChunkFound = is_chunk_found
+
+        return chunk_location_info
 
 
 def start_client(username, server_address, server_port):
