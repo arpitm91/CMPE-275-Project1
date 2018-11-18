@@ -80,7 +80,8 @@ message ChunkUploadInfo {
 
 message UploadCompleteFileInfo {
     string fileName = 1;
-    repeated ChunkUploadInfo lstChunkUploadInfo = 2;
+    ChunkUploadInfo chunkUploadInfo = 2;
+    bool isSuccess = 3;
 }
 
 message RequestChunkInfo {

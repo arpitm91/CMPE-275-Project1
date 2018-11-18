@@ -5,6 +5,8 @@
     Replication initiation request handling
     Replication execution (Download from other dc)
 
+    UploadCompleted Failed Upload Handling              -Arpit
+
 2. Client
     Download - Thread fail checking                     -Aartee
     Upload - Thread fail checking                       -Aartee
