@@ -33,5 +33,10 @@ data_center = {
         "ip": "localhost",
         "port": "11001",
         "folder": "/Users/anujchaudhari/Desktop/CMPE275/DataCenter/1"
+    },
+    "dc_6": {
+        "ip": "localhost",
+        "port": "11002",
+        "folder": "/Users/anujchaudhari/Desktop/CMPE275/DataCenter/2"
     }
 }

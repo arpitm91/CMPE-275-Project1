@@ -20,7 +20,7 @@ threads = []
 
 
 def file_upload_iterator(file_path, file_name, chunk_num):
-    seq_max = file_utils.get_max_file_seqs_per_chunk(file_path)
+    seq_max = file_utils.get_max_file_seqs_per_chunk(file_path, chunk_num)
     cur_seq_num = 0
     for chunk_buffer in file_utils.get_file_seqs_per_chunk(file_path, chunk_num):
         request = file_transfer.FileUploadData()
@@ -88,13 +88,13 @@ def run(argv):
     for t in threads:
         t.join()
 
-    with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
-        stub = raft_proto_rpc.RaftServiceStub(channel)
-
-        request = raft_proto.UploadCompleteFileInfo()
-        request.fileName = file_name
-        request.lstChunkUploadInfo.extend(lst_chunk_upload_info)
-        stub.FileUploadCompleted(request)
+    # with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
+    #     stub = raft_proto_rpc.RaftServiceStub(channel)
+    #
+    #     request = raft_proto.UploadCompleteFileInfo()
+    #     request.fileName = file_name
+    #     request.lstChunkUploadInfo.extend(lst_chunk_upload_info)
+    #     stub.FileUploadCompleted(request)
 
     print("################################################################################")
     print("File Upload Completed. To download file use this name: ", file_name)

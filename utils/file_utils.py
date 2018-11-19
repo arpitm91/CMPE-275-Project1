@@ -18,8 +18,15 @@ def get_max_file_seqs(filename):
     return math.ceil(get_file_size(filename) / SEQUENCE_SIZE)
 
 
-def get_max_file_seqs_per_chunk(filename):
-    return math.ceil(get_file_size(filename) / (SEQUENCE_SIZE * get_max_file_chunks(filename)))
+def get_max_file_seqs_per_chunk(filename, chunk_id):
+    filesize = get_file_size(filename)
+    total_chunks = get_max_file_chunks(filename)
+
+    if chunk_id == total_chunks - 1:
+        diff = filesize - (CHUNK_SIZE * (total_chunks - 1))
+        return math.ceil(diff / SEQUENCE_SIZE)
+    else:
+        return math.ceil(CHUNK_SIZE / SEQUENCE_SIZE)
 
 
 def get_max_file_chunks(filename):

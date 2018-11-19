@@ -161,9 +161,9 @@ def upload_completed(file_name, chunk_id, is_success):
         request = our_proto.UploadCompleteFileInfo()
 
         request.fileName = file_name
-        request.lstChunkUploadInfo.chunkId = chunk_id
-        request.lstChunkUploadInfo.uploadedDatacenter.ip = my_ip
-        request.lstChunkUploadInfo.uploadedDatacenter.port = my_port
+        request.chunkUploadInfo.chunkId = chunk_id
+        request.chunkUploadInfo.uploadedDatacenter.ip = my_ip
+        request.chunkUploadInfo.uploadedDatacenter.port = my_port
         request.isSuccess = is_success
 
         while True:

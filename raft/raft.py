@@ -74,7 +74,8 @@ def _raft_heartbeat_timeout():
 
 def _dc_replication_timeout():
     if Globals.NODE_STATE == NodeState.LEADER:
-        Check_and_send_replication_request()
+        pass
+        # Check_and_send_replication_request()
     dc_replication_timer.reset()
 
 
@@ -208,6 +209,11 @@ class Client:
     def _FileUploadCompleted(self, UploadCompleteFileInfo):
         return self.raft_stub.FileUploadCompleted(UploadCompleteFileInfo)
 
+    def _AddDataCenter(self, DataCenterInfo):
+        return self.raft_stub.AddDataCenter(DataCenterInfo)
+
+    def _AddProxy(self, ProxyInfo):
+        return self.raft_stub.AddProxy(ProxyInfo)
 
 # server
 class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.DataTransferServiceServicer):
@@ -445,17 +451,33 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
     '''
 
     def AddDataCenter(self, request, context):
-        Tables.register_dc(request.ip, request.port)
-        return raft_proto.Empty()
+        if Globals.NODE_STATE == NodeState.LEADER:
+            Tables.register_dc(request.ip, request.port)
+            return raft_proto.Empty()
+        else:
+            client = get_leader_client()
+            if client:
+                my_reply = client._AddDataCenter(request)
+                return my_reply
+            else:
+                return
 
     '''
-    request: raft.DataCenterInfo
+    request: raft.ProxyInfo
     context:
     '''
 
     def AddProxy(self, request, context):
-        Tables.register_proxy(request.ip, request.port)
-        return raft_proto.Empty()
+        if Globals.NODE_STATE == NodeState.LEADER:
+            Tables.register_proxy(request.ip, request.port)
+            return raft_proto.Empty()
+        else:
+            client = get_leader_client()
+            if client:
+                my_reply = client._AddProxy(request)
+                return my_reply
+            else:
+                return
 
     '''
     request: raft.UploadCompleteFileInfo
@@ -496,7 +518,7 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
         chunk_location_info = raft_proto.ChunkLocationInfo()
         chunk_location_info.fileName = request.fileName
         chunk_location_info.chunkId = request.chunkId
-        chunk_location_info.lstDataCenter.extends(lst_dc)
+        chunk_location_info.lstDataCenter.extend(lst_dc)
         chunk_location_info.isChunkFound = is_chunk_found
 
         return chunk_location_info
