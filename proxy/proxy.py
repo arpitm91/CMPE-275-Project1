@@ -43,7 +43,7 @@ def download_chunk_to_queue(common_queue, file_name, chunk_num, start_seq_num, d
         common_queue.put(None)
 
 
-def getRaftNode():
+def get_raft_node():
     available_raft_nodes = []
     for key in connections.keys():
         if key[:4] == "raft":
@@ -54,10 +54,43 @@ def getRaftNode():
     return available_raft_nodes[random_raft_index]["own"]
 
 
-class ProxyServer(common_proto_rpc.DataTransferServiceServicer, our_proto_rpc.RaftServiceServicer):
+class RaftService(our_proto_rpc.RaftServiceServicer):
     def ProxyHeartbeat(self, request, context):
         reply = our_proto.Empty()
         return reply
+
+    def RaftHeartbit(self, request, context):
+        pass
+
+    def RequestVote(self, request, context):
+        pass
+
+    def AddFileLog(self, request, context):
+        pass
+
+    def AddDataCenter(self, request, context):
+        pass
+
+    def DataCenterHeartbeat(self, request, context):
+        pass
+
+    def ReplicationInitiate(self, request, context):
+        pass
+
+    def AddProxy(self, request, context):
+        pass
+
+    def FileUploadCompleted(self, request, context):
+        pass
+
+    def GetChunkLocationInfo(self, request, context):
+        pass
+
+    def GetChunkUploadInfo(self, request, context):
+        pass
+
+
+class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
 
     def DownloadChunk(self, request, context):
         file_name = request.fileName
@@ -65,7 +98,7 @@ class ProxyServer(common_proto_rpc.DataTransferServiceServicer, our_proto_rpc.Ra
         start_seq_num = request.startSeqNum
 
         while True:
-            random_raft = getRaftNode()
+            random_raft = get_raft_node()
             with grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]) as channel:
                 stub = our_proto_rpc.RaftServiceStub(channel)
 
@@ -92,7 +125,7 @@ class ProxyServer(common_proto_rpc.DataTransferServiceServicer, our_proto_rpc.Ra
         print("data center selected", data_center_address, data_center_port)
 
         threading.Thread(target=download_chunk_to_queue, args=(
-        common_q, file_name, chunk_id, start_seq_num, data_center_address, data_center_port)).start()
+            common_q, file_name, chunk_id, start_seq_num, data_center_address, data_center_port)).start()
 
         while True:
             common_q_front = common_q.get(block=True)
@@ -108,8 +141,8 @@ class ProxyServer(common_proto_rpc.DataTransferServiceServicer, our_proto_rpc.Ra
 
 def start_server(username, port):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    common_proto_rpc.add_DataTransferServiceServicer_to_server(ProxyServer(), server)
-    our_proto_rpc.add_RaftServiceServicer_to_server(ProxyServer(), server)
+    common_proto_rpc.add_DataTransferServiceServicer_to_server(DataCenterServer(), server)
+    our_proto_rpc.add_RaftServiceServicer_to_server(RaftService(), server)
     server.add_insecure_port('[::]:' + str(port))
     server.start()
     print("server started at port : ", port, "username :", username)
@@ -123,7 +156,7 @@ def start_server(username, port):
 def register_proxy():
     global my_ip, my_port
     while True:
-        random_raft = getRaftNode()
+        random_raft = get_raft_node()
         with grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]) as channel:
             stub = our_proto_rpc.RaftServiceStub(channel)
 

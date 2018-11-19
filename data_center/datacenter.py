@@ -40,6 +40,33 @@ class RaftService(our_proto_rpc.RaftServiceServicer):
         reply.id = 1
         return reply
 
+    def RaftHeartbit(self, request, context):
+        pass
+
+    def RequestVote(self, request, context):
+        pass
+
+    def AddFileLog(self, request, context):
+        pass
+
+    def AddDataCenter(self, request, context):
+        pass
+
+    def AddProxy(self, request, context):
+        pass
+
+    def ProxyHeartbeat(self, request, context):
+        pass
+
+    def FileUploadCompleted(self, request, context):
+        pass
+
+    def GetChunkLocationInfo(self, request, context):
+        pass
+
+    def GetChunkUploadInfo(self, request, context):
+        pass
+
 
 class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
     def UploadFile(self, request_iterator, context):
@@ -65,8 +92,10 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
 
         if chunk_id is not None:
             if seq_num == seq_max - 1:
+                # full chunk received
                 upload_completed(file_name, chunk_id, True)
             else:
+                # full chunk not received
                 upload_completed(file_name, chunk_id, False)
 
         return my_reply
