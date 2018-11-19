@@ -30,8 +30,9 @@ from globals import NodeState
 from globals import ThreadPoolExecutorStackTraced
 from tables import Tables
 from tables import dc_heartbeat_timer
-from tables import DCGlobals
+from tables import proxy_heartbeat_timer
 from tables import Check_and_send_replication_request
+
 
 def _increment_cycle_and_reset():
     Globals.CURRENT_CYCLE += 1
@@ -175,7 +176,6 @@ def request_file_list_from_other_raft_nodes(request):
     return lst_files
 
 
-
 class Client:
     def __init__(self, username, server_address, server_port):
         self.username = username
@@ -208,6 +208,7 @@ class Client:
     def _FileUploadCompleted(self, UploadCompleteFileInfo):
         return self.raft_stub.FileUploadCompleted(UploadCompleteFileInfo)
 
+
 # server
 class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.DataTransferServiceServicer):
     def __init__(self, username):
@@ -220,7 +221,7 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
 
     def RaftHeartbit(self, request, context):
 
-        log_info("heartbit arrived: ", len(Tables.FILE_LOGS))
+        log_info("heartbit arrived: ", len(Tables.FILE_LOGS))        
 
         ack = raft_proto.Ack()
 
@@ -250,11 +251,18 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
         log_info("MY Leader: ", Globals.LEADER_PORT, len(Tables.FILE_LOGS))
 
         # Update Table_log and File_info_table
-        Tables.set_file_log(request.tableLog)
+        Tables.set_table_log(request.tableLog)
 
         ack.id = len(Tables.FILE_LOGS)
 
+        print("Tables.TABLE_FILE_INFO")
         pprint.pprint(Tables.TABLE_FILE_INFO)
+        print("Tables.TABLE_PROXY_INFO")
+        pprint.pprint(Tables.TABLE_PROXY_INFO)
+        print("Tables.TABLE_DC_INFO")
+        pprint.pprint(Tables.TABLE_DC_INFO)
+
+        print("###########################################################")
 
         return ack
 
@@ -298,7 +306,7 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
             log_info("LOG ADDED")
 
             # Update Table_log and File_info_table
-            Tables.set_file_log(Tables.FILE_LOGS)
+            Tables.set_table_log(Tables.FILE_LOGS)
 
         ack = raft_proto.Ack()
         ack.id = 1
@@ -327,8 +335,10 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
 
             pprint.pprint("TABLE_FILE_INFO")
             pprint.pprint(Tables.TABLE_FILE_INFO)
+            pprint.pprint(Tables.TABLE_DC_INFO)
 
-            lst_proxies = Tables.get_all_available_proxies()
+            # TODO: Use proxies instead of DC
+            lst_proxies = Tables.get_all_available_dc()
             lst_proxy_info = []
             for ip, port in lst_proxies:
                 proxy_info = file_transfer_proto.ProxyInfo()
@@ -336,6 +346,8 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
                 proxy_info.port = port
                 lst_proxy_info.append(proxy_info)
 
+            print("LST_PROXEIS:")
+            print(my_reply.lstProxy)
             my_reply.lstProxy.extend(lst_proxy_info)
 
             print("Replied to :")
@@ -369,7 +381,6 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
         if len(lst_files) > 0:
             my_reply.lstFileNames.extend(lst_files)
         return my_reply
-
 
     '''
     request: raft.FileInfo
@@ -454,7 +465,8 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
         if Globals.NODE_STATE == NodeState.LEADER:
             chunk_id = request.chunkUploadInfo.chunkId
             lst_dc = [(request.chunkUploadInfo.uploadedDatacenter.ip, request.chunkUploadInfo.uploadedDatacenter.port)]
-            Tables.insert_file_chunk_info_to_file_log(request.fileName, chunk_id, lst_dc, raft_proto.Uploaded)
+            Tables.insert_file_chunk_info_to_file_log(request.fileName, chunk_id, lst_dc,
+                                                      raft_proto.Uploaded if request.isSuccess else raft_proto.UploadFaied)
 
         else:
             client = get_leader_client()
@@ -516,10 +528,10 @@ def main(argv):
 
     threading.Thread(target=start_server, args=(username, Globals.MY_PORT), daemon=True).start()
 
-    # Init Data-center Table
-    Tables.init_dc(connections.data_centers)
-    # Init Proxies Table
-    Tables.init_proxies(connections.lst_proxies)
+    # # Init Data-center Table
+    # Tables.init_dc(connections.data_centers)
+    # # Init Proxies Table
+    # Tables.init_proxies(connections.lst_proxies)
 
     for client in connections.connections[username]["clients"]:
         # client
@@ -532,6 +544,7 @@ def main(argv):
     random_timer.start()
     raft_heartbeat_timer.start()
     dc_heartbeat_timer.start()
+    proxy_heartbeat_timer.start()
     dc_replication_timer.start()
 
     # Server starts in background (another thread) so keep waiting

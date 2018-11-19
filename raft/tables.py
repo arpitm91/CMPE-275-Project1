@@ -21,8 +21,8 @@ import raft_pb2_grpc as raft_proto_rpc
 import file_transfer_pb2 as file_transfer_proto
 import file_transfer_pb2_grpc as file_transfer_proto_rpc
 
-class Tables:
 
+class Tables:
     FILE_LOGS = []
 
     #
@@ -55,13 +55,23 @@ class Tables:
 
     @staticmethod
     def register_proxy(proxy_ip, proxy_port):
-        proxy_client = ProxyClient("", proxy_ip, proxy_port)
-        Globals.add_proxy_client(proxy_client)
-        Tables.TABLE_PROXY_INFO[(proxy_ip, proxy_port)] = True
+        log = raft_proto.TableLog()
+        log.ip = proxy_ip
+        log.port = proxy_port
+        log.log_index = Globals.get_next_log_index()
+        log.operation = raft_proto.Available
+        log.logType = raft_proto.ProxyLog
+        Tables.add_proxy_log(log)
 
     @staticmethod
     def un_register_proxy(proxy_ip, proxy_port):
-        Tables.TABLE_PROXY_INFO[(proxy_ip, proxy_port)] = False
+        log = raft_proto.TableLog()
+        log.ip = proxy_ip
+        log.port = proxy_port
+        log.log_index = Globals.get_next_log_index()
+        log.operation = raft_proto.Unavailable
+        log.logType = raft_proto.ProxyLog
+        Tables.add_proxy_log(log)
 
     @staticmethod
     def get_all_available_proxies():
@@ -86,13 +96,23 @@ class Tables:
 
     @staticmethod
     def register_dc(dc_ip, dc_port):
-        dc_client = DatacenterClient("", dc_ip, dc_port)
-        Globals.add_dc_client(dc_client)
-        Tables.TABLE_DC_INFO[(dc_ip, dc_port)] = True
+        log = raft_proto.TableLog()
+        log.ip = dc_ip
+        log.port = dc_port
+        log.log_index = Globals.get_next_log_index()
+        log.operation = raft_proto.Available
+        log.logType = raft_proto.DatacenterLog
+        Tables.add_dc_log(log)
 
     @staticmethod
     def un_register_dc(dc_ip, dc_port):
-        Tables.TABLE_DC_INFO[(dc_ip, dc_port)] = False
+        log = raft_proto.TableLog()
+        log.ip = dc_ip
+        log.port = dc_port
+        log.log_index = Globals.get_next_log_index()
+        log.operation = raft_proto.Unavailable
+        log.logType = raft_proto.DatacenterLog
+        Tables.add_dc_log(log)
 
     @staticmethod
     def is_dc_available(dc_ip, dc_port):
@@ -144,24 +164,45 @@ class Tables:
             log.port = dc[1]
             log.log_index = Globals.get_next_log_index()
             log.operation = log_operation
+            log.logType = raft_proto.FileLog
             Tables.add_file_log(log)
+
+    @staticmethod
+    def add_dc_log(dc_log):
+        Tables.FILE_LOGS.append(dc_log)
+        dc_client = DatacenterClient("", dc_log.ip, dc_log.port)
+        Globals.add_dc_client(dc_client)
+        Tables.TABLE_DC_INFO[(dc_log.ip, dc_log.port)] = True if dc_log.operation == raft_proto.Available else False
+
+    @staticmethod
+    def add_proxy_log(proxy_log):
+        Tables.FILE_LOGS.append(proxy_log)
+        proxy_client = ProxyClient("", proxy_log.ip, proxy_log.port)
+        Globals.add_proxy_client(proxy_client)
+        Tables.TABLE_PROXY_INFO[
+            (proxy_log.ip, proxy_log.port)] = True if proxy_log.operation == raft_proto.Available else False
 
     @staticmethod
     def add_file_log(table_log):
         Tables.FILE_LOGS.append(table_log)
         Tables.create_default_dictionary_for_file_info_table(table_log.fileName, table_log.chunkId)
-        # Possible Values: raft.UploadRequested, raft.Uploaded, raft.UploadFailed, raft.Deleted
+        # Possible Value raft.UploadRequested, raft.Uploaded, raft.UploadFailed, raft.Deleted, raft.TemporaryUnavailable
         Tables.TABLE_FILE_INFO[table_log.fileName][table_log.chunkId][
             (table_log.ip, table_log.port)] = table_log.operation
 
-    # set_file_log traverse through the file logs and update the FILE_INFO_TABLE
-    # used when we get all file_logs with heartbeat request from leader on client(follower) side
+    # set_file_log traverse through the table logs and update the FILE_INFO_TABLE, TABLE_DC_INFO, TABLE_PROXY_INFO
+    # used when we get all logs with heartbeat request from leader on client(follower) side
     @staticmethod
-    def set_file_log(table_logs):
+    def set_table_log(table_logs):
         Tables.FILE_LOGS = []
         for tl in table_logs:
-            Tables.add_file_log(tl)
-            log_info("LOG Arrived: ")
+            Globals.CURRENT_LOG_INDEX = tl.log_index
+            if tl.logType == raft_proto.FileLog:
+                Tables.add_file_log(tl)
+            elif tl.logType == raft_proto.DatacenterLog:
+                Tables.add_dc_log(tl)
+            elif tl.logType == raft_proto.ProxyLog:
+                Tables.add_proxy_log(tl)
 
     @staticmethod
     def create_default_dictionary_for_file_info_table(file_name, chunk_id):
@@ -192,7 +233,8 @@ class Tables:
         for file_name in Tables.TABLE_FILE_INFO.keys():
             for chunk_id in Tables.TABLE_FILE_INFO[file_name].keys():
                 for ip, port in Tables.TABLE_FILE_INFO[file_name][chunk_id]:
-                    if ip == dc_ip and port == dc_port and Tables.TABLE_FILE_INFO[file_name][chunk_id][(ip, port)] == raft_proto.Uploaded:
+                    if ip == dc_ip and port == dc_port and Tables.TABLE_FILE_INFO[file_name][chunk_id][
+                        (ip, port)] == raft_proto.Uploaded:
                         log = raft_proto.TableLog()
                         log.fileName = file_name
                         log.chunkId = chunk_id
@@ -224,19 +266,13 @@ class Tables:
                     while total_replication < Globals.REPLICATION_FACTOR and i < len(lst_dc):
                         if lst_dc[i] not in chunk_already_available_dc:
                             random_id = get_random_numbers(len(chunk_already_available_dc), 1)[0]
-                            replication_list.append((file_name, chunk_id, lst_dc[i], chunk_already_available_dc[random_id]))
+                            replication_list.append(
+                                (file_name, chunk_id, lst_dc[i], chunk_already_available_dc[random_id]))
                             # Tables.TABLE_FILE_INFO[file_name][chunk_id][lst_dc[i]] = raft_proto.UploadRequested
                             total_replication += 1
                         i += 1
 
         return replication_list
-
-
-
-
-
-
-
 
 
 def _proxy_heartbeat_timeout():
@@ -290,8 +326,6 @@ def _mark_dc_failed(dc_client):
     Tables.mark_all_file_chunks_in_dc_available_unavailable(dc_client.server_address, dc_client.server_port,
                                                             raft_proto.TemporaryUnavailable)
     Tables.un_register_dc(dc_client.server_address, dc_client.server_port)
-    # DCGlobals.replication_process_pending(dc_client)
-    log_info("STARTING DC LOG REPLICATION...", dc_client.server_port)
 
 
 def _mark_dc_available(dc_client):
@@ -313,8 +347,8 @@ def Check_and_send_replication_request():
         from_dc = replication_info[3]
         for dc_client in Globals.LST_DC_CLIENTS:
             if dc_client.server_address == to_dc[0] and dc_client.server_port == to_dc[1]:
-
-                log_info("REQUESTING REPLICATION FOR FILE:", file_name, "CHUNK:", chunk_id, "TO:", to_dc, "FROM:", from_dc)
+                log_info("REQUESTING REPLICATION FOR FILE:", file_name, "CHUNK:", chunk_id, "TO:", to_dc, "FROM:",
+                         from_dc)
 
                 replication_info_request = raft_proto.ReplicationInfo()
                 replication_info_request.fileName = file_name
@@ -351,6 +385,7 @@ def _process_datacenter_replication_initiate(dc_client, ReplicationInfo, call_fu
         except:
             pass
 
+
 class DatacenterClient:
     def __init__(self, username, server_address, server_port):
         self.username = username
@@ -375,10 +410,13 @@ class DatacenterClient:
     def _ReplicationInitiate(self, ReplicationInfo):
         try:
             log_info("Sending replication request to:", self.server_address, self.server_port)
-            call_future = self.raft_stub.ReplicationInitiate.future(ReplicationInfo, timeout=Globals.DC_HEARTBEAT_TIMEOUT * 0.9)
-            call_future.add_done_callback(functools.partial(_process_datacenter_replication_initiate, self, ReplicationInfo))
+            call_future = self.raft_stub.ReplicationInitiate.future(ReplicationInfo,
+                                                                    timeout=Globals.DC_HEARTBEAT_TIMEOUT * 0.9)
+            call_future.add_done_callback(
+                functools.partial(_process_datacenter_replication_initiate, self, ReplicationInfo))
         except:
             log_info("Execption: _ReplicationInitiate")
+
 
 class ProxyClient:
     def __init__(self, username, server_address, server_port):
@@ -399,7 +437,8 @@ class ProxyClient:
             call_future = self.raft_stub.ProxyHeartbeat.future(Empty, timeout=Globals.PROXY_HEARTBEAT_TIMEOUT * 0.9)
             call_future.add_done_callback(functools.partial(_process_proxy_heartbeat, self))
         except:
-            log_info("Exeption: _SendDataCenterHeartbeat")
+            log_info("Exeption: _SendProxyHeartbeat")
+
 
 dc_heartbeat_timer = TimerUtil(_dc_heartbeat_timeout, Globals.DC_HEARTBEAT_TIMEOUT)
 proxy_heartbeat_timer = TimerUtil(_proxy_heartbeat_timeout, Globals.PROXY_HEARTBEAT_TIMEOUT)

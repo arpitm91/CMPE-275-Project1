@@ -8,6 +8,16 @@ enum LogOperation {
     UploadFaied = 2;
     Deleted = 3;
     TemporaryUnavailable = 4;
+
+    // Used below operations only with DC/PROXY
+    Available = 5;
+    Unavailable = 6;
+}
+
+enum LogType {
+    FileLog = 0;
+    DatacenterLog = 1;
+    ProxyLog = 2;
 }
 
 enum Vote {
@@ -33,6 +43,7 @@ message TableLog {
     string port = 4;
     int64 log_index = 5;
     LogOperation operation = 6;
+    LogType logType = 7;
 }
 
 message Table {

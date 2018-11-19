@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='grpc',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\nraft.proto\x12\x04grpc\"\x11\n\x03\x41\x63k\x12\n\n\x02id\x18\x01 \x01(\x03\"\x81\x01\n\x08TableLog\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12\n\n\x02ip\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\t\x12\x11\n\tlog_index\x18\x05 \x01(\x03\x12%\n\toperation\x18\x06 \x01(\x0e\x32\x12.grpc.LogOperation\"g\n\x05Table\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\x11\n\tleader_ip\x18\x02 \x01(\t\x12\x13\n\x0bleader_port\x18\x03 \x01(\t\x12 \n\x08tableLog\x18\x04 \x03(\x0b\x32\x0e.grpc.TableLog\"O\n\tCandidacy\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\n\n\x02ip\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\x12\x12\n\nlog_length\x18\x04 \x01(\x03\"D\n\x11\x43\x61ndidacyResponse\x12\x19\n\x05voted\x18\x01 \x01(\x0e\x32\n.grpc.Vote\x12\x14\n\x0c\x63ycle_number\x18\x02 \x01(\x03\"*\n\x0e\x44\x61taCenterInfo\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\")\n\rProxyInfoRaft\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\"\x07\n\x05\x45mpty\"b\n\x0fReplicationInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12,\n\x0e\x66romDatacenter\x18\x03 \x01(\x0b\x32\x14.grpc.DataCenterInfo\"T\n\x0f\x43hunkUploadInfo\x12\x0f\n\x07\x63hunkId\x18\x01 \x01(\x03\x12\x30\n\x12uploadedDatacenter\x18\x02 \x01(\x0b\x32\x14.grpc.DataCenterInfo\"m\n\x16UploadCompleteFileInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12.\n\x0f\x63hunkUploadInfo\x18\x02 \x01(\x0b\x32\x15.grpc.ChunkUploadInfo\x12\x11\n\tisSuccess\x18\x03 \x01(\x08\"5\n\x10RequestChunkInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\"y\n\x11\x43hunkLocationInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12+\n\rlstDataCenter\x18\x03 \x03(\x0b\x32\x14.grpc.DataCenterInfo\x12\x14\n\x0cisChunkFound\x18\x04 \x01(\x08*i\n\x0cLogOperation\x12\x13\n\x0fUploadRequested\x10\x00\x12\x0c\n\x08Uploaded\x10\x01\x12\x0f\n\x0bUploadFaied\x10\x02\x12\x0b\n\x07\x44\x65leted\x10\x03\x12\x18\n\x14TemporaryUnavailable\x10\x04*\x17\n\x04Vote\x12\x07\n\x03YES\x10\x00\x12\x06\n\x02NO\x10\x01*v\n\x10ReplicationState\x12\x16\n\x12ReplicationPending\x10\x00\x12\x18\n\x14ReplicationRequested\x10\x01\x12\x16\n\x12ReplicationStarted\x10\x02\x12\x18\n\x14ReplicationCompleted\x10\x03\x32\x9a\x04\n\x0bRaftService\x12&\n\x0cRaftHeartbit\x12\x0b.grpc.Table\x1a\t.grpc.Ack\x12\x37\n\x0bRequestVote\x12\x0f.grpc.Candidacy\x1a\x17.grpc.CandidacyResponse\x12\'\n\nAddFileLog\x12\x0e.grpc.TableLog\x1a\t.grpc.Ack\x12\x32\n\rAddDataCenter\x12\x14.grpc.DataCenterInfo\x1a\x0b.grpc.Empty\x12/\n\x13\x44\x61taCenterHeartbeat\x12\x0b.grpc.Empty\x1a\x0b.grpc.Empty\x12\x37\n\x13ReplicationInitiate\x12\x15.grpc.ReplicationInfo\x1a\t.grpc.Ack\x12,\n\x08\x41\x64\x64Proxy\x12\x13.grpc.ProxyInfoRaft\x1a\x0b.grpc.Empty\x12*\n\x0eProxyHeartbeat\x12\x0b.grpc.Empty\x1a\x0b.grpc.Empty\x12@\n\x13\x46ileUploadCompleted\x12\x1c.grpc.UploadCompleteFileInfo\x1a\x0b.grpc.Empty\x12G\n\x14GetChunkLocationInfo\x12\x16.grpc.RequestChunkInfo\x1a\x17.grpc.ChunkLocationInfob\x06proto3')
+  serialized_pb=_b('\n\nraft.proto\x12\x04grpc\"\x11\n\x03\x41\x63k\x12\n\n\x02id\x18\x01 \x01(\x03\"\xa1\x01\n\x08TableLog\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12\n\n\x02ip\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\t\x12\x11\n\tlog_index\x18\x05 \x01(\x03\x12%\n\toperation\x18\x06 \x01(\x0e\x32\x12.grpc.LogOperation\x12\x1e\n\x07logType\x18\x07 \x01(\x0e\x32\r.grpc.LogType\"g\n\x05Table\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\x11\n\tleader_ip\x18\x02 \x01(\t\x12\x13\n\x0bleader_port\x18\x03 \x01(\t\x12 \n\x08tableLog\x18\x04 \x03(\x0b\x32\x0e.grpc.TableLog\"O\n\tCandidacy\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\n\n\x02ip\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\x12\x12\n\nlog_length\x18\x04 \x01(\x03\"D\n\x11\x43\x61ndidacyResponse\x12\x19\n\x05voted\x18\x01 \x01(\x0e\x32\n.grpc.Vote\x12\x14\n\x0c\x63ycle_number\x18\x02 \x01(\x03\"*\n\x0e\x44\x61taCenterInfo\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\")\n\rProxyInfoRaft\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\"\x07\n\x05\x45mpty\"b\n\x0fReplicationInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12,\n\x0e\x66romDatacenter\x18\x03 \x01(\x0b\x32\x14.grpc.DataCenterInfo\"T\n\x0f\x43hunkUploadInfo\x12\x0f\n\x07\x63hunkId\x18\x01 \x01(\x03\x12\x30\n\x12uploadedDatacenter\x18\x02 \x01(\x0b\x32\x14.grpc.DataCenterInfo\"m\n\x16UploadCompleteFileInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12.\n\x0f\x63hunkUploadInfo\x18\x02 \x01(\x0b\x32\x15.grpc.ChunkUploadInfo\x12\x11\n\tisSuccess\x18\x03 \x01(\x08\"5\n\x10RequestChunkInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\"y\n\x11\x43hunkLocationInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12+\n\rlstDataCenter\x18\x03 \x03(\x0b\x32\x14.grpc.DataCenterInfo\x12\x14\n\x0cisChunkFound\x18\x04 \x01(\x08*\x89\x01\n\x0cLogOperation\x12\x13\n\x0fUploadRequested\x10\x00\x12\x0c\n\x08Uploaded\x10\x01\x12\x0f\n\x0bUploadFaied\x10\x02\x12\x0b\n\x07\x44\x65leted\x10\x03\x12\x18\n\x14TemporaryUnavailable\x10\x04\x12\r\n\tAvailable\x10\x05\x12\x0f\n\x0bUnavailable\x10\x06*7\n\x07LogType\x12\x0b\n\x07\x46ileLog\x10\x00\x12\x11\n\rDatacenterLog\x10\x01\x12\x0c\n\x08ProxyLog\x10\x02*\x17\n\x04Vote\x12\x07\n\x03YES\x10\x00\x12\x06\n\x02NO\x10\x01*v\n\x10ReplicationState\x12\x16\n\x12ReplicationPending\x10\x00\x12\x18\n\x14ReplicationRequested\x10\x01\x12\x16\n\x12ReplicationStarted\x10\x02\x12\x18\n\x14ReplicationCompleted\x10\x03\x32\x9a\x04\n\x0bRaftService\x12&\n\x0cRaftHeartbit\x12\x0b.grpc.Table\x1a\t.grpc.Ack\x12\x37\n\x0bRequestVote\x12\x0f.grpc.Candidacy\x1a\x17.grpc.CandidacyResponse\x12\'\n\nAddFileLog\x12\x0e.grpc.TableLog\x1a\t.grpc.Ack\x12\x32\n\rAddDataCenter\x12\x14.grpc.DataCenterInfo\x1a\x0b.grpc.Empty\x12/\n\x13\x44\x61taCenterHeartbeat\x12\x0b.grpc.Empty\x1a\x0b.grpc.Empty\x12\x37\n\x13ReplicationInitiate\x12\x15.grpc.ReplicationInfo\x1a\t.grpc.Ack\x12,\n\x08\x41\x64\x64Proxy\x12\x13.grpc.ProxyInfoRaft\x1a\x0b.grpc.Empty\x12*\n\x0eProxyHeartbeat\x12\x0b.grpc.Empty\x1a\x0b.grpc.Empty\x12@\n\x13\x46ileUploadCompleted\x12\x1c.grpc.UploadCompleteFileInfo\x1a\x0b.grpc.Empty\x12G\n\x14GetChunkLocationInfo\x12\x16.grpc.RequestChunkInfo\x1a\x17.grpc.ChunkLocationInfob\x06proto3')
 )
 
 _LOGOPERATION = _descriptor.EnumDescriptor(
@@ -49,15 +49,50 @@ _LOGOPERATION = _descriptor.EnumDescriptor(
       name='TemporaryUnavailable', index=4, number=4,
       serialized_options=None,
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='Available', index=5, number=5,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='Unavailable', index=6, number=6,
+      serialized_options=None,
+      type=None),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=998,
-  serialized_end=1103,
+  serialized_start=1031,
+  serialized_end=1168,
 )
 _sym_db.RegisterEnumDescriptor(_LOGOPERATION)
 
 LogOperation = enum_type_wrapper.EnumTypeWrapper(_LOGOPERATION)
+_LOGTYPE = _descriptor.EnumDescriptor(
+  name='LogType',
+  full_name='grpc.LogType',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='FileLog', index=0, number=0,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='DatacenterLog', index=1, number=1,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ProxyLog', index=2, number=2,
+      serialized_options=None,
+      type=None),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=1170,
+  serialized_end=1225,
+)
+_sym_db.RegisterEnumDescriptor(_LOGTYPE)
+
+LogType = enum_type_wrapper.EnumTypeWrapper(_LOGTYPE)
 _VOTE = _descriptor.EnumDescriptor(
   name='Vote',
   full_name='grpc.Vote',
@@ -75,8 +110,8 @@ _VOTE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1105,
-  serialized_end=1128,
+  serialized_start=1227,
+  serialized_end=1250,
 )
 _sym_db.RegisterEnumDescriptor(_VOTE)
 
@@ -106,8 +141,8 @@ _REPLICATIONSTATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1130,
-  serialized_end=1248,
+  serialized_start=1252,
+  serialized_end=1370,
 )
 _sym_db.RegisterEnumDescriptor(_REPLICATIONSTATE)
 
@@ -117,6 +152,11 @@ Uploaded = 1
 UploadFaied = 2
 Deleted = 3
 TemporaryUnavailable = 4
+Available = 5
+Unavailable = 6
+FileLog = 0
+DatacenterLog = 1
+ProxyLog = 2
 YES = 0
 NO = 1
 ReplicationPending = 0
@@ -206,6 +246,13 @@ _TABLELOG = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='logType', full_name='grpc.TableLog.logType', index=6,
+      number=7, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -219,7 +266,7 @@ _TABLELOG = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=40,
-  serialized_end=169,
+  serialized_end=201,
 )
 
 
@@ -270,8 +317,8 @@ _TABLE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=171,
-  serialized_end=274,
+  serialized_start=203,
+  serialized_end=306,
 )
 
 
@@ -322,8 +369,8 @@ _CANDIDACY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=276,
-  serialized_end=355,
+  serialized_start=308,
+  serialized_end=387,
 )
 
 
@@ -360,8 +407,8 @@ _CANDIDACYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=357,
-  serialized_end=425,
+  serialized_start=389,
+  serialized_end=457,
 )
 
 
@@ -398,8 +445,8 @@ _DATACENTERINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=427,
-  serialized_end=469,
+  serialized_start=459,
+  serialized_end=501,
 )
 
 
@@ -436,8 +483,8 @@ _PROXYINFORAFT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=471,
-  serialized_end=512,
+  serialized_start=503,
+  serialized_end=544,
 )
 
 
@@ -460,8 +507,8 @@ _EMPTY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=514,
-  serialized_end=521,
+  serialized_start=546,
+  serialized_end=553,
 )
 
 
@@ -505,8 +552,8 @@ _REPLICATIONINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=523,
-  serialized_end=621,
+  serialized_start=555,
+  serialized_end=653,
 )
 
 
@@ -543,8 +590,8 @@ _CHUNKUPLOADINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=623,
-  serialized_end=707,
+  serialized_start=655,
+  serialized_end=739,
 )
 
 
@@ -588,8 +635,8 @@ _UPLOADCOMPLETEFILEINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=709,
-  serialized_end=818,
+  serialized_start=741,
+  serialized_end=850,
 )
 
 
@@ -626,8 +673,8 @@ _REQUESTCHUNKINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=820,
-  serialized_end=873,
+  serialized_start=852,
+  serialized_end=905,
 )
 
 
@@ -678,11 +725,12 @@ _CHUNKLOCATIONINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=875,
-  serialized_end=996,
+  serialized_start=907,
+  serialized_end=1028,
 )
 
 _TABLELOG.fields_by_name['operation'].enum_type = _LOGOPERATION
+_TABLELOG.fields_by_name['logType'].enum_type = _LOGTYPE
 _TABLE.fields_by_name['tableLog'].message_type = _TABLELOG
 _CANDIDACYRESPONSE.fields_by_name['voted'].enum_type = _VOTE
 _REPLICATIONINFO.fields_by_name['fromDatacenter'].message_type = _DATACENTERINFO
@@ -703,6 +751,7 @@ DESCRIPTOR.message_types_by_name['UploadCompleteFileInfo'] = _UPLOADCOMPLETEFILE
 DESCRIPTOR.message_types_by_name['RequestChunkInfo'] = _REQUESTCHUNKINFO
 DESCRIPTOR.message_types_by_name['ChunkLocationInfo'] = _CHUNKLOCATIONINFO
 DESCRIPTOR.enum_types_by_name['LogOperation'] = _LOGOPERATION
+DESCRIPTOR.enum_types_by_name['LogType'] = _LOGTYPE
 DESCRIPTOR.enum_types_by_name['Vote'] = _VOTE
 DESCRIPTOR.enum_types_by_name['ReplicationState'] = _REPLICATIONSTATE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -806,8 +855,8 @@ _RAFTSERVICE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=1251,
-  serialized_end=1789,
+  serialized_start=1373,
+  serialized_end=1911,
   methods=[
   _descriptor.MethodDescriptor(
     name='RaftHeartbit',
