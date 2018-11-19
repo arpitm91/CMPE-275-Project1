@@ -108,16 +108,36 @@ message ChunkLocationInfo {
 }
 
 service RaftService {
+    // (Raft -> Raft) : Raft heartbeats
     rpc RaftHeartbit (Table) returns (Ack);
+
+    // (Raft -> Raft) :Raft voting
     rpc RequestVote (Candidacy) returns (CandidacyResponse);
+
+    // (Raft -> Raft) : Raft adding log
     rpc AddFileLog (TableLog) returns (Ack);
+
+    // (Data center -> Raft) : Registers data centers
     rpc AddDataCenter (DataCenterInfo) returns (Empty);
+
+    // (Raft -> Data center) : Heartbeat for data center
     rpc DataCenterHeartbeat(Empty) returns (Empty);
+
+    // (Raft -> Data center) : Start a replication
     rpc ReplicationInitiate(ReplicationInfo) returns (Ack);
+
+    // (Proxy -> Raft) : Registers Proxy
     rpc AddProxy (ProxyInfoRaft) returns (Empty);
+
+    // (Raft -> Proxy) : Heartbeat for proxy
     rpc ProxyHeartbeat(Empty) returns (Empty);
 
+    // (Data center -> Raft) : Signals upload completed to raft
     rpc FileUploadCompleted(UploadCompleteFileInfo) returns(Empty);
 
+    // (Proxy -> Raft) : Fetches location of an existing file from raft
     rpc GetChunkLocationInfo(RequestChunkInfo) returns(ChunkLocationInfo);
+
+    // (Proxy -> Raft) : Fetches location to upload a file from raft
+    rpc GetChunkUploadInfo(RequestChunkInfo) returns(ChunkLocationInfo);
 }

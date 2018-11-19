@@ -64,6 +64,11 @@ class RaftServiceStub(object):
         request_serializer=raft__pb2.RequestChunkInfo.SerializeToString,
         response_deserializer=raft__pb2.ChunkLocationInfo.FromString,
         )
+    self.GetChunkUploadInfo = channel.unary_unary(
+        '/grpc.RaftService/GetChunkUploadInfo',
+        request_serializer=raft__pb2.RequestChunkInfo.SerializeToString,
+        response_deserializer=raft__pb2.ChunkLocationInfo.FromString,
+        )
 
 
 class RaftServiceServicer(object):
@@ -71,71 +76,78 @@ class RaftServiceServicer(object):
   pass
 
   def RaftHeartbit(self, request, context):
-    # missing associated documentation comment in .proto file
-    pass
+    """(Raft -> Raft) : Raft heartbeats
+    """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
   def RequestVote(self, request, context):
-    # missing associated documentation comment in .proto file
-    pass
+    """(Raft -> Raft) :Raft voting
+    """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
   def AddFileLog(self, request, context):
-    # missing associated documentation comment in .proto file
-    pass
+    """(Raft -> Raft) : Raft adding log
+    """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
   def AddDataCenter(self, request, context):
-    # missing associated documentation comment in .proto file
-    pass
+    """(Data center -> Raft) : Registers data centers
+    """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
   def DataCenterHeartbeat(self, request, context):
-    # missing associated documentation comment in .proto file
-    pass
+    """(Raft -> Data center) : Heartbeat for data center
+    """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
   def ReplicationInitiate(self, request, context):
-    # missing associated documentation comment in .proto file
-    pass
+    """(Raft -> Data center) : Start a replication
+    """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
   def AddProxy(self, request, context):
-    # missing associated documentation comment in .proto file
-    pass
+    """(Proxy -> Raft) : Registers Proxy
+    """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
   def ProxyHeartbeat(self, request, context):
-    # missing associated documentation comment in .proto file
-    pass
+    """(Raft -> Proxy) : Heartbeat for proxy
+    """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
   def FileUploadCompleted(self, request, context):
-    # missing associated documentation comment in .proto file
-    pass
+    """(Data center -> Raft) : Signals upload completed to raft
+    """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
   def GetChunkLocationInfo(self, request, context):
-    # missing associated documentation comment in .proto file
-    pass
+    """(Proxy -> Raft) : Fetches location of an existing file from raft
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def GetChunkUploadInfo(self, request, context):
+    """(Proxy -> Raft) : Fetches location to upload a file from raft
+    """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
@@ -190,6 +202,11 @@ def add_RaftServiceServicer_to_server(servicer, server):
       ),
       'GetChunkLocationInfo': grpc.unary_unary_rpc_method_handler(
           servicer.GetChunkLocationInfo,
+          request_deserializer=raft__pb2.RequestChunkInfo.FromString,
+          response_serializer=raft__pb2.ChunkLocationInfo.SerializeToString,
+      ),
+      'GetChunkUploadInfo': grpc.unary_unary_rpc_method_handler(
+          servicer.GetChunkUploadInfo,
           request_deserializer=raft__pb2.RequestChunkInfo.FromString,
           response_serializer=raft__pb2.ChunkLocationInfo.SerializeToString,
       ),
