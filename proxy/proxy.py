@@ -21,6 +21,49 @@ import configs.proxy_info as proxy_info
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
+def file_upload_iterator(common_q, data_center_address, data_center_port):
+    while True:
+        common_q_front = common_q.get(block=True)
+        if common_q_front is None:
+            break
+        print("Sending to DataCenter:", data_center_address + ":" + data_center_port, "Filename",
+              common_q_front.fileName, "Chunk: ", common_q_front.chunkId, ", Seq: ",
+              common_q_front.seqNum, "/", common_q_front.seqMax)
+        yield common_q_front
+
+    return
+
+
+def upload_to_data_center(common_queue, file_name, chunk_id):
+    # Get upload information
+    while True:
+        random_raft = get_raft_node()
+        with grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]) as channel:
+            stub = our_proto_rpc.RaftServiceStub(channel)
+
+            request = our_proto.RequestChunkInfo()
+            request.fileName = file_name
+            request.chunkId = chunk_id
+            try:
+                raft_response = stub.GetChunkUploadInfo(request)
+                print("Got raft response with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
+                break
+            except grpc.RpcError:
+                print("Could not get response with raft ip :", random_raft["ip"], ",port :",
+                      random_raft["port"])
+                time.sleep(2)
+
+    # data_center
+    data_center_address = raft_response.lstDataCenter[0].ip
+    data_center_port = raft_response.lstDataCenter[0].port
+    print("data center for upload of file:", file_name, "chunk:", chunk_id, "data center:",
+          data_center_address + ":" + data_center_port)
+
+    with grpc.insecure_channel(data_center_address + ':' + data_center_port) as channel:
+        stub = common_proto_rpc.DataTransferServiceStub(channel)
+        stub.UploadFile(file_upload_iterator(common_queue, data_center_address, data_center_port))
+
+
 def download_chunk_to_queue(common_queue, file_name, chunk_num, start_seq_num, data_center_address, data_center_port):
     print("requesting for :", file_name, "chunk no :", chunk_num, "from", data_center_address, ":", data_center_port)
 
@@ -136,7 +179,29 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
         return
 
     def UploadFile(self, request_iterator, context):
-        pass
+        file_name = ""
+        # queue terminates on None
+        common_q = queue.Queue()
+        for request in request_iterator:
+            file_name = request.fileName
+            chunk_id = request.chunkId
+            seq_num = request.seqNum
+            seq_max = request.seqMax
+            print("Received... File:", file_name, "Chunk:", chunk_id, ", Seq: ", seq_num, "/", seq_max)
+            common_q.put(request)
+            if seq_num == 0:
+                uploading_to_dc_thread = threading.Thread(target=upload_to_data_center,
+                                                          args=(common_q, file_name, chunk_id))
+                uploading_to_dc_thread.start()
+
+        common_q.put(None)
+
+        uploading_to_dc_thread.join()
+
+        my_reply = common_proto.FileInfo()
+        my_reply.fileName = file_name
+
+        return my_reply
 
 
 def start_server(username, port):
