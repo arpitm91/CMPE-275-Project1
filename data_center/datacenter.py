@@ -20,9 +20,11 @@ from connections.connections import data_center as data_center_info
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
+
 def start_download_as_client(raft_ip, raft_port, filename, chunk, FOLDER, from_datacenter_ip, from_datacenter_port):
     download_as_client("", "", filename, chunk, FOLDER, from_datacenter_ip, from_datacenter_port)
     upload_completed(filename, chunk, True)
+
 
 class RaftService(our_proto_rpc.RaftServiceServicer):
     def DataCenterHeartbeat(self, request, context):
@@ -158,7 +160,10 @@ def start_server(username, port):
 
 
 def upload_completed(file_name, chunk_id, is_success):
-    global raft_ip, raft_port, my_ip, my_port
+    random_raft = get_raft_node()
+    global my_ip, my_port
+    raft_ip = random_raft["ip"]
+    raft_port = random_raft["port"]
     with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
         stub = our_proto_rpc.RaftServiceStub(channel)
 
@@ -176,7 +181,8 @@ def upload_completed(file_name, chunk_id, is_success):
                 print("Upload completed sent to raft ip :", raft_ip, ",port :", raft_port, ", success:", is_success)
                 break
             except grpc.RpcError:
-                print("Could not sent upload complete to raft ip :", raft_ip, ",port :", raft_port, ", success:", is_success)
+                print("Could not sent upload complete to raft ip :", raft_ip, ",port :", raft_port, ", success:",
+                      is_success)
                 time.sleep(2)
 
 
