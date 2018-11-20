@@ -59,6 +59,8 @@ def _random_timeout():
 
 
 def _raft_heartbeat_timeout():
+    print("FILE_INFO_TABLE:")
+    pprint.pprint(Tables.TABLE_FILE_INFO)
     if Globals.NODE_STATE == NodeState.FOLLOWER:
         pass
     elif Globals.NODE_STATE == NodeState.LEADER:
@@ -74,8 +76,7 @@ def _raft_heartbeat_timeout():
 
 def _dc_replication_timeout():
     if Globals.NODE_STATE == NodeState.LEADER:
-        pass
-        # Check_and_send_replication_request()
+        Check_and_send_replication_request()
     dc_replication_timer.reset()
 
 
@@ -484,11 +485,17 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
     '''
 
     def FileUploadCompleted(self, request, context):
+
+        print("FILE_UPLOAD_COMPLETED_ARRIVED!!!")
+        pprint.pprint(request)
+
         if Globals.NODE_STATE == NodeState.LEADER:
             chunk_id = request.chunkUploadInfo.chunkId
             lst_dc = [(request.chunkUploadInfo.uploadedDatacenter.ip, request.chunkUploadInfo.uploadedDatacenter.port)]
             Tables.insert_file_chunk_info_to_file_log(request.fileName, chunk_id, lst_dc,
                                                       raft_proto.Uploaded if request.isSuccess else raft_proto.UploadFaied)
+
+            pprint.pprint(Tables.TABLE_FILE_INFO)
 
         else:
             client = get_leader_client()

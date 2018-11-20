@@ -372,14 +372,12 @@ def _process_datacenter_heartbeat(dc_client, call_future):
                 _mark_dc_failed(dc_client)
 
 
-def _process_datacenter_replication_initiate(dc_client, ReplicationInfo, call_future):
+def _process_datacenter_replication_initiate(dc_client, dc_ip, dc_port, ReplicationInfo, call_future):
     with ThreadPoolExecutorStackTraced(max_workers=10) as executor:
         try:
             call_future.result()
             file_name = ReplicationInfo.fileName
             chunk_id = ReplicationInfo.chunkId
-            dc_ip = ReplicationInfo.fromDatacenter.ip
-            dc_port = ReplicationInfo.fromDatacenter.port
             lst_dc = [(dc_ip, dc_port)]
             Tables.insert_file_chunk_info_to_file_log(file_name, chunk_id, lst_dc, raft_proto.UploadRequested)
         except:
@@ -413,7 +411,7 @@ class DatacenterClient:
             call_future = self.raft_stub.ReplicationInitiate.future(ReplicationInfo,
                                                                     timeout=Globals.DC_HEARTBEAT_TIMEOUT * 0.9)
             call_future.add_done_callback(
-                functools.partial(_process_datacenter_replication_initiate, self, ReplicationInfo))
+                functools.partial(_process_datacenter_replication_initiate, self, self.server_address, self.server_port, ReplicationInfo))
         except:
             log_info("Execption: _ReplicationInitiate")
 

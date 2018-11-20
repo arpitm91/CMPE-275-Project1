@@ -134,9 +134,11 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
             reply.seqNum = 0
             reply.seqMax = 0
             print("Could not find", file_name, "chunk", chunk_id, "seq", start_seq_num)
+            upload_completed(file_name, chunk_id, False)
             return reply
 
         print("Download request completed for", file_name, "chunk", chunk_id, "seq", start_seq_num)
+        upload_completed(file_name, chunk_id, True)
 
 
 def start_server(username, port):
@@ -169,10 +171,10 @@ def upload_completed(file_name, chunk_id, is_success):
         while True:
             try:
                 stub.FileUploadCompleted(request)
-                print("Upload completed sent to raft ip :", raft_ip, ",port :", raft_port)
+                print("Upload completed sent to raft ip :", raft_ip, ",port :", raft_port, ", success:", is_success)
                 break
             except grpc.RpcError:
-                print("Could not sent upload complete to raft ip :", raft_ip, ",port :", raft_port)
+                print("Could not sent upload complete to raft ip :", raft_ip, ",port :", raft_port, ", success:", is_success)
                 time.sleep(2)
 
 
