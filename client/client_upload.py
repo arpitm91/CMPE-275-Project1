@@ -17,6 +17,7 @@ import file_transfer_pb2_grpc as file_transfer_rpc
 from common_utils import get_raft_node
 
 threads = []
+THREAD_POOL_SIZE = 4
 
 
 def file_upload_iterator(file_path, file_name, chunk_num):
@@ -72,25 +73,29 @@ def run(argv):
 
     lst_chunk_upload_info = []
 
-    for chunk_num in range(num_of_chunks):
-        random_proxy_index = random.randint(0, len(response.lstProxy) - 1)
-        proxy_address = response.lstProxy[random_proxy_index].ip
-        proxy_port = response.lstProxy[random_proxy_index].port
+    threads_done_of_chunk = 0
+    while threads_done_of_chunk < num_of_chunks:
+        for chunk_num in range(threads_done_of_chunk, min(num_of_chunks, threads_done_of_chunk + THREAD_POOL_SIZE)):
+            random_proxy_index = random.randint(0, len(response.lstProxy) - 1)
+            proxy_address = response.lstProxy[random_proxy_index].ip
+            proxy_port = response.lstProxy[random_proxy_index].port
 
-        chunkUploadInfo = raft_proto.ChunkUploadInfo()
-        chunkUploadInfo.chunkId = chunk_num
-        chunkUploadInfo.uploadedDatacenter.ip = proxy_address
-        chunkUploadInfo.uploadedDatacenter.port = proxy_port
+            chunk_upload_info = raft_proto.ChunkUploadInfo()
+            chunk_upload_info.chunkId = chunk_num
+            chunk_upload_info.uploadedDatacenter.ip = proxy_address
+            chunk_upload_info.uploadedDatacenter.port = proxy_port
 
-        lst_chunk_upload_info.append(chunkUploadInfo)
+            lst_chunk_upload_info.append(chunk_upload_info)
 
-        threads.append(
-            threading.Thread(target=upload_chunk, args=(file_path, file_name, chunk_num, proxy_address, proxy_port),
-                             daemon=True))
-        threads[-1].start()
+            threads.append(
+                threading.Thread(target=upload_chunk, args=(file_path, file_name, chunk_num, proxy_address, proxy_port),
+                                 daemon=True))
+            threads[-1].start()
 
-    for t in threads:
-        t.join()
+        for t in threads:
+            t.join()
+
+        threads_done_of_chunk = threads_done_of_chunk + THREAD_POOL_SIZE
 
     # with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
     #     stub = raft_proto_rpc.RaftServiceStub(channel)
