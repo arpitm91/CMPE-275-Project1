@@ -1,6 +1,6 @@
 import threading
 from concurrent import futures
-
+from multiprocessing.dummy import Pool as ThreadPool
 import pprint
 import grpc, functools
 import time
@@ -167,16 +167,27 @@ def request_file_info_from_other_raft_nodes(request):
 
 def request_file_list_from_other_raft_nodes(request):
     request.isClient = False
-    lst_files = []
-    for node in other_raft_nodes:
+    set_files = set()
+    thread_pool_size = 4
+    pool = ThreadPool(thread_pool_size)
+
+    def send_request_to_other_raft_nodes(other_node, return_set):
         try:
-            with grpc.insecure_channel(node["ip"] + ':' + node["port"]) as channel:
+            with grpc.insecure_channel(other_node["ip"] + ':' + other_node["port"]) as channel:
                 stub = file_transfer_proto_rpc.DataTransferServiceStub(channel)
-                files = stub.ListFiles(request)
-                lst_files += files.lstFileNames
+                files = stub.ListFiles(request, timeout=1)
+                for file_name in files.lstFileNames:
+                    return_set.add(file_name)
         except:
-            print("Fail to connnect to: ", node["ip"], node["port"])
-    return lst_files
+            print("Fail to connect to: ", other_node["ip"], other_node["port"])
+
+    set_files_arr = []
+    for _ in other_raft_nodes:
+        set_files_arr.append(set_files)
+    pool.starmap(send_request_to_other_raft_nodes, zip(other_raft_nodes, set_files_arr))
+    pool.close()
+    pool.join()
+    return list(set_files)
 
 
 def get_file_lists(request):
@@ -392,13 +403,10 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
     '''
 
     def ListFiles(self, request, context):
-        if Globals.NODE_STATE == NodeState.LEADER:
+        if Globals.NODE_STATE == NodeState.LEADER or request.isClient:
             return get_file_lists(request)
         else:
-            if request.isClient:
-                return get_file_lists(request)
-            else:
-                return file_transfer_proto.FileList()
+            return file_transfer_proto.FileList()
 
     '''
     request: raft.FileInfo
