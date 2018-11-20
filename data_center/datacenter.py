@@ -19,6 +19,9 @@ from client.client_download import run as download_as_client
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
+def start_download_as_client(raft_ip, raft_port, filename, chunk, FOLDER, from_datacenter_ip, from_datacenter_port):
+    download_as_client("", "", filename, chunk, FOLDER, from_datacenter_ip, from_datacenter_port)
+    upload_completed(filename, chunk, True)
 
 class RaftService(our_proto_rpc.RaftServiceServicer):
     def DataCenterHeartbeat(self, request, context):
@@ -34,7 +37,7 @@ class RaftService(our_proto_rpc.RaftServiceServicer):
 
         print("Initiating replication of :", filename, "chunk :", chunk, "from ip:", from_datacenter_ip, ",port :",
               from_datacenter_port)
-        threading.Thread(target=download_as_client,
+        threading.Thread(target=start_download_as_client,
                          args=("", "", filename, chunk, FOLDER, from_datacenter_ip, from_datacenter_port)).start()
         reply = our_proto.Ack()
         reply.id = 1
@@ -134,11 +137,9 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
             reply.seqNum = 0
             reply.seqMax = 0
             print("Could not find", file_name, "chunk", chunk_id, "seq", start_seq_num)
-            upload_completed(file_name, chunk_id, False)
             return reply
 
         print("Download request completed for", file_name, "chunk", chunk_id, "seq", start_seq_num)
-        upload_completed(file_name, chunk_id, True)
 
 
 def start_server(username, port):
@@ -161,6 +162,8 @@ def upload_completed(file_name, chunk_id, is_success):
         stub = our_proto_rpc.RaftServiceStub(channel)
 
         request = our_proto.UploadCompleteFileInfo()
+
+        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ MYIP, MYPORT", my_ip, my_port)
 
         request.fileName = file_name
         request.chunkUploadInfo.chunkId = chunk_id

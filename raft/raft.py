@@ -344,8 +344,7 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
             pprint.pprint(Tables.TABLE_FILE_INFO)
             pprint.pprint(Tables.TABLE_DC_INFO)
 
-            # TODO: Use proxies instead of DC
-            lst_proxies = Tables.get_all_available_dc()
+            lst_proxies = Tables.get_all_available_proxies()
             lst_proxy_info = []
             for ip, port in lst_proxies:
                 proxy_info = file_transfer_proto.ProxyInfo()
@@ -486,8 +485,9 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
 
     def FileUploadCompleted(self, request, context):
 
-        print("FILE_UPLOAD_COMPLETED_ARRIVED!!!")
+        print("###################################### FILE_UPLOAD_COMPLETED_ARRIVED!!! #####################################")
         pprint.pprint(request)
+        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 
         if Globals.NODE_STATE == NodeState.LEADER:
             chunk_id = request.chunkUploadInfo.chunkId
@@ -496,7 +496,7 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
                                                       raft_proto.Uploaded if request.isSuccess else raft_proto.UploadFaied)
 
             pprint.pprint(Tables.TABLE_FILE_INFO)
-
+            print("###########################################################################")
         else:
             client = get_leader_client()
             if client:
@@ -516,6 +516,30 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
 
         for dc in Tables.TABLE_FILE_INFO[request.fileName][request.chunkId].keys():
             if Tables.TABLE_FILE_INFO[request.fileName][request.chunkId][dc] == raft_proto.Uploaded:
+                dc_info = raft_proto.DataCenterInfo()
+                dc_info.ip = dc[0]
+                dc_info.port = dc[1]
+                lst_dc.append(dc_info)
+                is_chunk_found = True
+
+        chunk_location_info = raft_proto.ChunkLocationInfo()
+        chunk_location_info.fileName = request.fileName
+        chunk_location_info.chunkId = request.chunkId
+        chunk_location_info.lstDataCenter.extend(lst_dc)
+        chunk_location_info.isChunkFound = is_chunk_found
+
+        return chunk_location_info
+
+    '''
+        request: raft.RequestChunkInfo
+    '''
+
+    def GetChunkUploadInfo(self, request, context):
+        lst_dc = []
+        is_chunk_found = False
+
+        for dc in Tables.TABLE_FILE_INFO[request.fileName][request.chunkId].keys():
+            if Tables.TABLE_FILE_INFO[request.fileName][request.chunkId][dc] == raft_proto.UploadRequested:
                 dc_info = raft_proto.DataCenterInfo()
                 dc_info.ip = dc[0]
                 dc_info.port = dc[1]
