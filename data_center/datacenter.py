@@ -1,7 +1,6 @@
 import grpc
 from concurrent import futures
 import time
-import configs.data_center_info as data_center_info
 import os
 import sys
 import threading
@@ -16,6 +15,8 @@ import file_transfer_pb2_grpc as common_proto_rpc
 import raft_pb2 as our_proto
 import raft_pb2_grpc as our_proto_rpc
 from client.client_download import run as download_as_client
+from common_utils import get_raft_node
+from connections.connections import data_center as data_center_info
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
@@ -163,8 +164,6 @@ def upload_completed(file_name, chunk_id, is_success):
 
         request = our_proto.UploadCompleteFileInfo()
 
-        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ MYIP, MYPORT", my_ip, my_port)
-
         request.fileName = file_name
         request.chunkUploadInfo.chunkId = chunk_id
         request.chunkUploadInfo.uploadedDatacenter.ip = my_ip
@@ -182,32 +181,31 @@ def upload_completed(file_name, chunk_id, is_success):
 
 
 def register_dc():
-    global raft_ip, raft_port, my_ip, my_port
-    with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
-        stub = our_proto_rpc.RaftServiceStub(channel)
+    global my_ip, my_port
+    while True:
+        random_raft = get_raft_node()
+        with grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]) as channel:
+            stub = our_proto_rpc.RaftServiceStub(channel)
 
-        request = our_proto.DataCenterInfo()
-        request.ip = my_ip
-        request.port = my_port
-        while True:
+            request = our_proto.ProxyInfoRaft()
+            request.ip = my_ip
+            request.port = my_port
             try:
                 stub.AddDataCenter(request)
-                print("Registered with raft ip :", raft_ip, ",port :", raft_port)
+                print("Registered with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
                 break
             except grpc.RpcError:
-                print("Could not register with raft ip :", raft_ip, ",port :", raft_port)
+                print("Could not register with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
                 time.sleep(2)
 
 
-# python3 datacenter.py <dc_name from data_center_info> <raft ip to register to> <raft port to register to>
+# python3 datacenter.py <dc_name from data_center_info>
 if __name__ == '__main__':
     data_center_name = sys.argv[1]
 
-    my_ip = data_center_info.data_center[data_center_name]["ip"]
-    my_port = data_center_info.data_center[data_center_name]["port"]
-    FOLDER = data_center_info.data_center[data_center_name]["folder"]
-    raft_ip = sys.argv[2]
-    raft_port = sys.argv[3]
+    my_ip = data_center_info[data_center_name]["ip"]
+    my_port = data_center_info[data_center_name]["port"]
+    FOLDER = data_center_info[data_center_name]["folder"]
 
     threading.Thread(target=start_server, args=(data_center_name, my_port)).start()
 

@@ -15,8 +15,9 @@ import file_transfer_pb2 as common_proto
 import file_transfer_pb2_grpc as common_proto_rpc
 import raft_pb2 as our_proto
 import raft_pb2_grpc as our_proto_rpc
-from raft.configs.connections import connections
-import configs.proxy_info as proxy_info
+from common_utils import get_raft_node
+
+from connections.connections import proxy as proxy_info
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
@@ -84,17 +85,6 @@ def download_chunk_to_queue(common_queue, file_name, chunk_num, start_seq_num, d
         print("request completed for :", file_name, "chunk no :", chunk_num, "from", data_center_address, ":",
               data_center_port)
         common_queue.put(None)
-
-
-def get_raft_node():
-    available_raft_nodes = []
-    for key in connections.keys():
-        if key[:4] == "raft":
-            available_raft_nodes.append((connections[key]))
-
-    random_raft_index = random.randint(0, len(available_raft_nodes) - 1)
-
-    return available_raft_nodes[random_raft_index]["own"]
 
 
 class RaftService(our_proto_rpc.RaftServiceServicer):
@@ -241,8 +231,8 @@ def register_proxy():
 if __name__ == '__main__':
     proxy_name = sys.argv[1]
 
-    my_ip = proxy_info.proxy[proxy_name]["ip"]
-    my_port = proxy_info.proxy[proxy_name]["port"]
+    my_ip = proxy_info[proxy_name]["ip"]
+    my_port = proxy_info[proxy_name]["port"]
 
     threading.Thread(target=start_server, args=(proxy_name, my_port)).start()
 

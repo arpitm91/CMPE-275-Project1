@@ -12,9 +12,9 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.par
 
 import file_utils
 import raft_pb2 as raft_proto
-import raft_pb2_grpc as raft_proto_rpc
 import file_transfer_pb2 as file_transfer
 import file_transfer_pb2_grpc as file_transfer_rpc
+from common_utils import get_raft_node
 
 threads = []
 
@@ -42,11 +42,14 @@ def upload_chunk(file_path, file_name, chunk_num, proxy_address, proxy_port):
 
 
 def run(argv):
-    raft_ip = str(argv[1])
-    raft_port = str(argv[2])
+    random_raft = get_raft_node()
+    print("Client connected to raft node :", random_raft["ip"], random_raft["port"])
+
+    raft_ip = random_raft["ip"]
+    raft_port = random_raft["port"]
     with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
         stub = file_transfer_rpc.DataTransferServiceStub(channel)
-        file_path = str(argv[3])
+        file_path = str(argv[1])
 
         file_info = os.path.basename(file_path).split(".")
         extension = ""
@@ -81,8 +84,9 @@ def run(argv):
 
         lst_chunk_upload_info.append(chunkUploadInfo)
 
-        threads.append(threading.Thread(target=upload_chunk, args=(file_path, file_name, chunk_num, proxy_address, proxy_port),
-                                        daemon=True))
+        threads.append(
+            threading.Thread(target=upload_chunk, args=(file_path, file_name, chunk_num, proxy_address, proxy_port),
+                             daemon=True))
         threads[-1].start()
 
     for t in threads:
@@ -99,6 +103,7 @@ def run(argv):
     print("################################################################################")
     print("File Upload Completed. To download file use this name: ", file_name)
 
-# python3 client.py <raft_ip> <raft_port> <filename>
+
+# python3 client_upload.py <filename>
 if __name__ == '__main__':
     run(sys.argv[:])

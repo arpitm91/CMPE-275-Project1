@@ -11,6 +11,7 @@ from utils.file_utils import write_file_chunks
 from utils.file_utils import merge_chunks
 import file_transfer_pb2 as file_transfer
 import file_transfer_pb2_grpc as rpc
+from common_utils import get_raft_node
 
 threads = []
 next_sequence_to_download = []
@@ -122,12 +123,8 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
                      file_location_info.maxChunks)
 
 
-
-
-# python3 client_download.py <raft_ip> <raft_port> <filename>
-# python3 client/client_download.py localhost 10000 file1
-# python3 integration/Server.py
-# python3 data_center/datacenter.py dc_aartee
+# python3 client_download.py <filename>
 if __name__ == '__main__':
-    # run(sys.argv[:])
-    run(str(sys.argv[1]), str(sys.argv[2]), str(sys.argv[3]))
+    random_raft = get_raft_node()
+    print("Client connected to raft node :", random_raft["ip"], random_raft["port"])
+    run(random_raft["ip"], random_raft["port"], str(sys.argv[1]))

@@ -22,8 +22,9 @@ from timer_utils import TimerUtil
 
 from constants import CHUNK_SIZE
 
-import configs.connections as connections
-from configs.connections import MAX_RAFT_NODES
+from connections.connections import raft_connections as raft_connections
+from connections.connections import other_raft_nodes as other_raft_nodes
+from connections.connections import MAX_RAFT_NODES as MAX_RAFT_NODES
 
 from globals import Globals
 from globals import NodeState
@@ -146,7 +147,7 @@ def get_leader_client():
 
 
 def request_file_info_from_other_raft_nodes(request):
-    for node in connections.other_raft_nodes:
+    for node in other_raft_nodes:
         try:
             with grpc.insecure_channel(node["ip"] + ':' + node["port"]) as channel:
                 stub = file_transfer_proto_rpc.DataTransferServiceStub(channel)
@@ -167,7 +168,7 @@ def request_file_info_from_other_raft_nodes(request):
 def request_file_list_from_other_raft_nodes(request):
     request.isClient = False
     lst_files = []
-    for node in connections.other_raft_nodes:
+    for node in other_raft_nodes:
         try:
             with grpc.insecure_channel(node["ip"] + ':' + node["port"]) as channel:
                 stub = file_transfer_proto_rpc.DataTransferServiceStub(channel)
@@ -576,8 +577,8 @@ def start_server(username, my_port):
 
 def main(argv):
     username = argv[1]
-    Globals.MY_PORT = connections.connections[username]["own"]["port"]
-    Globals.MY_IP = connections.connections[username]["own"]["ip"]
+    Globals.MY_PORT = raft_connections[username]["own"]["port"]
+    Globals.MY_IP = raft_connections[username]["own"]["ip"]
 
     threading.Thread(target=start_server, args=(username, Globals.MY_PORT), daemon=True).start()
 
@@ -586,7 +587,7 @@ def main(argv):
     # # Init Proxies Table
     # Tables.init_proxies(connections.lst_proxies)
 
-    for client in connections.connections[username]["clients"]:
+    for client in raft_connections[username]["clients"]:
         # client
         server_address = client["ip"]
         server_port = client["port"]
