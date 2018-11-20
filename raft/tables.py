@@ -340,22 +340,22 @@ def Check_and_send_replication_request():
     pprint.pprint("$$$$$$$$$$$$$$$ REPLICATION LIST ########################")
     pprint.pprint(replication_list)
 
-    for replication_info in replication_list:
-        file_name = replication_info[0]
-        chunk_id = replication_info[1]
-        to_dc = replication_info[2]
-        from_dc = replication_info[3]
-        for dc_client in Globals.LST_DC_CLIENTS:
-            if dc_client.server_address == to_dc[0] and dc_client.server_port == to_dc[1]:
-                log_info("REQUESTING REPLICATION FOR FILE:", file_name, "CHUNK:", chunk_id, "TO:", to_dc, "FROM:",
-                         from_dc)
-
-                replication_info_request = raft_proto.ReplicationInfo()
-                replication_info_request.fileName = file_name
-                replication_info_request.chunkId = chunk_id
-                replication_info_request.fromDatacenter.ip = from_dc[0]
-                replication_info_request.fromDatacenter.port = from_dc[1]
-                dc_client._ReplicationInitiate(replication_info_request)
+    # for replication_info in replication_list:
+    #     file_name = replication_info[0]
+    #     chunk_id = replication_info[1]
+    #     to_dc = replication_info[2]
+    #     from_dc = replication_info[3]
+    #     for dc_client in Globals.LST_DC_CLIENTS:
+    #         if dc_client.server_address == to_dc[0] and dc_client.server_port == to_dc[1]:
+    #             log_info("REQUESTING REPLICATION FOR FILE:", file_name, "CHUNK:", chunk_id, "TO:", to_dc, "FROM:",
+    #                      from_dc)
+    #
+    #             replication_info_request = raft_proto.ReplicationInfo()
+    #             replication_info_request.fileName = file_name
+    #             replication_info_request.chunkId = chunk_id
+    #             replication_info_request.fromDatacenter.ip = from_dc[0]
+    #             replication_info_request.fromDatacenter.port = from_dc[1]
+    #             dc_client._ReplicationInitiate(replication_info_request)
 
 
 def _process_datacenter_heartbeat(dc_client, call_future):
