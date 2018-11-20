@@ -391,10 +391,10 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
 
     def ListFiles(self, request, context):
         if Globals.NODE_STATE == NodeState.LEADER:
-            return get_file_lists()
+            return get_file_lists(request)
         else:
             if request.isClient:
-                return get_file_lists()
+                return get_file_lists(request)
             else:
                 return file_transfer_proto.FileList()
 
