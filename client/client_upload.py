@@ -1,22 +1,20 @@
-import threading
 import random
 import pprint
 import grpc
 import sys
 import os
 import time
+from multiprocessing.dummy import Pool as ThreadPool
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "utils"))
 
-import file_utils
-import raft_pb2 as raft_proto
-import file_transfer_pb2 as file_transfer
-import file_transfer_pb2_grpc as file_transfer_rpc
-from common_utils import get_raft_node
+import utils.file_utils as file_utils
+import protos.raft_pb2 as raft_proto
+import protos.file_transfer_pb2 as file_transfer
+import protos.file_transfer_pb2_grpc as file_transfer_rpc
+from utils.common_utils import get_raft_node
 
-threads = []
 THREAD_POOL_SIZE = 4
 
 
@@ -73,37 +71,34 @@ def run(argv):
 
     lst_chunk_upload_info = []
 
-    threads_done_of_chunk = 0
-    while threads_done_of_chunk < num_of_chunks:
-        for chunk_num in range(threads_done_of_chunk, min(num_of_chunks, threads_done_of_chunk + THREAD_POOL_SIZE)):
-            random_proxy_index = random.randint(0, len(response.lstProxy) - 1)
-            proxy_address = response.lstProxy[random_proxy_index].ip
-            proxy_port = response.lstProxy[random_proxy_index].port
+    file_paths = []
+    file_names = []
+    chunk_nums = []
+    proxy_addresses = []
+    proxy_ports = []
 
-            chunk_upload_info = raft_proto.ChunkUploadInfo()
-            chunk_upload_info.chunkId = chunk_num
-            chunk_upload_info.uploadedDatacenter.ip = proxy_address
-            chunk_upload_info.uploadedDatacenter.port = proxy_port
+    for chunk_num in range(num_of_chunks):
+        random_proxy_index = random.randint(0, len(response.lstProxy) - 1)
+        proxy_address = response.lstProxy[random_proxy_index].ip
+        proxy_port = response.lstProxy[random_proxy_index].port
 
-            lst_chunk_upload_info.append(chunk_upload_info)
+        chunk_upload_info = raft_proto.ChunkUploadInfo()
+        chunk_upload_info.chunkId = chunk_num
+        chunk_upload_info.uploadedDatacenter.ip = proxy_address
+        chunk_upload_info.uploadedDatacenter.port = proxy_port
 
-            threads.append(
-                threading.Thread(target=upload_chunk, args=(file_path, file_name, chunk_num, proxy_address, proxy_port),
-                                 daemon=True))
-            threads[-1].start()
+        lst_chunk_upload_info.append(chunk_upload_info)
 
-        for t in threads:
-            t.join()
+        file_paths.append(file_path)
+        file_names.append(file_name)
+        chunk_nums.append(chunk_num)
+        proxy_addresses.append(proxy_address)
+        proxy_ports.append(proxy_port)
 
-        threads_done_of_chunk = threads_done_of_chunk + THREAD_POOL_SIZE
-
-    # with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
-    #     stub = raft_proto_rpc.RaftServiceStub(channel)
-    #
-    #     request = raft_proto.UploadCompleteFileInfo()
-    #     request.fileName = file_name
-    #     request.lstChunkUploadInfo.extend(lst_chunk_upload_info)
-    #     stub.FileUploadCompleted(request)
+    pool = ThreadPool(THREAD_POOL_SIZE)
+    pool.starmap(upload_chunk, zip(file_paths, file_names, chunk_nums, proxy_addresses, proxy_ports))
+    pool.close()
+    pool.join()
 
     print("################################################################################")
     print("File Upload Completed. To download file use this name: ", file_name)

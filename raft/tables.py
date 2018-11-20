@@ -394,13 +394,13 @@ class DatacenterClient:
 
         # create a gRPC channel + stub
         channel = grpc.insecure_channel(server_address + ':' + str(server_port))
-        self.raft_stub = raft_proto_rpc.RaftServiceStub(channel)
-        self.file_transfer_stub = file_transfer_proto_rpc.DataTransferServiceStub(channel)
+        self.data_center_stub = raft_proto_rpc.DataCenterServiceStub(channel)
 
     def _SendDataCenterHeartbeat(self, Empty):
         try:
             log_info("Sending heartbeat to:", self.server_port)
-            call_future = self.raft_stub.DataCenterHeartbeat.future(Empty, timeout=Globals.DC_HEARTBEAT_TIMEOUT * 0.9)
+            call_future = self.data_center_stub.DataCenterHeartbeat.future(Empty,
+                                                                           timeout=Globals.DC_HEARTBEAT_TIMEOUT * 0.9)
             call_future.add_done_callback(functools.partial(_process_datacenter_heartbeat, self))
         except:
             log_info("Exeption: _SendDataCenterHeartbeat")
@@ -408,10 +408,11 @@ class DatacenterClient:
     def _ReplicationInitiate(self, ReplicationInfo):
         try:
             log_info("Sending replication request to:", self.server_address, self.server_port)
-            call_future = self.raft_stub.ReplicationInitiate.future(ReplicationInfo,
-                                                                    timeout=Globals.DC_HEARTBEAT_TIMEOUT * 0.9)
+            call_future = self.data_center_stub.ReplicationInitiate.future(ReplicationInfo,
+                                                                           timeout=Globals.DC_HEARTBEAT_TIMEOUT * 0.9)
             call_future.add_done_callback(
-                functools.partial(_process_datacenter_replication_initiate, self, self.server_address, self.server_port, ReplicationInfo))
+                functools.partial(_process_datacenter_replication_initiate, self, self.server_address, self.server_port,
+                                  ReplicationInfo))
         except:
             log_info("Execption: _ReplicationInitiate")
 
@@ -426,13 +427,12 @@ class ProxyClient:
 
         # create a gRPC channel + stub
         channel = grpc.insecure_channel(server_address + ':' + str(server_port))
-        self.raft_stub = raft_proto_rpc.RaftServiceStub(channel)
-        self.file_transfer_stub = file_transfer_proto_rpc.DataTransferServiceStub(channel)
+        self.proxy_stub = raft_proto_rpc.ProxyServiceStub(channel)
 
     def _SendProxyHeartbeat(self, Empty):
         try:
             log_info("Sending heartbeat to:", self.server_port)
-            call_future = self.raft_stub.ProxyHeartbeat.future(Empty, timeout=Globals.PROXY_HEARTBEAT_TIMEOUT * 0.9)
+            call_future = self.proxy_stub.ProxyHeartbeat.future(Empty, timeout=Globals.PROXY_HEARTBEAT_TIMEOUT * 0.9)
             call_future.add_done_callback(functools.partial(_process_proxy_heartbeat, self))
         except:
             log_info("Exeption: _SendProxyHeartbeat")

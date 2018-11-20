@@ -1,20 +1,21 @@
-import threading
 import random
 import pprint
 import grpc
 import sys
 import os
 import time
+from multiprocessing.dummy import Pool as ThreadPool
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
+
 from utils.file_utils import write_file_chunks
 from utils.file_utils import merge_chunks
-import file_transfer_pb2 as file_transfer
-import file_transfer_pb2_grpc as rpc
-from common_utils import get_raft_node
+import protos.file_transfer_pb2 as file_transfer
+import protos.file_transfer_pb2_grpc as rpc
+from utils.common_utils import get_raft_node
 
-threads = []
+THREAD_POOL_SIZE = 4
 next_sequence_to_download = []
 maximum_number_of_sequences = []
 
@@ -32,12 +33,10 @@ def download_chunk(file_name, chunk_num, start_seq_num, proxy_address, proxy_por
         request.startSeqNum = start_seq_num
         try:
             for response in stub.DownloadChunk(request):
-                print("Response received: ", response.seqNum, "/", response.seqMax)
+                print("Response received: Chunk", response.chunkId, "Sequence:", response.seqNum, "/", response.seqMax)
                 next_sequence_to_download[chunk_num] = response.seqNum + 1
                 maximum_number_of_sequences[chunk_num] = response.seqMax
                 write_file_chunks(response, os.path.join(os.path.dirname(os.path.realpath(__file__)), downloads_folder))
-                print(chunk_num, "last seq :", next_sequence_to_download[chunk_num], "max seq :",
-                      maximum_number_of_sequences[chunk_num])
         except grpc.RpcError:
             print("Failed to connect to data center..Retrying !!")
 
@@ -90,6 +89,13 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
         maximum_number_of_sequences[chunks] = float('inf')
 
     while not whole_file_downloaded(failed_chunks):
+        file_names = []
+        chunk_nums = []
+        next_sequence_to_download_arr = []
+        proxy_addresses = []
+        proxy_ports = []
+        downloads_folders = []
+
         for chunk_num in failed_chunks.keys():
             if chunks == -1:
                 random_proxy_index = random.randint(0, len(file_location_info.lstProxy) - 1)
@@ -103,19 +109,22 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
                 proxy_port = dc_port
                 print("data center selected", proxy_address, proxy_port)
 
-            threads.append(
-                threading.Thread(target=download_chunk, args=(
-                    file_name, chunk_num, next_sequence_to_download[chunk_num], proxy_address, proxy_port,
-                    downloads_folder)))
-            threads[-1].start()
-        for t in threads:
-            t.join()
-        threads.clear()
+            file_names.append(file_name)
+            chunk_nums.append(chunk_num)
+            next_sequence_to_download_arr.append(next_sequence_to_download[chunk_num])
+            proxy_addresses.append(proxy_address)
+            proxy_ports.append(proxy_port)
+            downloads_folders.append(downloads_folder)
+
+        pool = ThreadPool(THREAD_POOL_SIZE)
+        pool.starmap(download_chunk,
+                     zip(file_names, chunk_nums, next_sequence_to_download_arr, proxy_addresses, proxy_ports,
+                         downloads_folders))
+        pool.close()
+        pool.join()
 
         print("number_of_sequences_downloaded ", next_sequence_to_download)
         print("maximum_number_of_sequences ", maximum_number_of_sequences)
-
-    threads.clear()
 
     if chunks == -1:
         print("calling merge ")

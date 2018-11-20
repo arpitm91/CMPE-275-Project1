@@ -122,7 +122,7 @@ def _send_heartbeat():
     table.tableLog.extend(Tables.FILE_LOGS)
 
     for client in Globals.LST_RAFT_CLIENTS:
-        client._RaftHeartbit(table)
+        client._RaftHeartbeat(table)
 
 
 def _ask_for_vote():
@@ -192,6 +192,7 @@ def get_file_lists(request):
         my_reply.lstFileNames.extend(lst_files)
     return my_reply
 
+
 class Client:
     def __init__(self, username, server_address, server_port):
         self.username = username
@@ -202,14 +203,14 @@ class Client:
         self.raft_stub = raft_proto_rpc.RaftServiceStub(channel)
         self.file_transfer_stub = file_transfer_proto_rpc.DataTransferServiceStub(channel)
         # create new listening thread for when new message streams come in
-        # threading.Thread(target=self._RaftHeartbit, daemon=True).start()
+        # threading.Thread(target=self._RaftHeartbeat, daemon=True).start()
 
-    def _RaftHeartbit(self, table):
+    def _RaftHeartbeat(self, table):
         try:
-            call_future = self.raft_stub.RaftHeartbit.future(table, timeout=Globals.RAFT_HEARTBEAT_TIMEOUT * 0.9)
+            call_future = self.raft_stub.RaftHeartbeat.future(table, timeout=Globals.RAFT_HEARTBEAT_TIMEOUT * 0.9)
             call_future.add_done_callback(functools.partial(_process_heartbeat, self, table))
         except:
-            log_info("Exeption: _RaftHeartbit")
+            log_info("Exeption: _RaftHeartbeat")
 
     def _RequestVote(self, Candidacy):
         call_future = self.raft_stub.RequestVote.future(Candidacy, timeout=Globals.RAFT_HEARTBEAT_TIMEOUT * 0.9)
@@ -230,6 +231,7 @@ class Client:
     def _AddProxy(self, ProxyInfo):
         return self.raft_stub.AddProxy(ProxyInfo)
 
+
 # server
 class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.DataTransferServiceServicer):
     def __init__(self, username):
@@ -240,9 +242,9 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
     context:
     '''
 
-    def RaftHeartbit(self, request, context):
+    def RaftHeartbeat(self, request, context):
 
-        log_info("heartbit arrived: ", len(Tables.FILE_LOGS))        
+        log_info("heartbeat arrived: ", len(Tables.FILE_LOGS))
 
         ack = raft_proto.Ack()
 
@@ -269,7 +271,7 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
             return ack
 
         random_timer.reset()
-        log_info("MY Leader: ", Globals.LEADER_PORT, len(Tables.FILE_LOGS))
+        log_info("MY Leader: ", Globals.LEADER_IP, Globals.LEADER_PORT, len(Tables.FILE_LOGS))
 
         # Update Table_log and File_info_table
         Tables.set_table_log(request.tableLog)
@@ -298,7 +300,7 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
         if request.log_length < len(Tables.FILE_LOGS):
             candidacy_response.voted = raft_proto.NO
         elif request.cycle_number > Globals.CURRENT_CYCLE or (
-                        request.cycle_number == Globals.CURRENT_CYCLE and not Globals.HAS_CURRENT_VOTED):
+                request.cycle_number == Globals.CURRENT_CYCLE and not Globals.HAS_CURRENT_VOTED):
             Globals.CURRENT_CYCLE = request.cycle_number
             Globals.HAS_CURRENT_VOTED = True
             Globals.NUMBER_OF_VOTES = 0
@@ -495,7 +497,7 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
 
     def FileUploadCompleted(self, request, context):
 
-        print("###################################### FILE_UPLOAD_COMPLETED_ARRIVED!!! #####################################")
+        print("################################### FILE_UPLOAD_COMPLETED_ARRIVED!!! #################################")
         pprint.pprint(request)
         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 

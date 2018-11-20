@@ -40,10 +40,10 @@ class Client:
         print("server_address: ",server_address , " server_port:", server_port)
         self.conn = rpc.DataTransferServiceStub(channel)
         # create new listening thread for when new message streams come in
-        # threading.Thread(target=self._RaftHeartbit, daemon=True).start()
+        # threading.Thread(target=self._RaftHeartbeat, daemon=True).start()
 
-    def _RaftHeartbit(self, table):
-        call_future = self.conn.RaftHeartbit.future(table)
+    def _RaftHeartbeat(self, table):
+        call_future = self.conn.RaftHeartbeat.future(table)
         call_future.add_done_callback(functools.partial(_process_response, self))
 
     def _AddFileLog(self, tablelog):
@@ -55,7 +55,7 @@ class ChatServer(rpc.DataTransferServiceServicer):
     def __init__(self, username):
         self.username = username
 
-    def RaftHeartbit(self, request: file_transfer.Table, context):
+    def RaftHeartbeat(self, request: file_transfer.Table, context):
         pass
 
 
@@ -103,7 +103,7 @@ def main(argv):
     #     table.tableLog.extend([table_log])
 
     #     for client in lst_clients:
-    #         client._RaftHeartbit(table)
+    #         client._RaftHeartbeat(table)
         
     #     time.sleep(1)
 

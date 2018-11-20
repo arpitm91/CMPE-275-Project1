@@ -19,6 +19,7 @@ from common_utils import get_raft_node
 from connections.connections import data_center as data_center_info
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
+GRPC_TIMEOUT = 1  # grpc calls time out after 1 sec
 
 
 def start_download_as_client(raft_ip, raft_port, filename, chunk, FOLDER, from_datacenter_ip, from_datacenter_port):
@@ -26,7 +27,7 @@ def start_download_as_client(raft_ip, raft_port, filename, chunk, FOLDER, from_d
     upload_completed(filename, chunk, True)
 
 
-class RaftService(our_proto_rpc.RaftServiceServicer):
+class DataCenterService(our_proto_rpc.DataCenterServiceServicer):
     def DataCenterHeartbeat(self, request, context):
         reply = our_proto.Empty()
         return reply
@@ -46,35 +47,8 @@ class RaftService(our_proto_rpc.RaftServiceServicer):
         reply.id = 1
         return reply
 
-    def RaftHeartbit(self, request, context):
-        pass
 
-    def RequestVote(self, request, context):
-        pass
-
-    def AddFileLog(self, request, context):
-        pass
-
-    def AddDataCenter(self, request, context):
-        pass
-
-    def AddProxy(self, request, context):
-        pass
-
-    def ProxyHeartbeat(self, request, context):
-        pass
-
-    def FileUploadCompleted(self, request, context):
-        pass
-
-    def GetChunkLocationInfo(self, request, context):
-        pass
-
-    def GetChunkUploadInfo(self, request, context):
-        pass
-
-
-class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
+class DataTransferService(common_proto_rpc.DataTransferServiceServicer):
     def UploadFile(self, request_iterator, context):
         file_name = ""
         chunk_id = None
@@ -147,8 +121,8 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
 
 def start_server(username, port):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    common_proto_rpc.add_DataTransferServiceServicer_to_server(DataCenterServer(), server)
-    our_proto_rpc.add_RaftServiceServicer_to_server(RaftService(), server)
+    common_proto_rpc.add_DataTransferServiceServicer_to_server(DataTransferService(), server)
+    our_proto_rpc.add_DataCenterServiceServicer_to_server(DataCenterService(), server)
     server.add_insecure_port('[::]:' + str(port))
     server.start()
     print("server started at port : ", port, "username :", username)
@@ -160,49 +134,50 @@ def start_server(username, port):
 
 
 def upload_completed(file_name, chunk_id, is_success):
-    random_raft = get_raft_node()
     global my_ip, my_port
-    raft_ip = random_raft["ip"]
-    raft_port = random_raft["port"]
-    with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
-        stub = our_proto_rpc.RaftServiceStub(channel)
 
-        request = our_proto.UploadCompleteFileInfo()
+    request = our_proto.UploadCompleteFileInfo()
+    request.fileName = file_name
+    request.chunkUploadInfo.chunkId = chunk_id
+    request.chunkUploadInfo.uploadedDatacenter.ip = my_ip
+    request.chunkUploadInfo.uploadedDatacenter.port = my_port
+    request.isSuccess = is_success
 
-        request.fileName = file_name
-        request.chunkUploadInfo.chunkId = chunk_id
-        request.chunkUploadInfo.uploadedDatacenter.ip = my_ip
-        request.chunkUploadInfo.uploadedDatacenter.port = my_port
-        request.isSuccess = is_success
-
-        while True:
-            try:
-                stub.FileUploadCompleted(request)
-                print("Upload completed sent to raft ip :", raft_ip, ",port :", raft_port, ", success:", is_success)
-                break
-            except grpc.RpcError:
-                print("Could not sent upload complete to raft ip :", raft_ip, ",port :", raft_port, ", success:",
+    while True:
+        try:
+            random_raft = get_raft_node()
+            with grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]) as channel:
+                stub = our_proto_rpc.RaftServiceStub(channel)
+                stub.FileUploadCompleted(request, timeout=GRPC_TIMEOUT)
+                print("Upload completed sent to raft ip :", random_raft["ip"], ",port :", random_raft["port"],
+                      ", success:",
                       is_success)
-                time.sleep(2)
+                break
+        except grpc.RpcError:
+            print("Could not sent upload complete to raft ip :", random_raft["ip"], ",port :", random_raft["port"],
+                  ", success:",
+                  is_success)
+            time.sleep(0.1)
 
 
 def register_dc():
     global my_ip, my_port
+
+    request = our_proto.ProxyInfoRaft()
+    request.ip = my_ip
+    request.port = my_port
+
     while True:
         random_raft = get_raft_node()
         with grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]) as channel:
             stub = our_proto_rpc.RaftServiceStub(channel)
-
-            request = our_proto.ProxyInfoRaft()
-            request.ip = my_ip
-            request.port = my_port
             try:
-                stub.AddDataCenter(request)
+                stub.AddDataCenter(request, timeout=GRPC_TIMEOUT)
                 print("Registered with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
                 break
             except grpc.RpcError:
                 print("Could not register with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
-                time.sleep(2)
+                time.sleep(0.1)
 
 
 # python3 datacenter.py <dc_name from data_center_info>

@@ -14,8 +14,8 @@ class RaftServiceStub(object):
     Args:
       channel: A grpc.Channel.
     """
-    self.RaftHeartbit = channel.unary_unary(
-        '/grpc.RaftService/RaftHeartbit',
+    self.RaftHeartbeat = channel.unary_unary(
+        '/grpc.RaftService/RaftHeartbeat',
         request_serializer=raft__pb2.Table.SerializeToString,
         response_deserializer=raft__pb2.Ack.FromString,
         )
@@ -34,24 +34,9 @@ class RaftServiceStub(object):
         request_serializer=raft__pb2.DataCenterInfo.SerializeToString,
         response_deserializer=raft__pb2.Empty.FromString,
         )
-    self.DataCenterHeartbeat = channel.unary_unary(
-        '/grpc.RaftService/DataCenterHeartbeat',
-        request_serializer=raft__pb2.Empty.SerializeToString,
-        response_deserializer=raft__pb2.Empty.FromString,
-        )
-    self.ReplicationInitiate = channel.unary_unary(
-        '/grpc.RaftService/ReplicationInitiate',
-        request_serializer=raft__pb2.ReplicationInfo.SerializeToString,
-        response_deserializer=raft__pb2.Ack.FromString,
-        )
     self.AddProxy = channel.unary_unary(
         '/grpc.RaftService/AddProxy',
         request_serializer=raft__pb2.ProxyInfoRaft.SerializeToString,
-        response_deserializer=raft__pb2.Empty.FromString,
-        )
-    self.ProxyHeartbeat = channel.unary_unary(
-        '/grpc.RaftService/ProxyHeartbeat',
-        request_serializer=raft__pb2.Empty.SerializeToString,
         response_deserializer=raft__pb2.Empty.FromString,
         )
     self.FileUploadCompleted = channel.unary_unary(
@@ -75,7 +60,7 @@ class RaftServiceServicer(object):
   # missing associated documentation comment in .proto file
   pass
 
-  def RaftHeartbit(self, request, context):
+  def RaftHeartbeat(self, request, context):
     """(Raft -> Raft) : Raft heartbeats
     """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -103,29 +88,8 @@ class RaftServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
-  def DataCenterHeartbeat(self, request, context):
-    """(Raft -> Data center) : Heartbeat for data center
-    """
-    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-    context.set_details('Method not implemented!')
-    raise NotImplementedError('Method not implemented!')
-
-  def ReplicationInitiate(self, request, context):
-    """(Raft -> Data center) : Start a replication
-    """
-    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-    context.set_details('Method not implemented!')
-    raise NotImplementedError('Method not implemented!')
-
   def AddProxy(self, request, context):
     """(Proxy -> Raft) : Registers Proxy
-    """
-    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-    context.set_details('Method not implemented!')
-    raise NotImplementedError('Method not implemented!')
-
-  def ProxyHeartbeat(self, request, context):
-    """(Raft -> Proxy) : Heartbeat for proxy
     """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
@@ -155,8 +119,8 @@ class RaftServiceServicer(object):
 
 def add_RaftServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
-      'RaftHeartbit': grpc.unary_unary_rpc_method_handler(
-          servicer.RaftHeartbit,
+      'RaftHeartbeat': grpc.unary_unary_rpc_method_handler(
+          servicer.RaftHeartbeat,
           request_deserializer=raft__pb2.Table.FromString,
           response_serializer=raft__pb2.Ack.SerializeToString,
       ),
@@ -175,24 +139,9 @@ def add_RaftServiceServicer_to_server(servicer, server):
           request_deserializer=raft__pb2.DataCenterInfo.FromString,
           response_serializer=raft__pb2.Empty.SerializeToString,
       ),
-      'DataCenterHeartbeat': grpc.unary_unary_rpc_method_handler(
-          servicer.DataCenterHeartbeat,
-          request_deserializer=raft__pb2.Empty.FromString,
-          response_serializer=raft__pb2.Empty.SerializeToString,
-      ),
-      'ReplicationInitiate': grpc.unary_unary_rpc_method_handler(
-          servicer.ReplicationInitiate,
-          request_deserializer=raft__pb2.ReplicationInfo.FromString,
-          response_serializer=raft__pb2.Ack.SerializeToString,
-      ),
       'AddProxy': grpc.unary_unary_rpc_method_handler(
           servicer.AddProxy,
           request_deserializer=raft__pb2.ProxyInfoRaft.FromString,
-          response_serializer=raft__pb2.Empty.SerializeToString,
-      ),
-      'ProxyHeartbeat': grpc.unary_unary_rpc_method_handler(
-          servicer.ProxyHeartbeat,
-          request_deserializer=raft__pb2.Empty.FromString,
           response_serializer=raft__pb2.Empty.SerializeToString,
       ),
       'FileUploadCompleted': grpc.unary_unary_rpc_method_handler(
@@ -213,4 +162,105 @@ def add_RaftServiceServicer_to_server(servicer, server):
   }
   generic_handler = grpc.method_handlers_generic_handler(
       'grpc.RaftService', rpc_method_handlers)
+  server.add_generic_rpc_handlers((generic_handler,))
+
+
+class ProxyServiceStub(object):
+  # missing associated documentation comment in .proto file
+  pass
+
+  def __init__(self, channel):
+    """Constructor.
+
+    Args:
+      channel: A grpc.Channel.
+    """
+    self.ProxyHeartbeat = channel.unary_unary(
+        '/grpc.ProxyService/ProxyHeartbeat',
+        request_serializer=raft__pb2.Empty.SerializeToString,
+        response_deserializer=raft__pb2.Empty.FromString,
+        )
+
+
+class ProxyServiceServicer(object):
+  # missing associated documentation comment in .proto file
+  pass
+
+  def ProxyHeartbeat(self, request, context):
+    """(Raft -> Proxy) : Heartbeat for proxy
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+
+def add_ProxyServiceServicer_to_server(servicer, server):
+  rpc_method_handlers = {
+      'ProxyHeartbeat': grpc.unary_unary_rpc_method_handler(
+          servicer.ProxyHeartbeat,
+          request_deserializer=raft__pb2.Empty.FromString,
+          response_serializer=raft__pb2.Empty.SerializeToString,
+      ),
+  }
+  generic_handler = grpc.method_handlers_generic_handler(
+      'grpc.ProxyService', rpc_method_handlers)
+  server.add_generic_rpc_handlers((generic_handler,))
+
+
+class DataCenterServiceStub(object):
+  # missing associated documentation comment in .proto file
+  pass
+
+  def __init__(self, channel):
+    """Constructor.
+
+    Args:
+      channel: A grpc.Channel.
+    """
+    self.DataCenterHeartbeat = channel.unary_unary(
+        '/grpc.DataCenterService/DataCenterHeartbeat',
+        request_serializer=raft__pb2.Empty.SerializeToString,
+        response_deserializer=raft__pb2.Empty.FromString,
+        )
+    self.ReplicationInitiate = channel.unary_unary(
+        '/grpc.DataCenterService/ReplicationInitiate',
+        request_serializer=raft__pb2.ReplicationInfo.SerializeToString,
+        response_deserializer=raft__pb2.Ack.FromString,
+        )
+
+
+class DataCenterServiceServicer(object):
+  # missing associated documentation comment in .proto file
+  pass
+
+  def DataCenterHeartbeat(self, request, context):
+    """(Raft -> Data center) : Heartbeat for data center
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def ReplicationInitiate(self, request, context):
+    """(Raft -> Data center) : Start a replication
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+
+def add_DataCenterServiceServicer_to_server(servicer, server):
+  rpc_method_handlers = {
+      'DataCenterHeartbeat': grpc.unary_unary_rpc_method_handler(
+          servicer.DataCenterHeartbeat,
+          request_deserializer=raft__pb2.Empty.FromString,
+          response_serializer=raft__pb2.Empty.SerializeToString,
+      ),
+      'ReplicationInitiate': grpc.unary_unary_rpc_method_handler(
+          servicer.ReplicationInitiate,
+          request_deserializer=raft__pb2.ReplicationInfo.FromString,
+          response_serializer=raft__pb2.Ack.SerializeToString,
+      ),
+  }
+  generic_handler = grpc.method_handlers_generic_handler(
+      'grpc.DataCenterService', rpc_method_handlers)
   server.add_generic_rpc_handlers((generic_handler,))

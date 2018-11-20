@@ -3,4 +3,5 @@
 .vscode/
 /venv/
 .gitignore
-
+/connections/connections1.py
+/client/Downloads
