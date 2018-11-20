@@ -80,7 +80,7 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
             seq_num = request.seqNum
             seq_max = request.seqMax
             file_path = os.path.join(FOLDER, file_name)
-            print("Received... Chunk: ", chunk_id, ", Seq: ", seq_num, "/", seq_max)
+            print("Received... File:", file_name, "Chunk:", chunk_id, ", Seq: ", seq_num, "/", seq_max)
             if seq_num == 0:
                 print("Upload request received for", file_name, "chunk", chunk_id)
                 if os.path.isfile(os.path.join(file_path, str(chunk_id))):
