@@ -2,7 +2,8 @@ import threading
 from concurrent import futures
 from multiprocessing.dummy import Pool as ThreadPool
 import pprint
-import grpc, functools
+import grpc
+import functools
 import time
 import sys
 import os
@@ -159,7 +160,7 @@ def request_file_info_from_other_raft_nodes(request):
                 if file_location_info.isFileFound:
                     return file_location_info
         except:
-            print("Fail to connnect to: ", node["ip"], node["port"])
+            print("Fail to connect to: ", node["ip"], node["port"])
     file_location_info = file_transfer_proto.FileLocationInfo()
     file_location_info.isFileFound = False
     return file_location_info
@@ -221,7 +222,7 @@ class Client:
             call_future = self.raft_stub.RaftHeartbeat.future(table, timeout=Globals.RAFT_HEARTBEAT_TIMEOUT * 0.9)
             call_future.add_done_callback(functools.partial(_process_heartbeat, self, table))
         except:
-            log_info("Exeption: _RaftHeartbeat")
+            log_info("Exception: _RaftHeartbeat")
 
     def _RequestVote(self, Candidacy):
         call_future = self.raft_stub.RequestVote.future(Candidacy, timeout=Globals.RAFT_HEARTBEAT_TIMEOUT * 0.9)
@@ -379,7 +380,7 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
                 proxy_info.port = port
                 lst_proxy_info.append(proxy_info)
 
-            print("LST_PROXEIS:")
+            print("LST_PROXIES:")
             print(my_reply.lstProxy)
             my_reply.lstProxy.extend(lst_proxy_info)
 

@@ -1,25 +1,10 @@
-import threading
-from concurrent import futures
-from collections import defaultdict
-
-import grpc, functools
+import grpc
+import functools
 import time
 import sys
 
 import file_transfer_pb2 as file_transfer
 import file_transfer_pb2_grpc as rpc
-
-from utils.input_output_util import get_input
-from utils.input_output_util import print_msg
-from utils.input_output_util import log_error
-from utils.input_output_util import log_info
-from utils.input_output_util import print_take_input_msg
-from utils.input_output_util import log_forwarding_info
-from utils.input_output_util import print_file_info
-
-from utils.file_utils import get_file_chunks
-from utils.file_utils import write_file_chunks
-from utils.file_utils import get_total_file_chunks
 import configs.connections as connections
 
 lst_clients = []
@@ -27,9 +12,11 @@ lst_clients = []
 file_logs = []
 file_info_table = {}
 
+
 def _process_response(client, call_future):
     print(client.server_port)
     print(call_future.result())
+
 
 class Client:
     def __init__(self, username, server_address, server_port):
@@ -37,7 +24,7 @@ class Client:
         self.server_port = server_port
         # create a gRPC channel + stub
         channel = grpc.insecure_channel(server_address + ':' + str(server_port))
-        print("server_address: ",server_address , " server_port:", server_port)
+        print("server_address: ", server_address, " server_port:", server_port)
         self.conn = rpc.DataTransferServiceStub(channel)
         # create new listening thread for when new message streams come in
         # threading.Thread(target=self._RaftHeartbeat, daemon=True).start()
@@ -46,9 +33,10 @@ class Client:
         call_future = self.conn.RaftHeartbeat.future(table)
         call_future.add_done_callback(functools.partial(_process_response, self))
 
-    def _AddFileLog(self, tablelog):
-        call_future = self.conn.AddFileLog.future(tablelog)
+    def _AddFileLog(self, table_log):
+        call_future = self.conn.AddFileLog.future(table_log)
         call_future.add_done_callback(functools.partial(_process_response, self))
+
 
 # server
 class ChatServer(rpc.DataTransferServiceServicer):
@@ -58,10 +46,10 @@ class ChatServer(rpc.DataTransferServiceServicer):
     def RaftHeartbeat(self, request: file_transfer.Table, context):
         pass
 
-
     def RequestVote(self, request: file_transfer.Candidacy, context):
         # return CandidacyResponse
         pass
+
 
 def main(argv):
     username = argv[1]
@@ -104,7 +92,7 @@ def main(argv):
 
     #     for client in lst_clients:
     #         client._RaftHeartbeat(table)
-        
+
     #     time.sleep(1)
 
     # Server starts in background (another thread) so keep waiting

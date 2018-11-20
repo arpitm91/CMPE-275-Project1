@@ -3,6 +3,7 @@ import sys
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 
+
 class NodeState(Enum):
     CANDIDATE = 0
     FOLLOWER = 1
@@ -62,6 +63,7 @@ class Globals:
         if not is_exists:
             Globals.LST_PROXY_CLIENTS.append(proxy_client)
 
+
 class ThreadPoolExecutorStackTraced(ThreadPoolExecutor):
     def submit(self, fn, *args, **kwargs):
         """Submits the wrapped function instead of `fn`"""
@@ -82,4 +84,3 @@ class ThreadPoolExecutorStackTraced(ThreadPoolExecutor):
             # same type with the
             # traceback as
             # message
-

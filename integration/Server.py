@@ -2,10 +2,12 @@ import pprint
 import grpc
 import sys
 import os
+
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir,"protos"))
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
 import file_transfer_pb2 as file_transfer
 import file_transfer_pb2_grpc as rpc
+from utils.constants import CHUNK_SIZE
 
 from concurrent import futures
 import time
@@ -15,7 +17,7 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
 def get_total_file_chunks(filename):
-    return math.ceil(os.path.getsize(os.path.join(os.path.dirname(os.path.realpath(__file__)),filename)) / CHUNK_SIZE)
+    return math.ceil(os.path.getsize(os.path.join(os.path.dirname(os.path.realpath(__file__)), filename)) / CHUNK_SIZE)
 
 
 def get_file_chunks(filename):
@@ -26,8 +28,9 @@ def get_file_chunks(filename):
                 if not piece:
                     break
                 yield piece
-    except:
+    except (OSError, IOError):
         print("chunk reading exception..")
+
 
 class Reply(rpc.DataTransferServiceServicer):
 
@@ -82,7 +85,7 @@ class Reply(rpc.DataTransferServiceServicer):
     def DownloadChunk(self, request, context):
         current_chunk = 1
 
-        for file_buffer in get_file_chunks(request.filename):
+        for _ in get_file_chunks(request.filename):
             my_reply = file_transfer.FileMetaData()
 
             my_reply.fileName = request.fileName

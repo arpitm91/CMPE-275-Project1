@@ -59,12 +59,12 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
 
     failed_chunks = {}
 
-    def whole_file_downloaded(failed_chunks):
+    def whole_file_downloaded(failed_chunks_dict):
         is_whole_file_downloaded = True
 
         for i in range(len(next_sequence_to_download)):
             if next_sequence_to_download[i] < maximum_number_of_sequences[i]:
-                failed_chunks[i] = next_sequence_to_download[i]
+                failed_chunks_dict[i] = next_sequence_to_download[i]
                 is_whole_file_downloaded = False
 
         return is_whole_file_downloaded

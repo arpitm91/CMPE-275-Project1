@@ -11,7 +11,7 @@ class TimerUtil:
         print("creating timer")
 
     def start(self):
-        if self.timer != None:
+        if self.timer is not None:
             self.stop()
         if not self.time:
             time = self.get_random_time()

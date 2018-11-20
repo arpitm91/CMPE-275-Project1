@@ -22,8 +22,8 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 GRPC_TIMEOUT = 1  # grpc calls time out after 1 sec
 
 
-def start_download_as_client(raft_ip, raft_port, filename, chunk, FOLDER, from_datacenter_ip, from_datacenter_port):
-    download_as_client("", "", filename, chunk, FOLDER, from_datacenter_ip, from_datacenter_port)
+def start_download_as_client(filename, chunk, download_folder, from_datacenter_ip, from_datacenter_port):
+    download_as_client("", "", filename, chunk, download_folder, from_datacenter_ip, from_datacenter_port)
     upload_completed(filename, chunk, True)
 
 
@@ -42,7 +42,7 @@ class DataCenterService(our_proto_rpc.DataCenterServiceServicer):
         print("Initiating replication of :", filename, "chunk :", chunk, "from ip:", from_datacenter_ip, ",port :",
               from_datacenter_port)
         threading.Thread(target=start_download_as_client,
-                         args=("", "", filename, chunk, FOLDER, from_datacenter_ip, from_datacenter_port)).start()
+                         args=(filename, chunk, FOLDER, from_datacenter_ip, from_datacenter_port)).start()
         reply = our_proto.Ack()
         reply.id = 1
         return reply

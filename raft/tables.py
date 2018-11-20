@@ -2,7 +2,8 @@ import sys
 import os
 from collections import defaultdict
 import pprint
-import grpc, functools
+import grpc
+import functools
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
@@ -18,8 +19,6 @@ from globals import NodeState
 
 import raft_pb2 as raft_proto
 import raft_pb2_grpc as raft_proto_rpc
-import file_transfer_pb2 as file_transfer_proto
-import file_transfer_pb2_grpc as file_transfer_proto_rpc
 
 
 class Tables:
@@ -260,7 +259,7 @@ class Tables:
                     else:
                         not_replicated_dc.append((ip, port))
 
-                if total_replication > 0 and total_replication < Globals.REPLICATION_FACTOR:
+                if 0 < total_replication < Globals.REPLICATION_FACTOR:
                     lst_dc = Tables.get_all_available_dc()
                     i = 0
                     while total_replication < Globals.REPLICATION_FACTOR and i < len(lst_dc):
@@ -403,7 +402,7 @@ class DatacenterClient:
                                                                            timeout=Globals.DC_HEARTBEAT_TIMEOUT * 0.9)
             call_future.add_done_callback(functools.partial(_process_datacenter_heartbeat, self))
         except:
-            log_info("Exeption: _SendDataCenterHeartbeat")
+            log_info("Exception: _SendDataCenterHeartbeat")
 
     def _ReplicationInitiate(self, ReplicationInfo):
         try:
@@ -414,7 +413,7 @@ class DatacenterClient:
                 functools.partial(_process_datacenter_replication_initiate, self, self.server_address, self.server_port,
                                   ReplicationInfo))
         except:
-            log_info("Execption: _ReplicationInitiate")
+            log_info("Exception: _ReplicationInitiate")
 
 
 class ProxyClient:
@@ -435,7 +434,7 @@ class ProxyClient:
             call_future = self.proxy_stub.ProxyHeartbeat.future(Empty, timeout=Globals.PROXY_HEARTBEAT_TIMEOUT * 0.9)
             call_future.add_done_callback(functools.partial(_process_proxy_heartbeat, self))
         except:
-            log_info("Exeption: _SendProxyHeartbeat")
+            log_info("Exception: _SendProxyHeartbeat")
 
 
 dc_heartbeat_timer = TimerUtil(_dc_heartbeat_timeout, Globals.DC_HEARTBEAT_TIMEOUT)

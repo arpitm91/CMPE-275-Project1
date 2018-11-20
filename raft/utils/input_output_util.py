@@ -36,7 +36,7 @@ def print_msg(msg):
 
 def print_file_info(msg):
     print(ERASE_LINE + CYAN + "[{}] ".format(
-        time.strftime('%X')) + YELLOW + msg.origin + ": " + WHITE + str(msg.id) + " Recieved: " + str(
+        time.strftime('%X')) + YELLOW + msg.origin + ": " + WHITE + str(msg.id) + " Received: " + str(
         msg.seqnum) + "/" + str(msg.seqmax))
 
 
@@ -50,7 +50,7 @@ def log_error(string):
 
 def log_info(*args):
     print(ERASE_LINE + CYAN + "[{}] ".format(
-        datetime.now().strftime('%H:%M:%S.%f')), YELLOW , args, WHITE)
+        datetime.now().strftime('%H:%M:%S.%f')), YELLOW, args, WHITE)
 
 
 def log_forwarding_info(message):
@@ -59,7 +59,7 @@ def log_forwarding_info(message):
         strMsg = "forwarding message: \"" + message.data.decode() + "\" from " + message.origin + " to " + message.destination + "...."
     elif message.type == 1:
         strMsg = "forwarding file: \"" + str(
-            message.id) + "\" from " + message.origin + " to " + message.destination + "...." + " Squence: " + str(
+            message.id) + "\" from " + message.origin + " to " + message.destination + "...." + " Sequence: " + str(
             message.seqnum) + "/" + str(message.seqmax)
 
     log_info(strMsg)

@@ -11,7 +11,7 @@ def get_total_file_chunks(filename):
 def get_file_chunks(filename):
     with open(filename, 'rb') as f:
         while True:
-            piece = f.read(CHUNK_SIZE);
+            piece = f.read(CHUNK_SIZE)
             if not piece:
                 break
             yield piece
@@ -19,5 +19,5 @@ def get_file_chunks(filename):
 
 def write_file_chunks(message):
     file_name = message.origin + "_" + str(message.id)
-    with open(file_name, "ab") as myfile:
-        myfile.write(message.data)
+    with open(file_name, "ab") as my_file:
+        my_file.write(message.data)

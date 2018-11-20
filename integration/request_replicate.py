@@ -13,7 +13,7 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 def register_dc(ip, port):
     with grpc.insecure_channel(ip + ':' + port) as channel:
-        stub = our_proto_rpc.RaftServiceStub(channel)
+        stub = our_proto_rpc.DataCenterServiceStub(channel)
 
         request = our_proto.ReplicationInfo()
         request.fileName = "friend_e3_1542077742.064304.mkv"
