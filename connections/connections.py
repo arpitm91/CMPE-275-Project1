@@ -49,9 +49,26 @@ raft_connections = {
 
 other_raft_nodes = [
     {
-        "ip": "localhost",
-        "port": "13010"
+        "ip": "10.0.40.1",
+        "port": "10000"
+    },
+    {
+        "ip": "10.0.40.2",
+        "port": "10000"
+    },
+    {
+        "ip": "10.0.40.2",
+        "port": "10001"
+    },
+    {
+        "ip": "10.0.40.3",
+        "port": "10000"
+    },
+    {
+        "ip": "10.0.40.4",
+        "port": "10000"
     }
+
 ]
 
 proxy = {
@@ -113,4 +130,3 @@ for elem in raft_connections.keys():
         client_array.append(raft_connections[client]["own"])
 
         raft_connections[elem]["clients"] = client_array
-
