@@ -4,6 +4,7 @@ import pprint
 import grpc
 import sys
 import os
+import time
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
@@ -125,6 +126,12 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
 
 # python3 client_download.py <filename>
 if __name__ == '__main__':
-    random_raft = get_raft_node()
-    print("Client connected to raft node :", random_raft["ip"], random_raft["port"])
-    run(random_raft["ip"], random_raft["port"], str(sys.argv[1]))
+    while True:
+        random_raft = get_raft_node()
+        try:
+            print("Client connected to raft node :", random_raft["ip"], random_raft["port"])
+            run(random_raft["ip"], random_raft["port"], str(sys.argv[1]))
+            break
+        except grpc.RpcError:
+            print("Client could not connect with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
+            time.sleep(2)
