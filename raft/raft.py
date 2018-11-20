@@ -377,17 +377,23 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
     '''
 
     def ListFiles(self, request, context):
-        lst_files = []
-        if request.isClient:
-            lst_files = request_file_list_from_other_raft_nodes(request)
+        if Globals.NODE_STATE == NodeState.LEADER:
+            lst_files = []
+            if request.isClient:
+                lst_files = request_file_list_from_other_raft_nodes(request)
 
-        lst_files = lst_files + Tables.get_all_available_file_list()
-        my_reply = file_transfer_proto.FileList()
-        pprint.pprint("lst_files")
-        pprint.pprint(lst_files)
-        if len(lst_files) > 0:
-            my_reply.lstFileNames.extend(lst_files)
-        return my_reply
+            lst_files = lst_files + Tables.get_all_available_file_list()
+            my_reply = file_transfer_proto.FileList()
+            pprint.pprint("lst_files")
+            pprint.pprint(lst_files)
+            if len(lst_files) > 0:
+                my_reply.lstFileNames.extend(lst_files)
+            return my_reply
+        else:
+            if request.isClient:
+                return
+            else:
+                return file_transfer_proto.FileList()
 
     '''
     request: raft.FileInfo
