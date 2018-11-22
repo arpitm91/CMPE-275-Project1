@@ -14,6 +14,7 @@ from utils.file_utils import merge_chunks
 import protos.file_transfer_pb2 as file_transfer
 import protos.file_transfer_pb2_grpc as rpc
 from utils.common_utils import get_raft_node
+from utils.common_utils import get_rand_hashing_node_from_node_info_object
 from utils.input_output_util import log_info
 
 THREAD_POOL_SIZE = 4
@@ -50,7 +51,7 @@ def download_chunk(file_name, chunk_num, start_seq_num, proxy_address, proxy_por
 def get_file_location(stub, request):
     file_location_info = stub.RequestFileInfo(request)
     log_info("Response received: ")
-    #pprint.pprint(file_location_info)
+    # pprint.pprint(file_location_info)
     log_info(file_location_info.maxChunks)
     log_info("is file found :", file_location_info.isFileFound)
     return file_location_info
@@ -82,7 +83,7 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
 
             file_location_info = get_file_location(stub, request)
             log_info("file_location_info")
-            #pprint.pprint(file_location_info)
+            # pprint.pprint(file_location_info)
 
             next_sequence_to_download = [0] * file_location_info.maxChunks
             maximum_number_of_sequences = [float('inf')] * file_location_info.maxChunks
@@ -99,15 +100,12 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
         proxy_ports = []
         downloads_folders = []
 
-        proxy_index = 0
         for chunk_num in failed_chunks.keys():
             if chunks == -1:
-                # random_proxy_index = random.randint(0, len(file_location_info.lstProxy) - 1)
-                random_proxy_index = proxy_index % len(file_location_info.lstProxy)
-                proxy_index = proxy_index + 1
-                # proxy
-                proxy_address = file_location_info.lstProxy[random_proxy_index].ip
-                proxy_port = file_location_info.lstProxy[random_proxy_index].port
+                selected_proxy = get_rand_hashing_node_from_node_info_object(file_location_info.lstProxy, file_name,
+                                                                             chunk_num)
+                proxy_address = selected_proxy.ip
+                proxy_port = selected_proxy.port
                 log_info("proxy selected", proxy_address, proxy_port)
             else:
                 # data_center direct

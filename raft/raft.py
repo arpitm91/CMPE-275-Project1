@@ -33,6 +33,7 @@ from tables import proxy_heartbeat_timer
 from tables import Check_and_send_replication_request
 from utils.input_output_util import log_info
 from utils.timer_utils import TimerUtil
+from utils.common_utils import get_rand_hashing_node
 
 
 def _increment_cycle_and_reset():
@@ -365,17 +366,16 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
             if Tables.is_file_exists(file_name):
                 return my_reply
 
-            dcs = sorted(Tables.get_all_available_dc())
+            dcs = Tables.get_all_available_dc()
             for chunk_id in range(total_chunks):
-                # random_dcs = Tables.get_random_available_dc(1)
-                random_dcs = [dcs[chunk_id % len(dcs)]]
+                random_dcs = [get_rand_hashing_node(dcs, file_name, chunk_id)]
                 Tables.insert_file_chunk_info_to_file_log(file_name, chunk_id, random_dcs, raft_proto.UploadRequested)
 
             # pprint.pprint("TABLE_FILE_INFO")
             # pprint.pprint(Tables.TABLE_FILE_INFO)
             # pprint.pprint(Tables.TABLE_DC_INFO)
 
-            lst_proxies = sorted(Tables.get_all_available_proxies())
+            lst_proxies = Tables.get_all_available_proxies()
             lst_proxy_info = []
             for ip, port in lst_proxies:
                 proxy_info = file_transfer_proto.ProxyInfo()

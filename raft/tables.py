@@ -20,6 +20,7 @@ from globals import NodeState
 import raft_pb2 as raft_proto
 import raft_pb2_grpc as raft_proto_rpc
 from utils.input_output_util import log_info
+from utils.common_utils import get_rand_hashing_node
 
 
 class Tables:
@@ -292,12 +293,8 @@ class Tables:
                     if len(non_replicated_dc) == 0:
                         continue
 
-                    lst_hash = []
-                    for dc in non_replicated_dc:
-                        lst_hash.append(hash(dc[0] + dc[1] + file_name + str(chunk_id)))
+                    selected_dc_for_replication = get_rand_hashing_node(non_replicated_dc, file_name, chunk_id)
 
-                    index = lst_hash.index(sorted(lst_hash)[0])
-                    selected_dc_for_replication = non_replicated_dc[index]
                     random_id = get_random_numbers(len(chunk_already_available_dc), 1)[0]
                     replication_list.append(
                         (file_name, chunk_id, selected_dc_for_replication, chunk_already_available_dc[random_id]))
