@@ -4,12 +4,12 @@ import sys
 import os
 import time
 
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "utils"))
 
 import file_transfer_pb2 as file_transfer
 import file_transfer_pb2_grpc as file_transfer_rpc
-from common_utils import get_raft_node
+from utils.common_utils import get_raft_node
 
 
 def run(raft_ip, raft_port):
