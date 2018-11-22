@@ -14,6 +14,7 @@ import protos.raft_pb2 as raft_proto
 import protos.file_transfer_pb2 as file_transfer
 import protos.file_transfer_pb2_grpc as file_transfer_rpc
 from utils.common_utils import get_raft_node
+from utils.input_output_util import log_info
 
 THREAD_POOL_SIZE = 4
 
@@ -29,12 +30,12 @@ def file_upload_iterator(file_path, file_name, chunk_num):
         request.seqNum = cur_seq_num
         request.data = chunk_buffer
         cur_seq_num += 1
-        print("Sending... Chunk: ", chunk_num, ", Seq: ", cur_seq_num)
+        log_info("Sending... Chunk: ", chunk_num, ", Seq: ", cur_seq_num)
         yield request
 
 
 def upload_chunk(file_path, file_name, chunk_num, proxy_address, proxy_port):
-    print("requesting for :", file_path, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port)
+    log_info("requesting for :", file_path, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port)
     with grpc.insecure_channel(proxy_address + ':' + proxy_port) as channel:
         stub = file_transfer_rpc.DataTransferServiceStub(channel)
         stub.UploadFile(file_upload_iterator(file_path, file_name, chunk_num))
@@ -42,7 +43,7 @@ def upload_chunk(file_path, file_name, chunk_num, proxy_address, proxy_port):
 
 def run(argv):
     random_raft = get_raft_node()
-    print("Client connected to raft node :", random_raft["ip"], random_raft["port"])
+    log_info("Client connected to raft node :", random_raft["ip"], random_raft["port"])
 
     raft_ip = random_raft["ip"]
     raft_port = random_raft["port"]
@@ -64,8 +65,8 @@ def run(argv):
 
         response = stub.RequestFileUpload(request)
 
-        print("Got list of proxies: ", response.lstProxy)
-        pprint.pprint(response.lstProxy)
+        log_info("Got list of proxies: ", response.lstProxy)
+        #pprint.pprint(response.lstProxy)
 
     num_of_chunks = file_utils.get_max_file_chunks(file_path)
 
@@ -104,8 +105,8 @@ def run(argv):
     pool.close()
     pool.join()
 
-    print("################################################################################")
-    print("File Upload Completed. To download file use this name: ", file_name)
+    log_info("################################################################################")
+    log_info("File Upload Completed. To download file use this name: ", file_name)
 
 
 # python3 client_upload.py <filename>

@@ -14,6 +14,7 @@ from utils.file_utils import merge_chunks
 import protos.file_transfer_pb2 as file_transfer
 import protos.file_transfer_pb2_grpc as rpc
 from utils.common_utils import get_raft_node
+from utils.input_output_util import log_info
 
 THREAD_POOL_SIZE = 4
 next_sequence_to_download = []
@@ -21,7 +22,7 @@ maximum_number_of_sequences = []
 
 
 def download_chunk(file_name, chunk_num, start_seq_num, proxy_address, proxy_port, downloads_folder="Downloads"):
-    print("requesting for :", file_name, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port)
+    log_info("requesting for :", file_name, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port)
 
     global next_sequence_to_download
     global maximum_number_of_sequences
@@ -33,23 +34,25 @@ def download_chunk(file_name, chunk_num, start_seq_num, proxy_address, proxy_por
         request.startSeqNum = start_seq_num
         try:
             for response in stub.DownloadChunk(request):
-                print("Response received: Chunk", response.chunkId, "Sequence:", response.seqNum, "/", response.seqMax)
+                log_info("Response received: Chunk", response.chunkId, "Sequence:", response.seqNum, "/",
+                         response.seqMax)
                 next_sequence_to_download[chunk_num] = response.seqNum + 1
                 maximum_number_of_sequences[chunk_num] = response.seqMax
                 write_file_chunks(response, os.path.join(os.path.dirname(os.path.realpath(__file__)), downloads_folder))
         except grpc.RpcError:
-            print("Failed to connect to data center..Retrying !!")
+            log_info("Failed to connect to data center..Retrying !!")
 
-        print("request completed for :", file_name, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port,
-              "last seq :", next_sequence_to_download[chunk_num], "max seq :", maximum_number_of_sequences[chunk_num])
+        log_info("request completed for :", file_name, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port,
+                 "last seq :", next_sequence_to_download[chunk_num], "max seq :",
+                 maximum_number_of_sequences[chunk_num])
 
 
 def get_file_location(stub, request):
     file_location_info = stub.RequestFileInfo(request)
-    print("Response received: ")
-    pprint.pprint(file_location_info)
-    print(file_location_info.maxChunks)
-    print("is file found :", file_location_info.isFileFound)
+    log_info("Response received: ")
+    #pprint.pprint(file_location_info)
+    log_info(file_location_info.maxChunks)
+    log_info("is file found :", file_location_info.isFileFound)
     return file_location_info
 
 
@@ -78,8 +81,8 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
             request.fileName = file_name
 
             file_location_info = get_file_location(stub, request)
-            print("file_location_info")
-            pprint.pprint(file_location_info)
+            log_info("file_location_info")
+            #pprint.pprint(file_location_info)
 
             next_sequence_to_download = [0] * file_location_info.maxChunks
             maximum_number_of_sequences = [float('inf')] * file_location_info.maxChunks
@@ -105,12 +108,12 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
                 # proxy
                 proxy_address = file_location_info.lstProxy[random_proxy_index].ip
                 proxy_port = file_location_info.lstProxy[random_proxy_index].port
-                print("proxy selected", proxy_address, proxy_port)
+                log_info("proxy selected", proxy_address, proxy_port)
             else:
                 # data_center direct
                 proxy_address = dc_ip
                 proxy_port = dc_port
-                print("data center selected", proxy_address, proxy_port)
+                log_info("data center selected", proxy_address, proxy_port)
 
             file_names.append(file_name)
             chunk_nums.append(chunk_num)
@@ -126,11 +129,11 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
         pool.close()
         pool.join()
 
-        print("number_of_sequences_downloaded ", next_sequence_to_download)
-        print("maximum_number_of_sequences ", maximum_number_of_sequences)
+        log_info("number_of_sequences_downloaded ", next_sequence_to_download)
+        log_info("maximum_number_of_sequences ", maximum_number_of_sequences)
 
     if chunks == -1:
-        print("calling merge ")
+        log_info("calling merge ")
         merge_chunks(file_location_info.fileName,
                      os.path.join(os.path.dirname(os.path.realpath(__file__)), "Downloads"),
                      file_location_info.maxChunks)
@@ -142,10 +145,10 @@ if __name__ == '__main__':
     while True:
         random_raft = get_raft_node()
         try:
-            print("Client connected to raft node :", random_raft["ip"], random_raft["port"])
+            log_info("Client connected to raft node :", random_raft["ip"], random_raft["port"])
             run(random_raft["ip"], random_raft["port"], str(sys.argv[1]))
             break
         except grpc.RpcError:
-            print("Client could not connect with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
+            log_info("Client could not connect with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
             time.sleep(2)
     print("--- %s seconds ---" % (time.time() - start_time))

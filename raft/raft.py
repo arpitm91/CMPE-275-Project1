@@ -34,6 +34,7 @@ from tables import Tables
 from tables import dc_heartbeat_timer
 from tables import proxy_heartbeat_timer
 from tables import Check_and_send_replication_request
+from utils.input_output_util import log_info
 
 
 def _increment_cycle_and_reset():
@@ -61,13 +62,13 @@ def _random_timeout():
 
 
 def _raft_heartbeat_timeout():
-    print("FILE_INFO_TABLE:")
-    pprint.pprint(Tables.TABLE_FILE_INFO)
+    log_info("FILE_INFO_TABLE:")
+    #pprint.pprint(Tables.TABLE_FILE_INFO)
     if Globals.NODE_STATE == NodeState.FOLLOWER:
         pass
     elif Globals.NODE_STATE == NodeState.LEADER:
         log_info("_heartbeat_timeout: ", Globals.NODE_STATE, Globals.CURRENT_CYCLE)
-        log_info("Leader !!")
+        print("Leader !!")
         _send_heartbeat()
     elif Globals.NODE_STATE == NodeState.CANDIDATE:
         log_info("_heartbeat_timeout: ", Globals.NODE_STATE, Globals.CURRENT_CYCLE)
@@ -153,14 +154,14 @@ def request_file_info_from_other_raft_nodes(request):
             with grpc.insecure_channel(node["ip"] + ':' + node["port"]) as channel:
                 stub = file_transfer_proto_rpc.DataTransferServiceStub(channel)
                 file_location_info = stub.GetFileLocation(request)
-                print("Response received From other Raft: ")
-                pprint.pprint(file_location_info)
-                print(file_location_info.maxChunks)
-                print("is file found in other Raft:", file_location_info.isFileFound)
+                log_info("Response received From other Raft: ")
+                #pprint.pprint(file_location_info)
+                log_info(file_location_info.maxChunks)
+                log_info("is file found in other Raft:", file_location_info.isFileFound)
                 if file_location_info.isFileFound:
                     return file_location_info
         except:
-            print("Fail to connect to: ", node["ip"], node["port"])
+            log_info("Fail to connect to: ", node["ip"], node["port"])
     file_location_info = file_transfer_proto.FileLocationInfo()
     file_location_info.isFileFound = False
     return file_location_info
@@ -180,7 +181,7 @@ def request_file_list_from_other_raft_nodes(request):
                 for file_name in files.lstFileNames:
                     return_set.add(file_name)
         except:
-            print("Fail to connect to: ", other_node["ip"], other_node["port"])
+            log_info("Fail to connect to: ", other_node["ip"], other_node["port"])
 
     set_files_arr = []
     for _ in other_raft_nodes:
@@ -198,8 +199,8 @@ def get_file_lists(request):
 
     lst_files = lst_files + Tables.get_all_available_file_list()
     my_reply = file_transfer_proto.FileList()
-    pprint.pprint("lst_files")
-    pprint.pprint(lst_files)
+    #pprint.pprint("lst_files")
+    #pprint.pprint(lst_files)
     if len(lst_files) > 0:
         my_reply.lstFileNames.extend(lst_files)
     return my_reply
@@ -283,21 +284,21 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
             return ack
 
         random_timer.reset()
-        log_info("MY Leader: ", Globals.LEADER_IP, Globals.LEADER_PORT, len(Tables.FILE_LOGS))
+        print("MY Leader: ", Globals.LEADER_IP, Globals.LEADER_PORT, len(Tables.FILE_LOGS))
 
         # Update Table_log and File_info_table
         Tables.set_table_log(request.tableLog)
 
         ack.id = len(Tables.FILE_LOGS)
 
-        print("Tables.TABLE_FILE_INFO")
-        pprint.pprint(Tables.TABLE_FILE_INFO)
-        print("Tables.TABLE_PROXY_INFO")
-        pprint.pprint(Tables.TABLE_PROXY_INFO)
-        print("Tables.TABLE_DC_INFO")
-        pprint.pprint(Tables.TABLE_DC_INFO)
+        log_info("Tables.TABLE_FILE_INFO")
+        #pprint.pprint(Tables.TABLE_FILE_INFO)
+        log_info("Tables.TABLE_PROXY_INFO")
+        #pprint.pprint(Tables.TABLE_PROXY_INFO)
+        log_info("Tables.TABLE_DC_INFO")
+        #pprint.pprint(Tables.TABLE_DC_INFO)
 
-        print("###########################################################")
+        log_info("###########################################################")
 
         return ack
 
@@ -312,7 +313,7 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
         if request.log_length < len(Tables.FILE_LOGS):
             candidacy_response.voted = raft_proto.NO
         elif request.cycle_number > Globals.CURRENT_CYCLE or (
-                request.cycle_number == Globals.CURRENT_CYCLE and not Globals.HAS_CURRENT_VOTED):
+                        request.cycle_number == Globals.CURRENT_CYCLE and not Globals.HAS_CURRENT_VOTED):
             Globals.CURRENT_CYCLE = request.cycle_number
             Globals.HAS_CURRENT_VOTED = True
             Globals.NUMBER_OF_VOTES = 0
@@ -322,8 +323,8 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
             candidacy_response.cycle_number = request.cycle_number
             Globals.NODE_STATE = NodeState.FOLLOWER
             random_timer.reset()
-            pprint.pprint("###")
-            pprint.pprint(request)
+            #pprint.pprint("###")
+            #pprint.pprint(request)
         else:
             candidacy_response.voted = raft_proto.NO
 
@@ -370,9 +371,9 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
                 random_dcs = [dcs[chunk_id % len(dcs)]]
                 Tables.insert_file_chunk_info_to_file_log(file_name, chunk_id, random_dcs, raft_proto.UploadRequested)
 
-            pprint.pprint("TABLE_FILE_INFO")
-            pprint.pprint(Tables.TABLE_FILE_INFO)
-            pprint.pprint(Tables.TABLE_DC_INFO)
+            #pprint.pprint("TABLE_FILE_INFO")
+            #pprint.pprint(Tables.TABLE_FILE_INFO)
+            #pprint.pprint(Tables.TABLE_DC_INFO)
 
             lst_proxies = Tables.get_all_available_proxies()
             lst_proxy_info = []
@@ -382,14 +383,14 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
                 proxy_info.port = port
                 lst_proxy_info.append(proxy_info)
 
-            print("LST_PROXIES:")
-            print(my_reply.lstProxy)
+            log_info("LST_PROXIES:")
+            log_info(my_reply.lstProxy)
             my_reply.lstProxy.extend(lst_proxy_info)
 
-            print("Replied to :")
-            pprint.pprint(request)
-            pprint.pprint(my_reply)
-            print("############################")
+            log_info("Replied to :")
+            #pprint.pprint(request)
+            #pprint.pprint(my_reply)
+            log_info("############################")
             return my_reply
 
         else:
@@ -425,7 +426,7 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
             return my_reply
         else:
             max_chunks = len(Tables.TABLE_FILE_INFO[file_name].keys())
-            print("max_chunks from raft ", max_chunks)
+            log_info("max_chunks from raft ", max_chunks)
             lst_proxies = Tables.get_all_available_proxies()
             lst_proxy_info = []
             for ip, port in lst_proxies:
@@ -453,7 +454,7 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
             return my_reply
 
         max_chunks = len(Tables.TABLE_FILE_INFO[file_name].keys())
-        print("max_chunks from raft ", max_chunks)
+        log_info("max_chunks from raft ", max_chunks)
         lst_proxies = Tables.get_all_available_proxies()
         lst_proxy_info = []
         for ip, port in lst_proxies:
@@ -508,9 +509,10 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
 
     def FileUploadCompleted(self, request, context):
 
-        print("################################### FILE_UPLOAD_COMPLETED_ARRIVED!!! #################################")
-        pprint.pprint(request)
-        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+        log_info(
+            "################################### FILE_UPLOAD_COMPLETED_ARRIVED!!! #################################")
+        #pprint.pprint(request)
+        log_info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 
         if Globals.NODE_STATE == NodeState.LEADER:
             chunk_id = request.chunkUploadInfo.chunkId
@@ -518,8 +520,8 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
             Tables.insert_file_chunk_info_to_file_log(request.fileName, chunk_id, lst_dc,
                                                       raft_proto.Uploaded if request.isSuccess else raft_proto.UploadFaied)
 
-            pprint.pprint(Tables.TABLE_FILE_INFO)
-            print("###########################################################################")
+            #pprint.pprint(Tables.TABLE_FILE_INFO)
+            log_info("###########################################################################")
         else:
             client = get_leader_client()
             if client:

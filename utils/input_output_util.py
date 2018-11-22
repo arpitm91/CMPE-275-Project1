@@ -4,6 +4,8 @@ import time
 import queue
 from datetime import datetime
 
+DEBUG = False
+
 WHITE = '\033[97m'  # User Input color
 YELLOW = '\033[93m'  # Log output color
 BLUE = '\033[94m'  # Input prompt color
@@ -49,8 +51,9 @@ def log_error(string):
 
 
 def log_info(*args):
-    print(ERASE_LINE + CYAN + "[{}] ".format(
-        datetime.now().strftime('%H:%M:%S.%f')), YELLOW , args, WHITE)
+    if DEBUG:
+        print(ERASE_LINE + CYAN + "[{}] ".format(
+            datetime.now().strftime('%H:%M:%S.%f')), YELLOW, args, WHITE)
 
 
 def log_forwarding_info(message):

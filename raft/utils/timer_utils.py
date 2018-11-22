@@ -8,7 +8,7 @@ class TimerUtil:
         self.timer = None
         self.callback = callback
         self.time = time
-        print("creating timer")
+        log_info("creating timer")
 
     def start(self):
         if self.timer is not None:

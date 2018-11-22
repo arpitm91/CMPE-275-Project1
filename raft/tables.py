@@ -19,6 +19,7 @@ from globals import NodeState
 
 import raft_pb2 as raft_proto
 import raft_pb2_grpc as raft_proto_rpc
+from utils.input_output_util import log_info
 
 
 class Tables:
@@ -130,7 +131,7 @@ class Tables:
         available_dcs = Tables.get_all_available_dc()
         random_list = get_random_numbers(len(available_dcs), min(count, len(available_dcs)))
         random_dcs = []
-        print(len(available_dcs), count, min(count, len(available_dcs)))
+        log_info(len(available_dcs), count, min(count, len(available_dcs)))
         for x in random_list:
             random_dcs.append(available_dcs[x])
         return random_dcs
@@ -336,8 +337,8 @@ def _mark_dc_available(dc_client):
 
 def Check_and_send_replication_request():
     replication_list = Tables.get_file_chunks_to_be_replicated_with_dc_info()
-    pprint.pprint("$$$$$$$$$$$$$$$ REPLICATION LIST ########################")
-    pprint.pprint(replication_list)
+    #pprint.pprint("$$$$$$$$$$$$$$$ REPLICATION LIST ########################")
+    #pprint.pprint(replication_list)
 
     # for replication_info in replication_list:
     #     file_name = replication_info[0]

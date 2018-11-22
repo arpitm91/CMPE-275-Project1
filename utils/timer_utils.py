@@ -1,14 +1,15 @@
 from __future__ import print_function
 from threading import Timer
 from random import randint
+from input_output_util import log_info
 
 
 class TimerUtil:
-    def __init__(self, callback, time = None):
+    def __init__(self, callback, time=None):
         self.timer = None
         self.callback = callback
         self.time = time
-        print("creating timer")
+        log_info("creating timer")
 
     def start(self):
         if self.timer != None:

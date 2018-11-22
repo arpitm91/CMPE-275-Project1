@@ -30,26 +30,26 @@ def get_input():
 
 
 def print_msg(msg):
-    print(ERASE_LINE + CYAN + "[{}] ".format(
+    log_info(ERASE_LINE + CYAN + "[{}] ".format(
         time.strftime('%X')) + YELLOW + msg.origin + ": " + WHITE + msg.data.decode())
 
 
 def print_file_info(msg):
-    print(ERASE_LINE + CYAN + "[{}] ".format(
+    log_info(ERASE_LINE + CYAN + "[{}] ".format(
         time.strftime('%X')) + YELLOW + msg.origin + ": " + WHITE + str(msg.id) + " Received: " + str(
         msg.seqnum) + "/" + str(msg.seqmax))
 
 
 def print_take_input_msg():
-    print(BLUE + "Enter your input >" + WHITE, end=' ', flush=True)
+    log_info(BLUE + "Enter your input >" + WHITE, end=' ', flush=True)
 
 
 def log_error(string):
-    print(ERASE_LINE + RED + string + WHITE)
+    log_info(ERASE_LINE + RED + string + WHITE)
 
 
 def log_info(*args):
-    print(ERASE_LINE + CYAN + "[{}] ".format(
+    log_info(ERASE_LINE + CYAN + "[{}] ".format(
         datetime.now().strftime('%H:%M:%S.%f')), YELLOW, args, WHITE)
 
 

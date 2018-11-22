@@ -6,6 +6,7 @@ import sys
 import file_transfer_pb2 as file_transfer
 import file_transfer_pb2_grpc as rpc
 import configs.connections as connections
+from utils.input_output_util import log_info
 
 lst_clients = []
 
@@ -14,8 +15,8 @@ file_info_table = {}
 
 
 def _process_response(client, call_future):
-    print(client.server_port)
-    print(call_future.result())
+    log_info(client.server_port)
+    log_info(call_future.result())
 
 
 class Client:
@@ -24,7 +25,7 @@ class Client:
         self.server_port = server_port
         # create a gRPC channel + stub
         channel = grpc.insecure_channel(server_address + ':' + str(server_port))
-        print("server_address: ", server_address, " server_port:", server_port)
+        log_info("server_address: ", server_address, " server_port:", server_port)
         self.conn = rpc.DataTransferServiceStub(channel)
         # create new listening thread for when new message streams come in
         # threading.Thread(target=self._RaftHeartbeat, daemon=True).start()
@@ -54,9 +55,9 @@ class ChatServer(rpc.DataTransferServiceServicer):
 def main(argv):
     username = argv[1]
 
-    print(username)
-    print(connections.connections)
-    print(connections.connections[username])
+    log_info(username)
+    log_info(connections.connections)
+    log_info(connections.connections[username])
 
     for client in connections.connections[username]["clients"]:
         # client
