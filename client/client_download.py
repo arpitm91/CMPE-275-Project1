@@ -96,9 +96,12 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
         proxy_ports = []
         downloads_folders = []
 
+        proxy_index = 0
         for chunk_num in failed_chunks.keys():
             if chunks == -1:
-                random_proxy_index = random.randint(0, len(file_location_info.lstProxy) - 1)
+                # random_proxy_index = random.randint(0, len(file_location_info.lstProxy) - 1)
+                random_proxy_index = proxy_index % len(file_location_info.lstProxy)
+                proxy_index = proxy_index + 1
                 # proxy
                 proxy_address = file_location_info.lstProxy[random_proxy_index].ip
                 proxy_port = file_location_info.lstProxy[random_proxy_index].port
