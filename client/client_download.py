@@ -135,6 +135,7 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
 
 # python3 client_download.py <filename>
 if __name__ == '__main__':
+    start_time = time.time()
     while True:
         random_raft = get_raft_node()
         try:
@@ -144,3 +145,4 @@ if __name__ == '__main__':
         except grpc.RpcError:
             print("Client could not connect with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
             time.sleep(2)
+    print("--- %s seconds ---" % (time.time() - start_time))

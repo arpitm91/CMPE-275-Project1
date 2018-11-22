@@ -106,4 +106,6 @@ def run(argv):
 
 # python3 client_upload.py <filename>
 if __name__ == '__main__':
+    start_time = time.time()
     run(sys.argv[:])
+    print("--- %s seconds ---" % (time.time() - start_time))
