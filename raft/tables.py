@@ -120,7 +120,7 @@ class Tables:
     @staticmethod
     def get_all_available_dc():
         lst_dc = []
-        for ip, port in Tables.TABLE_DC_INFO.keys():
+        for ip, port in sorted(Tables.TABLE_DC_INFO.keys()):
             if Tables.TABLE_DC_INFO[(ip, port)]:
                 lst_dc.append((ip, port))
         return lst_dc

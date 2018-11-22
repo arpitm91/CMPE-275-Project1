@@ -364,8 +364,10 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
             if Tables.is_file_exists(file_name):
                 return my_reply
 
+            dcs = Tables.get_all_available_dc()
             for chunk_id in range(total_chunks):
-                random_dcs = Tables.get_random_available_dc(1)
+                # random_dcs = Tables.get_random_available_dc(1)
+                random_dcs = [dcs[chunk_id % len(dcs)]]
                 Tables.insert_file_chunk_info_to_file_log(file_name, chunk_id, random_dcs, raft_proto.UploadRequested)
 
             pprint.pprint("TABLE_FILE_INFO")
