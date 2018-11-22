@@ -18,8 +18,6 @@ import raft_pb2_grpc as raft_proto_rpc
 import file_transfer_pb2 as file_transfer_proto
 import file_transfer_pb2_grpc as file_transfer_proto_rpc
 
-from input_output_util import log_info
-from timer_utils import TimerUtil
 
 from constants import CHUNK_SIZE
 
@@ -35,7 +33,7 @@ from tables import dc_heartbeat_timer
 from tables import proxy_heartbeat_timer
 from tables import Check_and_send_replication_request
 from utils.input_output_util import log_info
-
+from utils.timer_utils import TimerUtil
 
 def _increment_cycle_and_reset():
     Globals.CURRENT_CYCLE += 1
