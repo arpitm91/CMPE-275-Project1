@@ -8,7 +8,6 @@ aartee_ip = "10.0.10.3"
 
 raft_port_0 = "10000"
 raft_port_1 = "10001"
-raft_port_2 = "10002"
 
 dc_port_0 = "11000"
 dc_port_1 = "11001"
@@ -16,6 +15,12 @@ dc_port_1 = "11001"
 proxy_port_0 = "12000"
 
 raft_connections = {
+    "raft_arpit_0": {
+        "own": {
+            "ip": arpit_ip,
+            "port": raft_port_0
+        }
+    },
     "raft_anuj_0": {
         "own": {
             "ip": anuj_ip,
@@ -39,13 +44,7 @@ raft_connections = {
             "ip": aartee_ip,
             "port": raft_port_1
         }
-    },
-    "raft_anuj_2": {
-        "own": {
-            "ip": anuj_ip,
-            "port": raft_port_2
-        }
-    },
+    }
 }
 
 other_raft_nodes = [
@@ -94,6 +93,10 @@ other_raft_nodes = [
 ]
 
 proxy = {
+    "proxy_arpit_0": {
+        "ip": arpit_ip,
+        "port": proxy_port_0
+    },
     "proxy_anuj_0": {
         "ip": anuj_ip,
         "port": proxy_port_0
@@ -105,6 +108,11 @@ proxy = {
 }
 
 data_center = {
+    "dc_arpit_0": {
+        "ip": arpit_ip,
+        "port": dc_port_0,
+        "folder": "/Users/arpit/Desktop/DataCenter/0"
+    },
     "dc_anuj_0": {
         "ip": anuj_ip,
         "port": dc_port_0,
@@ -114,6 +122,11 @@ data_center = {
         "ip": aartee_ip,
         "port": dc_port_0,
         "folder": "/Users/aarteekasliwal/Desktop/DataCenter/0"
+    },
+    "dc_arpit_1": {
+        "ip": arpit_ip,
+        "port": dc_port_1,
+        "folder": "/Users/arpit/Desktop/DataCenter/1"
     },
     "dc_anuj_1": {
         "ip": anuj_ip,

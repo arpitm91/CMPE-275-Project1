@@ -229,21 +229,43 @@ class Tables:
         return file_list
 
     @staticmethod
-    def mark_all_file_chunks_in_dc_available_unavailable(dc_ip, dc_port, upload_state):
+    def mark_all_file_chunks_in_dc_unavailable(dc_ip, dc_port):
         for file_name in Tables.TABLE_FILE_INFO.keys():
             for chunk_id in Tables.TABLE_FILE_INFO[file_name].keys():
                 for ip, port in Tables.TABLE_FILE_INFO[file_name][chunk_id]:
-                    if ip == dc_ip and port == dc_port and Tables.TABLE_FILE_INFO[file_name][chunk_id][
-                        (ip, port)] == raft_proto.Uploaded:
+                    if ip == dc_ip and port == dc_port:
                         log = raft_proto.TableLog()
                         log.fileName = file_name
                         log.chunkId = chunk_id
                         log.ip = ip
                         log.port = port
                         log.log_index = Globals.get_next_log_index()
-                        log.operation = upload_state
-                        Tables.add_file_log(log)
-                        # Tables.TABLE_FILE_INFO[file_name][chunk_id][(ip, port)] = upload_state
+                        upload_status = Tables.TABLE_FILE_INFO[file_name][chunk_id][(ip, port)]
+
+                        if upload_status == raft_proto.Uploaded:
+                            log.operation = raft_proto.TemporaryUnavailable
+                            Tables.add_file_log(log)
+                        elif upload_status == raft_proto.UploadRequested:
+                            log.operation = raft_proto.UploadFaied
+                            Tables.add_file_log(log)
+
+    @staticmethod
+    def mark_all_file_chunks_in_dc_available(dc_ip, dc_port):
+        for file_name in Tables.TABLE_FILE_INFO.keys():
+            for chunk_id in Tables.TABLE_FILE_INFO[file_name].keys():
+                for ip, port in Tables.TABLE_FILE_INFO[file_name][chunk_id]:
+                    if ip == dc_ip and port == dc_port:
+                        log = raft_proto.TableLog()
+                        log.fileName = file_name
+                        log.chunkId = chunk_id
+                        log.ip = ip
+                        log.port = port
+                        log.log_index = Globals.get_next_log_index()
+                        upload_status = Tables.TABLE_FILE_INFO[file_name][chunk_id][(ip, port)]
+
+                        if upload_status == raft_proto.TemporaryUnavailable:
+                            log.operation = raft_proto.Uploaded
+                            Tables.add_file_log(log)
 
     @staticmethod
     def get_file_chunks_to_be_replicated_with_dc_info():
@@ -251,26 +273,34 @@ class Tables:
         for file_name in Tables.TABLE_FILE_INFO.keys():
             for chunk_id in Tables.TABLE_FILE_INFO[file_name].keys():
                 total_replication = 0
-                not_replicated_dc = []
+                requested_replication = 0
+                requested_replication_dc = []
                 chunk_already_available_dc = []
                 for ip, port in Tables.TABLE_FILE_INFO[file_name][chunk_id]:
                     if Tables.TABLE_FILE_INFO[file_name][chunk_id][(ip, port)] == raft_proto.Uploaded:
                         total_replication += 1
                         chunk_already_available_dc.append((ip, port))
-                    else:
-                        not_replicated_dc.append((ip, port))
+                    elif Tables.TABLE_FILE_INFO[file_name][chunk_id][(ip, port)] == raft_proto.UploadRequested:
+                        requested_replication += 1
+                        requested_replication_dc.append((ip, port))
 
-                if 0 < total_replication < Globals.REPLICATION_FACTOR:
-                    lst_dc = Tables.get_all_available_dc()
-                    i = 0
-                    while total_replication < Globals.REPLICATION_FACTOR and i < len(lst_dc):
-                        if lst_dc[i] not in chunk_already_available_dc:
-                            random_id = get_random_numbers(len(chunk_already_available_dc), 1)[0]
-                            replication_list.append(
-                                (file_name, chunk_id, lst_dc[i], chunk_already_available_dc[random_id]))
-                            # Tables.TABLE_FILE_INFO[file_name][chunk_id][lst_dc[i]] = raft_proto.UploadRequested
-                            total_replication += 1
-                        i += 1
+                if total_replication > 0 and (total_replication + requested_replication) < Globals.REPLICATION_FACTOR:
+
+                    non_replicated_dc = list(set(Tables.get_all_available_dc()) - set(chunk_already_available_dc) - set(
+                        requested_replication_dc))
+
+                    if len(non_replicated_dc) == 0:
+                        continue
+
+                    lst_hash = []
+                    for dc in non_replicated_dc:
+                        lst_hash.append(hash(dc[0] + dc[1] + file_name + str(chunk_id)))
+
+                    index = lst_hash.index(sorted(lst_hash)[0])
+                    selected_dc_for_replication = non_replicated_dc[index]
+                    random_id = get_random_numbers(len(chunk_already_available_dc), 1)[0]
+                    replication_list.append(
+                        (file_name, chunk_id, selected_dc_for_replication, chunk_already_available_dc[random_id]))
 
         return replication_list
 
@@ -323,39 +353,37 @@ def _send_dc_heartbeat():
 
 
 def _mark_dc_failed(dc_client):
-    Tables.mark_all_file_chunks_in_dc_available_unavailable(dc_client.server_address, dc_client.server_port,
-                                                            raft_proto.TemporaryUnavailable)
+    Tables.mark_all_file_chunks_in_dc_unavailable(dc_client.server_address, dc_client.server_port)
     Tables.un_register_dc(dc_client.server_address, dc_client.server_port)
 
 
 def _mark_dc_available(dc_client):
     if not Tables.is_dc_available(dc_client.server_address, dc_client.server_port):
         Tables.register_dc(dc_client.server_address, dc_client.server_port)
-        Tables.mark_all_file_chunks_in_dc_available_unavailable(dc_client.server_address, dc_client.server_port,
-                                                                raft_proto.Uploaded)
+        Tables.mark_all_file_chunks_in_dc_available(dc_client.server_address, dc_client.server_port)
 
 
 def Check_and_send_replication_request():
     replication_list = Tables.get_file_chunks_to_be_replicated_with_dc_info()
-    #pprint.pprint("$$$$$$$$$$$$$$$ REPLICATION LIST ########################")
-    #pprint.pprint(replication_list)
+    pprint.pprint("$$$$$$$$$$$$$$$ REPLICATION LIST ########################")
+    pprint.pprint(replication_list)
 
-    # for replication_info in replication_list:
-    #     file_name = replication_info[0]
-    #     chunk_id = replication_info[1]
-    #     to_dc = replication_info[2]
-    #     from_dc = replication_info[3]
-    #     for dc_client in Globals.LST_DC_CLIENTS:
-    #         if dc_client.server_address == to_dc[0] and dc_client.server_port == to_dc[1]:
-    #             log_info("REQUESTING REPLICATION FOR FILE:", file_name, "CHUNK:", chunk_id, "TO:", to_dc, "FROM:",
-    #                      from_dc)
-    #
-    #             replication_info_request = raft_proto.ReplicationInfo()
-    #             replication_info_request.fileName = file_name
-    #             replication_info_request.chunkId = chunk_id
-    #             replication_info_request.fromDatacenter.ip = from_dc[0]
-    #             replication_info_request.fromDatacenter.port = from_dc[1]
-    #             dc_client._ReplicationInitiate(replication_info_request)
+    for replication_info in replication_list:
+        file_name = replication_info[0]
+        chunk_id = replication_info[1]
+        to_dc = replication_info[2]
+        from_dc = replication_info[3]
+        for dc_client in Globals.LST_DC_CLIENTS:
+            if dc_client.server_address == to_dc[0] and dc_client.server_port == to_dc[1]:
+                log_info("REQUESTING REPLICATION FOR FILE:", file_name, "CHUNK:", chunk_id, "TO:", to_dc, "FROM:",
+                         from_dc)
+
+                replication_info_request = raft_proto.ReplicationInfo()
+                replication_info_request.fileName = file_name
+                replication_info_request.chunkId = chunk_id
+                replication_info_request.fromDatacenter.ip = from_dc[0]
+                replication_info_request.fromDatacenter.port = from_dc[1]
+                dc_client._ReplicationInitiate(replication_info_request)
 
 
 def _process_datacenter_heartbeat(dc_client, call_future):
