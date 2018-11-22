@@ -32,12 +32,12 @@ class RaftServiceStub(object):
     self.AddDataCenter = channel.unary_unary(
         '/grpc.RaftService/AddDataCenter',
         request_serializer=raft__pb2.DataCenterInfo.SerializeToString,
-        response_deserializer=raft__pb2.Empty.FromString,
+        response_deserializer=raft__pb2.Ack.FromString,
         )
     self.AddProxy = channel.unary_unary(
         '/grpc.RaftService/AddProxy',
         request_serializer=raft__pb2.ProxyInfoRaft.SerializeToString,
-        response_deserializer=raft__pb2.Empty.FromString,
+        response_deserializer=raft__pb2.Ack.FromString,
         )
     self.FileUploadCompleted = channel.unary_unary(
         '/grpc.RaftService/FileUploadCompleted',
@@ -137,12 +137,12 @@ def add_RaftServiceServicer_to_server(servicer, server):
       'AddDataCenter': grpc.unary_unary_rpc_method_handler(
           servicer.AddDataCenter,
           request_deserializer=raft__pb2.DataCenterInfo.FromString,
-          response_serializer=raft__pb2.Empty.SerializeToString,
+          response_serializer=raft__pb2.Ack.SerializeToString,
       ),
       'AddProxy': grpc.unary_unary_rpc_method_handler(
           servicer.AddProxy,
           request_deserializer=raft__pb2.ProxyInfoRaft.FromString,
-          response_serializer=raft__pb2.Empty.SerializeToString,
+          response_serializer=raft__pb2.Ack.SerializeToString,
       ),
       'FileUploadCompleted': grpc.unary_unary_rpc_method_handler(
           servicer.FileUploadCompleted,

@@ -188,12 +188,13 @@ def register_proxy():
             request.ip = my_ip
             request.port = my_port
             try:
-                stub.AddProxy(request)
-                log_info("Registered with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
-                break
+                response = stub.AddProxy(request)
+                if response.id != -1:
+                    log_info("Registered with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
+                    break
             except grpc.RpcError:
                 log_info("Could not register with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
-                time.sleep(0.1)
+        time.sleep(0.1)
 
 
 # python3 proxy.py <proxy_name from proxy_center_info>

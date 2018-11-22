@@ -118,10 +118,10 @@ service RaftService {
     rpc AddFileLog (TableLog) returns (Ack);
 
     // (Data center -> Raft) : Registers data centers
-    rpc AddDataCenter (DataCenterInfo) returns (Empty);
+    rpc AddDataCenter (DataCenterInfo) returns (Ack);
 
     // (Proxy -> Raft) : Registers Proxy
-    rpc AddProxy (ProxyInfoRaft) returns (Empty);
+    rpc AddProxy (ProxyInfoRaft) returns (Ack);
 
     // (Data center -> Raft) : Signals upload completed to raft
     rpc FileUploadCompleted(UploadCompleteFileInfo) returns(Empty);

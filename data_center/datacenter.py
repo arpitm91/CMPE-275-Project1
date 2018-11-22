@@ -173,12 +173,13 @@ def register_dc():
         with grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]) as channel:
             stub = our_proto_rpc.RaftServiceStub(channel)
             try:
-                stub.AddDataCenter(request, timeout=GRPC_TIMEOUT)
-                log_info("Registered with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
-                break
+                response = stub.AddDataCenter(request, timeout=GRPC_TIMEOUT)
+                if response.id != -1:
+                    log_info("Registered with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
+                    break
             except grpc.RpcError:
                 log_info("Could not register with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
-                time.sleep(0.1)
+        time.sleep(0.1)
 
 
 # python3 datacenter.py <dc_name from data_center_info>
