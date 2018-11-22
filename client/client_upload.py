@@ -14,9 +14,10 @@ import protos.raft_pb2 as raft_proto
 import protos.file_transfer_pb2 as file_transfer
 import protos.file_transfer_pb2_grpc as file_transfer_rpc
 from utils.common_utils import get_raft_node
+from utils.common_utils import get_rand_hashing_node_from_node_info_object
 from utils.input_output_util import log_info
 
-THREAD_POOL_SIZE = 4
+THREAD_POOL_SIZE = 128
 
 
 def file_upload_iterator(file_path, file_name, chunk_num):
@@ -64,9 +65,8 @@ def run(argv):
         request.fileSize = file_size
 
         response = stub.RequestFileUpload(request)
-
         log_info("Got list of proxies: ", response.lstProxy)
-        #pprint.pprint(response.lstProxy)
+        # pprint.pprint(response.lstProxy)
 
     num_of_chunks = file_utils.get_max_file_chunks(file_path)
 
@@ -78,14 +78,11 @@ def run(argv):
     proxy_addresses = []
     proxy_ports = []
 
-    proxy_index = 0
     for chunk_num in range(num_of_chunks):
-        # random_proxy_index = random.randint(0, len(response.lstProxy) - 1)
-        random_proxy_index = proxy_index % len(response.lstProxy)
-        proxy_index = proxy_index + 1
+        selected_proxy = get_rand_hashing_node_from_node_info_object(response.lstProxy, file_name, chunk_num)
 
-        proxy_address = response.lstProxy[random_proxy_index].ip
-        proxy_port = response.lstProxy[random_proxy_index].port
+        proxy_address = selected_proxy.ip
+        proxy_port = selected_proxy.port
 
         chunk_upload_info = raft_proto.ChunkUploadInfo()
         chunk_upload_info.chunkId = chunk_num
