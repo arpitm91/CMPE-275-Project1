@@ -38,6 +38,9 @@ class Globals:
 
     CURRENT_LOG_INDEX = 0
 
+    RAFT_HEARTBEAT_ACK_DICT = {}
+    RAFT_HEARTBEAT_COUNTER = 1
+
     @staticmethod
     def get_next_log_index():
         Globals.CURRENT_LOG_INDEX += 1

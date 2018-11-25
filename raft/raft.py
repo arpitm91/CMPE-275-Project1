@@ -87,11 +87,61 @@ raft_heartbeat_timer = TimerUtil(_raft_heartbeat_timeout, Globals.RAFT_HEARTBEAT
 dc_replication_timer = TimerUtil(_dc_replication_timeout, Globals.DC_REPLICATION_TIMEOUT)
 
 
-def _process_heartbeat(client, table, call_future):
-    log_info("_process_heartbeat:", client.server_port)
-    # log_info(client.server_port)
-    # log_info(call_future.result())
 
+def _process_heartbeat(client, table, heartbeat_counter, call_future):
+    log_info("_process_heartbeat:", client.server_port)
+    with ThreadPoolExecutorStackTraced(max_workers=10) as executor:
+        try:
+            call_future.result()
+            Globals.RAFT_HEARTBEAT_ACK_DICT[(client.server_address, client.server_port)] = (heartbeat_counter, True)
+        except:
+            Globals.RAFT_HEARTBEAT_ACK_DICT[(client.server_address, client.server_port)] = (heartbeat_counter, False)
+            log_info("Raft node not available!!")
+            return
+
+
+def _send_heartbeat_to_check_majority_consensus():
+    heartbeat_counter = _send_heartbeat()
+    time.sleep(Globals.RAFT_HEARTBEAT_TIMEOUT)
+    while True:
+        available_raft_nodes = 0
+        total_response = 0
+        for raft_node, hb_info in Globals.RAFT_HEARTBEAT_ACK_DICT.iteritems():
+            if hb_info[0] >= heartbeat_counter:
+                total_response += 1
+                if hb_info[1] is True:
+                    available_raft_nodes += 1
+
+        if available_raft_nodes > len(Globals.LST_RAFT_CLIENTS) / 2:
+            return True
+
+        if total_response == len(Globals.LST_RAFT_CLIENTS):
+            return False
+
+        time.sleep(Globals.RAFT_HEARTBEAT_TIMEOUT)
+
+    return False
+
+
+def _send_heartbeat():
+    table = raft_proto.Table()
+    table.cycle_number = Globals.CURRENT_CYCLE
+    table.leader_ip = Globals.MY_IP
+    table.leader_port = Globals.MY_PORT
+
+    Globals.RAFT_HEARTBEAT_COUNTER += 1
+
+    # added_logs = Tables.FILE_LOGS[Globals.LAST_SENT_TABLE_LOG:]
+    Globals.LAST_SENT_TABLE_LOG = len(Tables.FILE_LOGS)
+    table.tableLog.extend(Tables.FILE_LOGS)
+
+    for client in Globals.LST_RAFT_CLIENTS:
+        client._RaftHeartbeat(table, Globals.RAFT_HEARTBEAT_COUNTER)
+
+    return Globals.RAFT_HEARTBEAT_COUNTER
+
+                    # log_info(client.server_port)
+    # log_info(call_future.result())
 
 def _process_request_for_vote(client, Candidacy, call_future):
     with ThreadPoolExecutorStackTraced(max_workers=10) as executor:
@@ -110,20 +160,6 @@ def _process_request_for_vote(client, Candidacy, call_future):
             Globals.LEADER_IP = Globals.MY_IP
             _send_heartbeat()
             random_timer.reset()
-
-
-def _send_heartbeat():
-    table = raft_proto.Table()
-    table.cycle_number = Globals.CURRENT_CYCLE
-    table.leader_ip = Globals.MY_IP
-    table.leader_port = Globals.MY_PORT
-
-    # added_logs = Tables.FILE_LOGS[Globals.LAST_SENT_TABLE_LOG:]
-    Globals.LAST_SENT_TABLE_LOG = len(Tables.FILE_LOGS)
-    table.tableLog.extend(Tables.FILE_LOGS)
-
-    for client in Globals.LST_RAFT_CLIENTS:
-        client._RaftHeartbeat(table)
 
 
 def _ask_for_vote():
@@ -217,10 +253,10 @@ class Client:
         # create new listening thread for when new message streams come in
         # threading.Thread(target=self._RaftHeartbeat, daemon=True).start()
 
-    def _RaftHeartbeat(self, table):
+    def _RaftHeartbeat(self, table, heartbeat_counter):
         try:
             call_future = self.raft_stub.RaftHeartbeat.future(table, timeout=Globals.RAFT_HEARTBEAT_TIMEOUT * 0.9)
-            call_future.add_done_callback(functools.partial(_process_heartbeat, self, table))
+            call_future.add_done_callback(functools.partial(_process_heartbeat, self, table, heartbeat_counter))
         except:
             log_info("Exception: _RaftHeartbeat")
 
@@ -367,9 +403,15 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
                 return my_reply
 
             dcs = Tables.get_all_available_dc()
+
+            if not _send_heartbeat_to_check_majority_consensus():
+                return my_reply
+
             for chunk_id in range(total_chunks):
                 random_dcs = [get_rand_hashing_node(dcs, file_name, chunk_id)]
                 Tables.insert_file_chunk_info_to_file_log(file_name, chunk_id, random_dcs, raft_proto.UploadRequested)
+
+            _send_heartbeat()
 
             # pprint.pprint("TABLE_FILE_INFO")
             # pprint.pprint(Tables.TABLE_FILE_INFO)
@@ -476,7 +518,13 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
 
     def AddDataCenter(self, request, context):
         if Globals.NODE_STATE == NodeState.LEADER:
+            if not _send_heartbeat_to_check_majority_consensus():
+                ack = raft_proto.Ack()
+                ack.id = -1
+                return ack
+
             Tables.register_dc(request.ip, request.port)
+            _send_heartbeat()
             return raft_proto.Ack()
         else:
             client = get_leader_client()
@@ -495,7 +543,13 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
 
     def AddProxy(self, request, context):
         if Globals.NODE_STATE == NodeState.LEADER:
+            if not _send_heartbeat_to_check_majority_consensus():
+                ack = raft_proto.Ack()
+                ack.id = -1
+                return ack
+
             Tables.register_proxy(request.ip, request.port)
+            _send_heartbeat()
             return raft_proto.Ack()
         else:
             client = get_leader_client()
@@ -521,8 +575,13 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
         if Globals.NODE_STATE == NodeState.LEADER:
             chunk_id = request.chunkUploadInfo.chunkId
             lst_dc = [(request.chunkUploadInfo.uploadedDatacenter.ip, request.chunkUploadInfo.uploadedDatacenter.port)]
+
+            if not _send_heartbeat_to_check_majority_consensus():
+                return
+
             Tables.insert_file_chunk_info_to_file_log(request.fileName, chunk_id, lst_dc,
                                                       raft_proto.Uploaded if request.isSuccess else raft_proto.UploadFaied)
+            _send_heartbeat()
 
             # pprint.pprint(Tables.TABLE_FILE_INFO)
             log_info("###########################################################################")
@@ -631,6 +690,8 @@ def main(argv):
         server_port = client["port"]
         c = Client(username, server_address, server_port)
         Globals.LST_RAFT_CLIENTS.append(c)
+
+        Globals.RAFT_HEARTBEAT_ACK_DICT[(server_address, server_port)] = (0, False)
 
         # threading.Thread(target=start_client, args=(username, server_address, server_port), daemon=True).start()
     random_timer.start()
