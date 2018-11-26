@@ -446,10 +446,8 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
 
     def ListFiles(self, request, context):
         if Globals.NODE_STATE == NodeState.LEADER or request.isClient:
-            print("*&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Getting File LIst:...")
             return get_file_lists(request)
         else:
-            print("*&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& Rejecting File list")
             return file_transfer_proto.FileList()
 
     '''

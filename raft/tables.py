@@ -222,9 +222,9 @@ class Tables:
             for chunk_id in Tables.TABLE_FILE_INFO[file_name].keys():
                 for dc in Tables.TABLE_FILE_INFO[file_name][chunk_id].keys():
                     # TODO: Add below condition before returning file list, after we mark file/chunk status to uploaded
-                    # if Tables.TABLE_FILE_INFO[file_name][chunk_id][dc] == raft.Uploaded:
-                    uploaded_chunks += 1
-                    break
+                    if Tables.TABLE_FILE_INFO[file_name][chunk_id][dc] == raft_proto.Uploaded:
+                        uploaded_chunks += 1
+                        break
             if total_chunks == uploaded_chunks:
                 file_list.append(file_name)
         return file_list
