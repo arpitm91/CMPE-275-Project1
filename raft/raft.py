@@ -87,7 +87,6 @@ raft_heartbeat_timer = TimerUtil(_raft_heartbeat_timeout, Globals.RAFT_HEARTBEAT
 dc_replication_timer = TimerUtil(_dc_replication_timeout, Globals.DC_REPLICATION_TIMEOUT)
 
 
-
 def _process_heartbeat(client, table, heartbeat_counter, call_future):
     log_info("_process_heartbeat:", client.server_port)
     with ThreadPoolExecutorStackTraced(max_workers=10) as executor:
@@ -96,7 +95,7 @@ def _process_heartbeat(client, table, heartbeat_counter, call_future):
             Globals.RAFT_HEARTBEAT_ACK_DICT[(client.server_address, client.server_port)] = (heartbeat_counter, True)
         except:
             Globals.RAFT_HEARTBEAT_ACK_DICT[(client.server_address, client.server_port)] = (heartbeat_counter, False)
-            log_info("Raft node not available!!")
+            log_info("Raft node not available!!", client.server_address, client.server_port)
             return
 
 
@@ -106,7 +105,7 @@ def _send_heartbeat_to_check_majority_consensus():
     while True:
         available_raft_nodes = 0
         total_response = 0
-        for raft_node, hb_info in Globals.RAFT_HEARTBEAT_ACK_DICT.iteritems():
+        for raft_node, hb_info in Globals.RAFT_HEARTBEAT_ACK_DICT.items():
             if hb_info[0] >= heartbeat_counter:
                 total_response += 1
                 if hb_info[1] is True:
@@ -140,8 +139,6 @@ def _send_heartbeat():
 
     return Globals.RAFT_HEARTBEAT_COUNTER
 
-                    # log_info(client.server_port)
-    # log_info(call_future.result())
 
 def _process_request_for_vote(client, Candidacy, call_future):
     with ThreadPoolExecutorStackTraced(max_workers=10) as executor:
@@ -282,6 +279,7 @@ class Client:
     def _GetChunkUploadInfo(self, RequestChunkInfo):
         return self.raft_stub.GetChunkUploadInfo(RequestChunkInfo)
 
+
 # server
 class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.DataTransferServiceServicer):
     def __init__(self, username):
@@ -329,11 +327,11 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
         ack.id = len(Tables.FILE_LOGS)
 
         log_info("Tables.TABLE_FILE_INFO")
-        # pprint.pprint(Tables.TABLE_FILE_INFO)
+        pprint.pprint(Tables.TABLE_FILE_INFO)
         log_info("Tables.TABLE_PROXY_INFO")
-        # pprint.pprint(Tables.TABLE_PROXY_INFO)
+        pprint.pprint(Tables.TABLE_PROXY_INFO)
         log_info("Tables.TABLE_DC_INFO")
-        # pprint.pprint(Tables.TABLE_DC_INFO)
+        pprint.pprint(Tables.TABLE_DC_INFO)
 
         log_info("###########################################################")
 
