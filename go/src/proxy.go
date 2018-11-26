@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	commonProto "grpc"
 	"log"
 	"net"
 	ourProto "raft"
@@ -17,12 +18,31 @@ const (
 	oneDay = 60 * 60 * 24 * time.Second
 )
 
-// server is used to implement helloworld.GreeterServer.
 type proxyServer struct{}
 
-// SayHello implements helloworld.GreeterServer
 func (s *proxyServer) ProxyHeartbeat(ctx context.Context, request *ourProto.Empty) (*ourProto.Empty, error) {
 	return &ourProto.Empty{}, nil
+}
+
+type dataCenterServer struct{}
+
+func (s *dataCenterServer) RequestFileInfo(ctx context.Context, request *commonProto.FileInfo) (*commonProto.FileLocationInfo, error) {
+	return nil, nil
+}
+func (s *dataCenterServer) GetFileLocation(ctx context.Context, request *commonProto.FileInfo) (*commonProto.FileLocationInfo, error) {
+	return nil, nil
+}
+func (s *dataCenterServer) DownloadChunk(request *commonProto.ChunkInfo, response commonProto.DataTransferService_DownloadChunkServer) error {
+	return nil
+}
+func (s *dataCenterServer) UploadFile(request commonProto.DataTransferService_UploadFileServer) error {
+	return nil
+}
+func (s *dataCenterServer) ListFiles(ctx context.Context, request *commonProto.RequestFileList) (*commonProto.FileList, error) {
+	return nil, nil
+}
+func (s *dataCenterServer) RequestFileUpload(ctx context.Context, request *commonProto.FileUploadInfo) (*commonProto.ProxyList, error) {
+	return nil, nil
 }
 
 func startServer(username string, port string) {
@@ -32,6 +52,7 @@ func startServer(username string, port string) {
 	}
 	server := grpc.NewServer()
 	ourProto.RegisterProxyServiceServer(server, &proxyServer{})
+	commonProto.RegisterDataTransferServiceServer(server, &dataCenterServer{})
 	// Register reflection service on gRPC server.
 	reflection.Register(server)
 	log.Printf("server starting at port : " + port + "username :" + username)
@@ -50,7 +71,7 @@ func registerProxy() {
 		// Set up a connection to the server.
 		conn, err := grpc.Dial(randomRaft["Ip"]+":"+randomRaft["Port"], grpc.WithInsecure())
 		if err != nil {
-			log.Printf("A Could not register with raft ip :" + randomRaft["Ip"] + ",port :" + randomRaft["Port"])
+			log.Printf("Could not register with raft ip :" + randomRaft["Ip"] + ",port :" + randomRaft["Port"])
 		} else {
 			defer conn.Close()
 			stub := ourProto.NewRaftServiceClient(conn)
@@ -59,14 +80,14 @@ func registerProxy() {
 			defer cancel()
 			r, err := stub.AddProxy(ctx, &ourProto.ProxyInfoRaft{Ip: myIP, Port: myPort})
 			if err != nil {
-				log.Printf("B Could not register with raft ip :" + randomRaft["Ip"] + ",port :" + randomRaft["Port"])
+				log.Printf("Could not register with raft ip :" + randomRaft["Ip"] + ",port :" + randomRaft["Port"])
 				log.Printf("failed to serve: %v", err)
-			} else if r.Id == 1 {
+			} else if r.Id != -1 {
 				log.Printf("Registered with raft ip :" + randomRaft["Ip"] + ",port :" + randomRaft["Port"])
 				break
 			}
 		}
-		time.Sleep(time.Second / 10.0)
+		time.Sleep(time.Second)
 	}
 }
 
