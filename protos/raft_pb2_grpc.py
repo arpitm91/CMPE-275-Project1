@@ -15,42 +15,42 @@ class RaftServiceStub(object):
       channel: A grpc.Channel.
     """
     self.RaftHeartbeat = channel.unary_unary(
-        '/grpc.RaftService/RaftHeartbeat',
+        '/raft.RaftService/RaftHeartbeat',
         request_serializer=raft__pb2.Table.SerializeToString,
         response_deserializer=raft__pb2.Ack.FromString,
         )
     self.RequestVote = channel.unary_unary(
-        '/grpc.RaftService/RequestVote',
+        '/raft.RaftService/RequestVote',
         request_serializer=raft__pb2.Candidacy.SerializeToString,
         response_deserializer=raft__pb2.CandidacyResponse.FromString,
         )
     self.AddFileLog = channel.unary_unary(
-        '/grpc.RaftService/AddFileLog',
+        '/raft.RaftService/AddFileLog',
         request_serializer=raft__pb2.TableLog.SerializeToString,
         response_deserializer=raft__pb2.Ack.FromString,
         )
     self.AddDataCenter = channel.unary_unary(
-        '/grpc.RaftService/AddDataCenter',
+        '/raft.RaftService/AddDataCenter',
         request_serializer=raft__pb2.DataCenterInfo.SerializeToString,
         response_deserializer=raft__pb2.Ack.FromString,
         )
     self.AddProxy = channel.unary_unary(
-        '/grpc.RaftService/AddProxy',
+        '/raft.RaftService/AddProxy',
         request_serializer=raft__pb2.ProxyInfoRaft.SerializeToString,
         response_deserializer=raft__pb2.Ack.FromString,
         )
     self.FileUploadCompleted = channel.unary_unary(
-        '/grpc.RaftService/FileUploadCompleted',
+        '/raft.RaftService/FileUploadCompleted',
         request_serializer=raft__pb2.UploadCompleteFileInfo.SerializeToString,
         response_deserializer=raft__pb2.Empty.FromString,
         )
     self.GetChunkLocationInfo = channel.unary_unary(
-        '/grpc.RaftService/GetChunkLocationInfo',
+        '/raft.RaftService/GetChunkLocationInfo',
         request_serializer=raft__pb2.RequestChunkInfo.SerializeToString,
         response_deserializer=raft__pb2.ChunkLocationInfo.FromString,
         )
     self.GetChunkUploadInfo = channel.unary_unary(
-        '/grpc.RaftService/GetChunkUploadInfo',
+        '/raft.RaftService/GetChunkUploadInfo',
         request_serializer=raft__pb2.RequestChunkInfo.SerializeToString,
         response_deserializer=raft__pb2.ChunkLocationInfo.FromString,
         )
@@ -161,7 +161,7 @@ def add_RaftServiceServicer_to_server(servicer, server):
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
-      'grpc.RaftService', rpc_method_handlers)
+      'raft.RaftService', rpc_method_handlers)
   server.add_generic_rpc_handlers((generic_handler,))
 
 
@@ -176,7 +176,7 @@ class ProxyServiceStub(object):
       channel: A grpc.Channel.
     """
     self.ProxyHeartbeat = channel.unary_unary(
-        '/grpc.ProxyService/ProxyHeartbeat',
+        '/raft.ProxyService/ProxyHeartbeat',
         request_serializer=raft__pb2.Empty.SerializeToString,
         response_deserializer=raft__pb2.Empty.FromString,
         )
@@ -203,7 +203,7 @@ def add_ProxyServiceServicer_to_server(servicer, server):
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
-      'grpc.ProxyService', rpc_method_handlers)
+      'raft.ProxyService', rpc_method_handlers)
   server.add_generic_rpc_handlers((generic_handler,))
 
 
@@ -218,12 +218,12 @@ class DataCenterServiceStub(object):
       channel: A grpc.Channel.
     """
     self.DataCenterHeartbeat = channel.unary_unary(
-        '/grpc.DataCenterService/DataCenterHeartbeat',
+        '/raft.DataCenterService/DataCenterHeartbeat',
         request_serializer=raft__pb2.Empty.SerializeToString,
         response_deserializer=raft__pb2.Empty.FromString,
         )
     self.ReplicationInitiate = channel.unary_unary(
-        '/grpc.DataCenterService/ReplicationInitiate',
+        '/raft.DataCenterService/ReplicationInitiate',
         request_serializer=raft__pb2.ReplicationInfo.SerializeToString,
         response_deserializer=raft__pb2.Ack.FromString,
         )
@@ -262,5 +262,5 @@ def add_DataCenterServiceServicer_to_server(servicer, server):
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
-      'grpc.DataCenterService', rpc_method_handlers)
+      'raft.DataCenterService', rpc_method_handlers)
   server.add_generic_rpc_handlers((generic_handler,))
