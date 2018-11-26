@@ -39,35 +39,33 @@ def file_upload_iterator(file_path, file_name, chunk_num):
 
 def upload_chunk(file_path, file_name, chunk_num, proxy_address, proxy_port):
     log_info("requesting for :", file_path, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port)
-    with grpc.insecure_channel(proxy_address + ':' + proxy_port) as channel:
-        stub = file_transfer_rpc.DataTransferServiceStub(channel)
-        stub.UploadFile(file_upload_iterator(file_path, file_name, chunk_num))
+    stub = file_transfer_rpc.DataTransferServiceStub(grpc.insecure_channel(proxy_address + ':' + proxy_port))
+    stub.UploadFile(file_upload_iterator(file_path, file_name, chunk_num))
 
 
 def run(raft_ip, raft_port, file_name):
-    with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
-        stub = file_transfer_rpc.DataTransferServiceStub(channel)
-        file_path = file_name
+    stub = file_transfer_rpc.DataTransferServiceStub(grpc.insecure_channel(raft_ip + ':' + raft_port))
+    file_path = file_name
 
-        file_info = os.path.basename(file_path).split(".")
-        extension = ""
-        if len(file_info) > 1:
-            extension = "." + file_info[1]
+    file_info = os.path.basename(file_path).split(".")
+    extension = ""
+    if len(file_info) > 1:
+        extension = "." + file_info[1]
 
-        file_name = file_info[0] + "_" + str(math.ceil(time.time())) + extension
-        file_size = file_utils.get_file_size(file_path)
+    file_name = file_info[0] + "_" + str(math.ceil(time.time())) + extension
+    file_size = file_utils.get_file_size(file_path)
 
-        request = file_transfer.FileUploadInfo()
-        request.fileName = file_name
-        request.fileSize = file_size
+    request = file_transfer.FileUploadInfo()
+    request.fileName = file_name
+    request.fileSize = file_size
 
-        response = stub.RequestFileUpload(request)
-        log_info("Got list of proxies: ", response.lstProxy)
-        # pprint.pprint(response.lstProxy)
+    response = stub.RequestFileUpload(request)
+    log_info("Got list of proxies: ", response.lstProxy)
+    # pprint.pprint(response.lstProxy)
 
-        if len(response.lstProxy) == 0:
-            print("Could not upload file. Please try again later.")
-            return
+    if len(response.lstProxy) == 0:
+        print("Could not upload file. Please try again later.")
+        return
 
     num_of_chunks = file_utils.get_max_file_chunks(file_path)
 

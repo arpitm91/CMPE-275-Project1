@@ -147,13 +147,12 @@ def upload_completed(file_name, chunk_id, is_success):
     while True:
         try:
             random_raft = get_raft_node()
-            with grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]) as channel:
-                stub = our_proto_rpc.RaftServiceStub(channel)
-                stub.FileUploadCompleted(request, timeout=GRPC_TIMEOUT)
-                print("Upload completed sent to raft ip :", random_raft["ip"], ",port :", random_raft["port"],
-                         ", success:",
-                         is_success)
-                break
+            stub = our_proto_rpc.RaftServiceStub(grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]))
+            stub.FileUploadCompleted(request, timeout=GRPC_TIMEOUT)
+            print("Upload completed sent to raft ip :", random_raft["ip"], ",port :", random_raft["port"],
+                     ", success:",
+                     is_success)
+            break
         except grpc.RpcError:
             log_info("Could not sent upload complete to raft ip :", random_raft["ip"], ",port :", random_raft["port"],
                      ", success:",
@@ -170,15 +169,14 @@ def register_dc():
 
     while True:
         random_raft = get_raft_node()
-        with grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]) as channel:
-            stub = our_proto_rpc.RaftServiceStub(channel)
-            try:
-                response = stub.AddDataCenter(request, timeout=GRPC_TIMEOUT)
-                if response.id != -1:
-                    log_info("Registered with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
-                    break
-            except grpc.RpcError:
-                log_info("Could not register with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
+        stub = our_proto_rpc.RaftServiceStub(grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]))
+        try:
+            response = stub.AddDataCenter(request, timeout=GRPC_TIMEOUT)
+            if response.id != -1:
+                log_info("Registered with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
+                break
+        except grpc.RpcError:
+            log_info("Could not register with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
         time.sleep(0.1)
 
 

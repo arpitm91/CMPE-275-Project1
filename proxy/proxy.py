@@ -57,15 +57,14 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
 
         while True:
             random_raft = get_raft_node()
-            with grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]) as channel:
-                stub = our_proto_rpc.RaftServiceStub(channel)
-                try:
-                    raft_response = stub.GetChunkLocationInfo(request, timeout=GRPC_TIMEOUT)
-                    log_info("Got raft response with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
-                    break
-                except grpc.RpcError:
-                    log_info("Could not get response with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
-                    time.sleep(0.1)
+            stub = our_proto_rpc.RaftServiceStub(grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]))
+            try:
+                raft_response = stub.GetChunkLocationInfo(request, timeout=GRPC_TIMEOUT)
+                log_info("Got raft response with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
+                break
+            except grpc.RpcError:
+                log_info("Could not get response with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
+                time.sleep(0.1)
 
         if not raft_response.isChunkFound:
             return
@@ -78,18 +77,17 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
         log_info("requesting for :", file_name, "chunk no :", chunk_id, "from", data_center_address, ":",
                  data_center_port)
 
-        with grpc.insecure_channel(data_center_address + ':' + data_center_port) as channel:
-            stub = common_proto_rpc.DataTransferServiceStub(channel)
-            request = common_proto.ChunkInfo()
-            request.fileName = file_name
-            request.chunkId = chunk_id
-            request.startSeqNum = start_seq_num
-            for response in stub.DownloadChunk(request):
-                log_info("Response received: ", response.seqNum, "/", response.seqMax)
-                yield response
+        stub = common_proto_rpc.DataTransferServiceStub(grpc.insecure_channel(data_center_address + ':' + data_center_port))
+        request = common_proto.ChunkInfo()
+        request.fileName = file_name
+        request.chunkId = chunk_id
+        request.startSeqNum = start_seq_num
+        for response in stub.DownloadChunk(request):
+            log_info("Response received: ", response.seqNum, "/", response.seqMax)
+            yield response
 
-            log_info("request completed for :", file_name, "chunk no :", chunk_id, "from", data_center_address, ":",
-                     data_center_port)
+        log_info("request completed for :", file_name, "chunk no :", chunk_id, "from", data_center_address, ":",
+                 data_center_port)
         return
 
     def UploadFile(self, request_iterator, context):
@@ -101,17 +99,16 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
         file_name = request.fileName
         while True:
             random_raft = get_raft_node()
-            with grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]) as channel:
-                raft_stub = our_proto_rpc.RaftServiceStub(channel)
-                try:
-                    raft_response = raft_stub.GetChunkUploadInfo(raft_request, timeout=GRPC_TIMEOUT)
-                    log_info("Got raft response with raft ip :", random_raft["ip"], ",port :",
-                             random_raft["port"])
-                    break
-                except grpc.RpcError:
-                    log_info("Could not get response with raft ip :", random_raft["ip"], ",port :",
-                             random_raft["port"])
-                    time.sleep(0.1)
+            raft_stub = our_proto_rpc.RaftServiceStub(grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]))
+            try:
+                raft_response = raft_stub.GetChunkUploadInfo(raft_request, timeout=GRPC_TIMEOUT)
+                log_info("Got raft response with raft ip :", random_raft["ip"], ",port :",
+                         random_raft["port"])
+                break
+            except grpc.RpcError:
+                log_info("Could not get response with raft ip :", random_raft["ip"], ",port :",
+                         random_raft["port"])
+                time.sleep(0.1)
 
         # data_center
         data_center_address = raft_response.lstDataCenter[0].ip
@@ -148,19 +145,18 @@ def register_proxy():
     global my_ip, my_port
     while True:
         random_raft = get_raft_node()
-        with grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]) as channel:
-            stub = our_proto_rpc.RaftServiceStub(channel)
+        stub = our_proto_rpc.RaftServiceStub(grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]))
 
-            request = our_proto.ProxyInfoRaft()
-            request.ip = my_ip
-            request.port = my_port
-            try:
-                response = stub.AddProxy(request)
-                if response.id != -1:
-                    log_info("Registered with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
-                    break
-            except grpc.RpcError:
-                log_info("Could not register with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
+        request = our_proto.ProxyInfoRaft()
+        request.ip = my_ip
+        request.port = my_port
+        try:
+            response = stub.AddProxy(request)
+            if response.id != -1:
+                log_info("Registered with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
+                break
+        except grpc.RpcError:
+            log_info("Could not register with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
         time.sleep(0.1)
 
 

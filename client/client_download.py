@@ -27,25 +27,25 @@ def download_chunk(file_name, chunk_num, start_seq_num, proxy_address, proxy_por
 
     global next_sequence_to_download
     global maximum_number_of_sequences
-    with grpc.insecure_channel(proxy_address + ':' + proxy_port) as channel:
-        stub = rpc.DataTransferServiceStub(channel)
-        request = file_transfer.ChunkInfo()
-        request.fileName = file_name
-        request.chunkId = chunk_num
-        request.startSeqNum = start_seq_num
-        try:
-            for response in stub.DownloadChunk(request):
-                log_info("Response received: Chunk", response.chunkId, "Sequence:", response.seqNum, "/",
-                         response.seqMax)
-                next_sequence_to_download[chunk_num] = response.seqNum + 1
-                maximum_number_of_sequences[chunk_num] = response.seqMax
-                write_file_chunks(response, os.path.join(os.path.dirname(os.path.realpath(__file__)), downloads_folder))
-        except grpc.RpcError:
-            log_info("Failed to connect to data center..Retrying !!")
 
-        log_info("request completed for :", file_name, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port,
-                 "last seq :", next_sequence_to_download[chunk_num], "max seq :",
-                 maximum_number_of_sequences[chunk_num])
+    stub = rpc.DataTransferServiceStub(grpc.insecure_channel(proxy_address + ':' + proxy_port))
+    request = file_transfer.ChunkInfo()
+    request.fileName = file_name
+    request.chunkId = chunk_num
+    request.startSeqNum = start_seq_num
+    try:
+        for response in stub.DownloadChunk(request):
+            log_info("Response received: Chunk", response.chunkId, "Sequence:", response.seqNum, "/",
+                     response.seqMax)
+            next_sequence_to_download[chunk_num] = response.seqNum + 1
+            maximum_number_of_sequences[chunk_num] = response.seqMax
+            write_file_chunks(response, os.path.join(os.path.dirname(os.path.realpath(__file__)), downloads_folder))
+    except grpc.RpcError:
+        log_info("Failed to connect to data center..Retrying !!")
+
+    log_info("request completed for :", file_name, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port,
+             "last seq :", next_sequence_to_download[chunk_num], "max seq :",
+             maximum_number_of_sequences[chunk_num])
 
 
 def get_file_location(stub, request):
@@ -76,17 +76,16 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
     file_location_info = file_transfer.FileLocationInfo()
 
     if chunks == -1:
-        with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
-            stub = rpc.DataTransferServiceStub(channel)
-            request = file_transfer.FileInfo()
-            request.fileName = file_name
+        stub = rpc.DataTransferServiceStub(grpc.insecure_channel(raft_ip + ':' + raft_port))
+        request = file_transfer.FileInfo()
+        request.fileName = file_name
 
-            file_location_info = get_file_location(stub, request)
-            log_info("file_location_info")
-            # pprint.pprint(file_location_info)
+        file_location_info = get_file_location(stub, request)
+        log_info("file_location_info")
+        # pprint.pprint(file_location_info)
 
-            next_sequence_to_download = [0] * file_location_info.maxChunks
-            maximum_number_of_sequences = [float('inf')] * file_location_info.maxChunks
+        next_sequence_to_download = [0] * file_location_info.maxChunks
+        maximum_number_of_sequences = [float('inf')] * file_location_info.maxChunks
     else:
         next_sequence_to_download = [0] * (chunks + 1)
         maximum_number_of_sequences = [0] * (chunks + 1)

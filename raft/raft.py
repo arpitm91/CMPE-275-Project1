@@ -183,15 +183,14 @@ def get_leader_client():
 def request_file_info_from_other_raft_nodes(request):
     for node in other_raft_nodes:
         try:
-            with grpc.insecure_channel(node["ip"] + ':' + node["port"]) as channel:
-                stub = file_transfer_proto_rpc.DataTransferServiceStub(channel)
-                file_location_info = stub.GetFileLocation(request)
-                log_info("Response received From other Raft: ")
-                # pprint.pprint(file_location_info)
-                log_info(file_location_info.maxChunks)
-                log_info("is file found in other Raft:", file_location_info.isFileFound)
-                if file_location_info.isFileFound:
-                    return file_location_info
+            stub = file_transfer_proto_rpc.DataTransferServiceStub(grpc.insecure_channel(node["ip"] + ':' + node["port"]))
+            file_location_info = stub.GetFileLocation(request)
+            log_info("Response received From other Raft: ")
+            # pprint.pprint(file_location_info)
+            log_info(file_location_info.maxChunks)
+            log_info("is file found in other Raft:", file_location_info.isFileFound)
+            if file_location_info.isFileFound:
+                return file_location_info
         except:
             log_info("Fail to connect to: ", node["ip"], node["port"])
     file_location_info = file_transfer_proto.FileLocationInfo()
@@ -207,11 +206,10 @@ def request_file_list_from_other_raft_nodes(request):
 
     def send_request_to_other_raft_nodes(other_node, return_set):
         try:
-            with grpc.insecure_channel(other_node["ip"] + ':' + other_node["port"]) as channel:
-                stub = file_transfer_proto_rpc.DataTransferServiceStub(channel)
-                files = stub.ListFiles(request, timeout=1)
-                for file_name in files.lstFileNames:
-                    return_set.add(file_name)
+            stub = file_transfer_proto_rpc.DataTransferServiceStub(grpc.insecure_channel(other_node["ip"] + ':' + other_node["port"]))
+            files = stub.ListFiles(request, timeout=1)
+            for file_name in files.lstFileNames:
+                return_set.add(file_name)
         except:
             log_info("Fail to connect to: ", other_node["ip"], other_node["port"])
 

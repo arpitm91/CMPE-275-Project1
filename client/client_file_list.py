@@ -14,16 +14,15 @@ from utils.input_output_util import log_info
 
 
 def run(raft_ip, raft_port):
-    with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
-        stub = file_transfer_rpc.DataTransferServiceStub(channel)
+    stub = file_transfer_rpc.DataTransferServiceStub(grpc.insecure_channel(raft_ip + ':' + raft_port))
 
-        request = file_transfer.RequestFileList()
-        request.isClient = True
+    request = file_transfer.RequestFileList()
+    request.isClient = True
 
-        response = stub.ListFiles(request)
+    response = stub.ListFiles(request)
 
-        log_info("Got list of files: ")
-        pprint.pprint(response)
+    log_info("Got list of files: ")
+    pprint.pprint(response)
 
 
 # python3 client_file_list.py
