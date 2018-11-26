@@ -6,6 +6,8 @@ import os
 import time
 from multiprocessing.dummy import Pool as ThreadPool
 
+import math
+
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
 
@@ -52,7 +54,7 @@ def run(raft_ip, raft_port, file_name):
         if len(file_info) > 1:
             extension = "." + file_info[1]
 
-        file_name = file_info[0] + "_" + str(time.time()) + extension
+        file_name = file_info[0] + "_" + str(math.ceil(time.time())) + extension
         file_size = file_utils.get_file_size(file_path)
 
         request = file_transfer.FileUploadInfo()

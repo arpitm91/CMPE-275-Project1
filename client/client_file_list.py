@@ -23,7 +23,7 @@ def run(raft_ip, raft_port):
         response = stub.ListFiles(request)
 
         log_info("Got list of files: ")
-        #pprint.pprint(response)
+        pprint.pprint(response)
 
 
 # python3 client_file_list.py

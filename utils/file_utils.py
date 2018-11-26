@@ -11,7 +11,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.par
 
 from constants import SEQUENCE_SIZE
 from constants import CHUNK_SIZE
-from input_output_util import log_info
+from utils.input_output_util import log_info
 
 
 def get_max_file_seqs(filename):
@@ -67,9 +67,15 @@ def write_file_chunks(message, folder):
         my_file.write(message.data)
 
 
-def merge_chunks(file_name_folder, folder, maxChunks):
-    merged_file_name = os.path.join(folder, file_name_folder + "_" + str(math.ceil(time.time())))
-    download_folder = os.path.join(folder, file_name_folder)
+def merge_chunks(file_name, folder, maxChunks):
+    file_info = os.path.basename(file_name).split(".")
+    extension = ""
+    if len(file_info) > 1:
+        extension = "." + file_info[1]
+
+    merged_file_name = os.path.join(folder, file_info[0] + "_" + str(math.ceil(time.time())) + extension)
+
+    download_folder = os.path.join(folder, file_name)
     with open(merged_file_name, "ab") as merged_file:
         for chunks in range(maxChunks):
             try:
