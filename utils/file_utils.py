@@ -20,7 +20,7 @@ def get_max_file_seqs(filename):
 
 def get_max_file_seqs_per_chunk(filename, chunk_id):
     filesize = get_file_size(filename)
-    total_chunks = get_max_file_chunks(filename)
+    total_chunks = math.ceil(filesize / CHUNK_SIZE)
 
     if chunk_id == total_chunks - 1:
         diff = filesize - (CHUNK_SIZE * (total_chunks - 1))
@@ -59,12 +59,12 @@ def get_file_seqs_per_chunk(filename, chunk_num):
             yield piece
 
 
-def write_file_chunks(message, folder):
+def write_file_chunks(message, folder, data):
     path = os.path.join(folder, message.fileName)
     pathlib.Path(path).mkdir(exist_ok=True)
     file_name = os.path.join(folder, message.fileName, str(message.chunkId))
     with open(file_name, "ab") as my_file:
-        my_file.write(message.data)
+        my_file.write(data)
 
 
 def merge_chunks(file_name, folder, maxChunks):

@@ -17,7 +17,7 @@ from utils.common_utils import get_raft_node
 from utils.common_utils import get_rand_hashing_node_from_node_info_object
 from utils.input_output_util import log_info
 
-THREAD_POOL_SIZE = 4
+THREAD_POOL_SIZE = 1
 next_sequence_to_download = []
 maximum_number_of_sequences = []
 
@@ -27,6 +27,9 @@ def download_chunk(file_name, chunk_num, start_seq_num, proxy_address, proxy_por
 
     global next_sequence_to_download
     global maximum_number_of_sequences
+
+    chunk_data = bytes()
+
     with grpc.insecure_channel(proxy_address + ':' + proxy_port) as channel:
         stub = rpc.DataTransferServiceStub(channel)
         request = file_transfer.ChunkInfo()
@@ -39,9 +42,12 @@ def download_chunk(file_name, chunk_num, start_seq_num, proxy_address, proxy_por
                          response.seqMax)
                 next_sequence_to_download[chunk_num] = response.seqNum + 1
                 maximum_number_of_sequences[chunk_num] = response.seqMax
-                write_file_chunks(response, os.path.join(os.path.dirname(os.path.realpath(__file__)), downloads_folder))
+                chunk_data += response.data
+
         except grpc.RpcError:
             log_info("Failed to connect to data center..Retrying !!")
+
+        write_file_chunks(response, os.path.join(os.path.dirname(os.path.realpath(__file__)), downloads_folder), chunk_data)
 
         log_info("request completed for :", file_name, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port,
                  "last seq :", next_sequence_to_download[chunk_num], "max seq :",

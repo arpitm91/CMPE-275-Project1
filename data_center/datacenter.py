@@ -18,6 +18,7 @@ from client.client_download import run as download_as_client
 from common_utils import get_raft_node
 from connections.connections import data_center as data_center_info
 from utils.input_output_util import log_info
+from constants import SEQUENCE_SIZE
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 GRPC_TIMEOUT = 10  # grpc calls time out after 1 sec
@@ -55,6 +56,7 @@ class DataTransferService(common_proto_rpc.DataTransferServiceServicer):
         chunk_id = None
         seq_num = 0
         seq_max = float('inf')
+        chunk_data = bytes()
         for request in request_iterator:
             file_name = request.fileName
             chunk_id = request.chunkId
@@ -66,7 +68,9 @@ class DataTransferService(common_proto_rpc.DataTransferServiceServicer):
                 log_info("Upload request received for", file_name, "chunk", chunk_id)
                 if os.path.isfile(os.path.join(file_path, str(chunk_id))):
                     os.remove(os.path.join(file_path, str(chunk_id)))
-            write_file_chunks(request, FOLDER)
+            chunk_data += request.data
+
+        write_file_chunks(request, FOLDER, chunk_data)
 
         my_reply = common_proto.FileInfo()
         my_reply.fileName = file_name
@@ -93,20 +97,26 @@ class DataTransferService(common_proto_rpc.DataTransferServiceServicer):
         if os.path.isfile(chunk_path):
             total_seq = get_max_file_seqs(chunk_path)
 
-            for chunk_buffer in get_file_seqs(chunk_path):
-                if current_seq >= start_seq_num:
-                    reply = common_proto.FileMetaData()
-                    reply.fileName = file_name
-                    reply.chunkId = chunk_id
-                    reply.data = chunk_buffer
-                    reply.seqNum = current_seq
-                    reply.seqMax = total_seq
-                    log_info("Sent...", file_name, "chunk", chunk_id, "seq", current_seq)
-                    current_seq += 1
-                    # time.sleep(1)
-                    yield reply
-                else:
-                    current_seq += 1
+            with open(chunk_path, 'rb') as f:
+                while True:
+                    piece = f.read(SEQUENCE_SIZE)
+                    if not piece:
+                        break
+
+                    if current_seq >= start_seq_num:
+                        reply = common_proto.FileMetaData()
+                        reply.fileName = file_name
+                        reply.chunkId = chunk_id
+                        reply.data = piece
+                        reply.seqNum = current_seq
+                        reply.seqMax = total_seq
+                        log_info("Sent...", file_name, "chunk", chunk_id, "seq", current_seq)
+                        current_seq += 1
+                        # time.sleep(1)
+                        yield reply
+                    else:
+                        current_seq += 1
+
         else:
             reply = common_proto.FileMetaData()
             reply.fileName = file_name
