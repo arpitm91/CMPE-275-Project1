@@ -3,6 +3,7 @@ import os
 import time
 from concurrent import futures
 import queue
+import itertools
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
@@ -24,7 +25,7 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 GRPC_TIMEOUT = 1  # grpc calls time out after 1 sec
 
 
-def file_upload_iterator(common_q, data_center_address, data_center_port):
+def file_upload_iterator(stub):
     while True:
         common_q_front = common_q.get(block=True)
         if common_q_front is None:
@@ -32,61 +33,11 @@ def file_upload_iterator(common_q, data_center_address, data_center_port):
         # log_info("Sending to DataCenter:", data_center_address + ":" + data_center_port, "Filename",
         #          common_q_front.fileName, "Chunk: ", common_q_front.chunkId, ", Seq: ",
         #          common_q_front.seqNum, "/", common_q_front.seqMax)
-        log_info("Sending... File:", common_q_front.fileName, "Chunk:", common_q_front.chunkId, ", Seq: ", common_q_front.seqNum, "/", common_q_front.seqMax)
+        log_info("Sending... File:", common_q_front.fileName, "Chunk:", common_q_front.chunkId, ", Seq: ",
+                 common_q_front.seqNum, "/", common_q_front.seqMax)
         yield common_q_front
 
     return
-
-
-def upload_to_data_center(common_queue, file_name, chunk_id):
-    # Get upload information
-    request = our_proto.RequestChunkInfo()
-    request.fileName = file_name
-    request.chunkId = chunk_id
-    while True:
-        random_raft = get_raft_node()
-        with grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]) as channel:
-            stub = our_proto_rpc.RaftServiceStub(channel)
-            try:
-                raft_response = stub.GetChunkUploadInfo(request, timeout=GRPC_TIMEOUT)
-                log_info("Got raft response with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
-                break
-            except grpc.RpcError:
-                log_info("Could not get response with raft ip :", random_raft["ip"], ",port :",
-                         random_raft["port"])
-                time.sleep(0.1)
-
-    # data_center
-    data_center_address = raft_response.lstDataCenter[0].ip
-    data_center_port = raft_response.lstDataCenter[0].port
-    log_info("data center for upload of file:", file_name, "chunk:", chunk_id, "data center:",
-             data_center_address + ":" + data_center_port)
-
-    with grpc.insecure_channel(data_center_address + ':' + data_center_port) as channel:
-        stub = common_proto_rpc.DataTransferServiceStub(channel)
-        stub.UploadFile(file_upload_iterator(common_queue, data_center_address, data_center_port))
-
-
-def download_chunk_to_queue(common_queue, file_name, chunk_num, start_seq_num, data_center_address, data_center_port):
-    log_info("requesting for :", file_name, "chunk no :", chunk_num, "from", data_center_address, ":", data_center_port)
-
-    with grpc.insecure_channel(data_center_address + ':' + data_center_port) as channel:
-        stub = common_proto_rpc.DataTransferServiceStub(channel)
-        request = common_proto.ChunkInfo()
-        request.fileName = file_name
-        request.chunkId = chunk_num
-        request.startSeqNum = start_seq_num
-        try:
-            for response in stub.DownloadChunk(request):
-                log_info("Response received: ", response.seqNum, "/", response.seqMax)
-                common_queue.put(response)
-        except grpc.RpcError:
-            log_info("Failed to connect to data center !!")
-            common_queue.put(None)
-
-        log_info("request completed for :", file_name, "chunk no :", chunk_num, "from", data_center_address, ":",
-                 data_center_port)
-        common_queue.put(None)
 
 
 class ProxyService(our_proto_rpc.ProxyServiceServicer):
@@ -119,44 +70,59 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
         if not raft_response.isChunkFound:
             return
 
-        # queue terminates on None
-        common_q = queue.Queue()
         random_data_center_index = random.randint(0, len(raft_response.lstDataCenter) - 1)
         # data_center
         data_center_address = raft_response.lstDataCenter[random_data_center_index].ip
         data_center_port = raft_response.lstDataCenter[random_data_center_index].port
         log_info("data center selected", data_center_address, data_center_port)
+        log_info("requesting for :", file_name, "chunk no :", chunk_id, "from", data_center_address, ":",
+                 data_center_port)
 
-        threading.Thread(target=download_chunk_to_queue, args=(
-            common_q, file_name, chunk_id, start_seq_num, data_center_address, data_center_port)).start()
+        with grpc.insecure_channel(data_center_address + ':' + data_center_port) as channel:
+            stub = common_proto_rpc.DataTransferServiceStub(channel)
+            request = common_proto.ChunkInfo()
+            request.fileName = file_name
+            request.chunkId = chunk_id
+            request.startSeqNum = start_seq_num
+            for response in stub.DownloadChunk(request):
+                log_info("Response received: ", response.seqNum, "/", response.seqMax)
+                yield response
 
-        while True:
-            common_q_front = common_q.get(block=True)
-            if common_q_front is None:
-                break
-            yield common_q_front
-
+            log_info("request completed for :", file_name, "chunk no :", chunk_id, "from", data_center_address, ":",
+                     data_center_port)
         return
 
     def UploadFile(self, request_iterator, context):
-        file_name = ""
-        # queue terminates on None
-        common_q = queue.Queue()
-        for request in request_iterator:
-            file_name = request.fileName
-            chunk_id = request.chunkId
-            seq_num = request.seqNum
-            seq_max = request.seqMax
-            log_info("Received... File:", file_name, "Chunk:", chunk_id, ", Seq: ", seq_num, "/", seq_max)
-            common_q.put(request)
-            if seq_num == 0:
-                uploading_to_dc_thread = threading.Thread(target=upload_to_data_center,
-                                                          args=(common_q, file_name, chunk_id))
-                uploading_to_dc_thread.start()
+        request = request_iterator.next()
+        # Get upload information
+        raft_request = our_proto.RequestChunkInfo()
+        raft_request.fileName = request.fileName
+        raft_request.chunkId = request.chunkId
+        file_name = request.fileName
+        while True:
+            random_raft = get_raft_node()
+            with grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]) as channel:
+                raft_stub = our_proto_rpc.RaftServiceStub(channel)
+                try:
+                    raft_response = raft_stub.GetChunkUploadInfo(raft_request, timeout=GRPC_TIMEOUT)
+                    log_info("Got raft response with raft ip :", random_raft["ip"], ",port :",
+                             random_raft["port"])
+                    break
+                except grpc.RpcError:
+                    log_info("Could not get response with raft ip :", random_raft["ip"], ",port :",
+                             random_raft["port"])
+                    time.sleep(0.1)
 
-        common_q.put(None)
-
-        uploading_to_dc_thread.join()
+        # data_center
+        data_center_address = raft_response.lstDataCenter[0].ip
+        data_center_port = raft_response.lstDataCenter[0].port
+        log_info("data center for upload of file:", file_name, "chunk:", request.chunkId, "data center:",
+                 data_center_address + ":" + data_center_port)
+        stub = common_proto_rpc.DataTransferServiceStub(
+            grpc.insecure_channel(data_center_address + ':' + data_center_port))
+        log_info("Received... File:", file_name, "Chunk:", request.chunkId, ", Seq: ", request.seqNum, "/",
+                 request.seqMax)
+        stub.UploadFile(itertools.chain([request], request_iterator))
 
         my_reply = common_proto.FileInfo()
         my_reply.fileName = file_name
