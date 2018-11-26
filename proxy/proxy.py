@@ -22,7 +22,7 @@ from utils.input_output_util import log_info
 from connections.connections import proxy as proxy_info
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
-GRPC_TIMEOUT = 1  # grpc calls time out after 1 sec
+GRPC_TIMEOUT = 10  # grpc calls time out after 1 sec
 
 
 def file_upload_iterator(stub):
@@ -131,7 +131,7 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
 
 
 def start_server(username, port):
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=150))
     common_proto_rpc.add_DataTransferServiceServicer_to_server(DataCenterServer(), server)
     our_proto_rpc.add_ProxyServiceServicer_to_server(ProxyService(), server)
     server.add_insecure_port('[::]:' + str(port))

@@ -67,7 +67,7 @@ def _raft_heartbeat_timeout():
         pass
     elif Globals.NODE_STATE == NodeState.LEADER:
         log_info("_heartbeat_timeout: ", Globals.NODE_STATE, Globals.CURRENT_CYCLE)
-        print("Leader !!")
+        # print("Leader !!")
         _send_heartbeat()
     elif Globals.NODE_STATE == NodeState.CANDIDATE:
         log_info("_heartbeat_timeout: ", Globals.NODE_STATE, Globals.CURRENT_CYCLE)
@@ -77,8 +77,8 @@ def _raft_heartbeat_timeout():
 
 
 def _dc_replication_timeout():
-    if Globals.NODE_STATE == NodeState.LEADER:
-        Check_and_send_replication_request()
+    # if Globals.NODE_STATE == NodeState.LEADER:
+    #     Check_and_send_replication_request()
     dc_replication_timer.reset()
 
 
@@ -319,15 +319,15 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
             return ack
 
         random_timer.reset()
-        print("MY Leader: ", Globals.LEADER_IP, Globals.LEADER_PORT, len(Tables.FILE_LOGS))
+        # print("MY Leader: ", Globals.LEADER_IP, Globals.LEADER_PORT, len(Tables.FILE_LOGS))
 
         # Update Table_log and File_info_table
         Tables.set_table_log(request.tableLog)
 
         ack.id = len(Tables.FILE_LOGS)
 
-        log_info("Tables.TABLE_FILE_INFO")
-        pprint.pprint(Tables.TABLE_FILE_INFO)
+        # log_info("Tables.TABLE_FILE_INFO")
+        # pprint.pprint(Tables.TABLE_FILE_INFO)
         log_info("Tables.TABLE_PROXY_INFO")
         pprint.pprint(Tables.TABLE_PROXY_INFO)
         log_info("Tables.TABLE_DC_INFO")

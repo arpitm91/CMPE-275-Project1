@@ -21,7 +21,7 @@ from utils.input_output_util import log_info
 from constants import SEQUENCE_SIZE
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
-GRPC_TIMEOUT = 1  # grpc calls time out after 1 sec
+GRPC_TIMEOUT = 10  # grpc calls time out after 1 sec
 
 
 def start_download_as_client(filename, chunk, download_folder, from_datacenter_ip, from_datacenter_port):
@@ -78,10 +78,10 @@ class DataTransferService(common_proto_rpc.DataTransferServiceServicer):
         if chunk_id is not None:
             if seq_num == seq_max - 1:
                 # full chunk received
-                upload_completed(file_name, chunk_id, True)
+                threading.Thread(target=upload_completed, args=(file_name, chunk_id, True))
             else:
                 # full chunk not received
-                upload_completed(file_name, chunk_id, False)
+                threading.Thread(target=upload_completed, args=(file_name, chunk_id, False))
 
         return my_reply
 
@@ -131,7 +131,7 @@ class DataTransferService(common_proto_rpc.DataTransferServiceServicer):
 
 
 def start_server(username, port):
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=150))
     common_proto_rpc.add_DataTransferServiceServicer_to_server(DataTransferService(), server)
     our_proto_rpc.add_DataCenterServiceServicer_to_server(DataCenterService(), server)
     server.add_insecure_port('[::]:' + str(port))

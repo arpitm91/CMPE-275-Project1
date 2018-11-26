@@ -4,7 +4,7 @@ import grpc
 import sys
 import os
 import time
-from multiprocessing.dummy import Pool as ThreadPool
+from multiprocessing import Pool as ThreadPool
 import threading
 import math
 import functools
@@ -22,7 +22,7 @@ from utils.input_output_util import log_info
 from constants import SEQUENCE_SIZE
 from constants import CHUNK_SIZE
 
-THREAD_POOL_SIZE = 128
+THREAD_POOL_SIZE = 1
 
 my_logs_read = [0]
 read_diff = []
@@ -37,41 +37,58 @@ def file_upload_iterator(file_path, file_name, chunk_num):
         # seek file pointer to start position for chunk before reading file
         f.seek(chunk_num * CHUNK_SIZE)
         total_seq = CHUNK_SIZE / SEQUENCE_SIZE
-        pieces = []
+
+        last_time = round(time.time(), 4)
         while total_seq > 0:
             total_seq -= 1
 
-            last_time = round(time.time(), 4)
             x = f.read(SEQUENCE_SIZE)
-            read_diff.append(round(time.time(), 4) - last_time)
+
             if not x:
                 break
-            pieces.append(x)
 
-        for chunk_data in pieces:
             request = file_transfer.FileUploadData()
             request.fileName = file_name
             request.chunkId = chunk_num
             request.seqMax = seq_max
             request.seqNum = cur_seq_num
-            request.data = chunk_data
+            request.data = x
             cur_seq_num += 1
-            log_info("Sending... Chunk: ", chunk_num, ", Seq: ", cur_seq_num)
-
-            cur_time = round(time.time(), 4)
-            my_logs_send.append(cur_time)
-            if len(my_logs_send) != 0:
-                last_time = my_logs_send[-2]
-                send_diff.append(cur_time - last_time)
 
             yield request
+        read_diff.append(round(time.time(), 4) - last_time)
+        # last_time = round(time.time(), 4)
 
+        # pieces.append(x)
+
+        # start_time = time.time()
+        #
+        # for chunk_data in pieces:
+        #     request = file_transfer.FileUploadData()
+        #     request.fileName = file_name
+        #     request.chunkId = chunk_num
+        #     request.seqMax = seq_max
+        #     request.seqNum = cur_seq_num
+        #     request.data = chunk_data
+        #     cur_seq_num += 1
+        #
+        #     #
+        #     # cur_time = round(time.time(), 4)
+        #     # my_logs_send.append(cur_time)
+        #     # if len(my_logs_send) != 0:
+        #     #     last_time = my_logs_send[-2]
+        #     #     send_diff.append(cur_time - last_time)
+        #
+        #     yield request
+        log_info("Sent... Chunk: ", chunk_num)
+        # send_diff.append((chunk_num , time.time() - start_time))
 
 def upload_chunk(file_path, file_name, chunk_num, proxy_address, proxy_port):
     # log_info("requesting for :", file_path, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port)
     with grpc.insecure_channel(proxy_address + ':' + proxy_port) as channel:
         stub = file_transfer_rpc.DataTransferServiceStub(channel)
         stub.UploadFile(file_upload_iterator(file_path, file_name, chunk_num))
+        print("Chunk Uploaded:", chunk_num)
 
 threads = []
 
@@ -132,33 +149,10 @@ def run(raft_ip, raft_port, file_name):
         proxy_addresses.append(proxy_address)
         proxy_ports.append(proxy_port)
 
-        # try:
-        #     call_future = self.raft_stub.RaftHeartbeat.future(table, timeout=Globals.RAFT_HEARTBEAT_TIMEOUT * 0.9)
-        #     call_future.add_done_callback(functools.partial(_process_heartbeat, self, table, heartbeat_counter))
-        # except:
-        #     log_info("Exception: _RaftHeartbeat")
-
-
-        # log_info("requesting for :", file_path, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port)
-        # with grpc.insecure_channel(proxy_address + ':' + proxy_port) as channel:
-        #     stub = file_transfer_rpc.DataTransferServiceStub(channel)
-        #     call_future = stub.UploadFile.future(file_upload_iterator(file_path, file_name, chunk_num))
-        #     call_future.add_done_callback(functools.partial(process_response))
-        #
-        #
-
-        threads.append(
-            threading.Thread(target=upload_chunk, args=(file_path, file_name, chunk_num, proxy_address, proxy_port),
-                             daemon=True))
-        threads[-1].start()
-    # time.sleep(20)
-    for t in threads:
-        t.join()
-
-    # pool = ThreadPool(THREAD_POOL_SIZE)
-    # pool.starmap(upload_chunk, zip(file_paths, file_names, chunk_nums, proxy_addresses, proxy_ports))
-    # pool.close()
-    # pool.join()
+    pool = ThreadPool(THREAD_POOL_SIZE)
+    pool.starmap(upload_chunk, zip(file_paths, file_names, chunk_nums, proxy_addresses, proxy_ports))
+    pool.close()
+    pool.join()
 
     print("READ DIFF")
     pprint.pprint(read_diff)
@@ -166,7 +160,10 @@ def run(raft_ip, raft_port, file_name):
     pprint.pprint(send_diff)
 
     print("TOTAL READ TIME:", sum(read_diff))
-    print("TOTAL SEND TIME:", sum(send_diff[1:]))
+    s = 0
+    for x in send_diff[1:]:
+        s += x[1]
+    print("TOTAL SEND TIME:", s)
 
     log_info("################################################################################")
     log_info("File Upload Completed. To download file use this name: ", file_name)
