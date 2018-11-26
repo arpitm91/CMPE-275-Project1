@@ -68,6 +68,10 @@ def run(argv):
         log_info("Got list of proxies: ", response.lstProxy)
         # pprint.pprint(response.lstProxy)
 
+        if len(response.lstProxy) == 0:
+            print("Could not upload file. Please try again later.")
+            return
+
     num_of_chunks = file_utils.get_max_file_chunks(file_path)
 
     lst_chunk_upload_info = []
