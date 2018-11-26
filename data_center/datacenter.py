@@ -21,7 +21,7 @@ from utils.input_output_util import log_info
 from constants import SEQUENCE_SIZE
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
-GRPC_TIMEOUT = 10  # grpc calls time out after 1 sec
+GRPC_TIMEOUT = 1  # grpc calls time out after 1 sec
 
 
 def start_download_as_client(filename, chunk, download_folder, from_datacenter_ip, from_datacenter_port):
