@@ -42,15 +42,10 @@ def upload_chunk(file_path, file_name, chunk_num, proxy_address, proxy_port):
         stub.UploadFile(file_upload_iterator(file_path, file_name, chunk_num))
 
 
-def run(argv):
-    random_raft = get_raft_node()
-    log_info("Client connected to raft node :", random_raft["ip"], random_raft["port"])
-
-    raft_ip = random_raft["ip"]
-    raft_port = random_raft["port"]
+def run(raft_ip, raft_port, file_name):
     with grpc.insecure_channel(raft_ip + ':' + raft_port) as channel:
         stub = file_transfer_rpc.DataTransferServiceStub(channel)
-        file_path = str(argv[1])
+        file_path = file_name
 
         file_info = os.path.basename(file_path).split(".")
         extension = ""
@@ -113,5 +108,13 @@ def run(argv):
 # python3 client_upload.py <filename>
 if __name__ == '__main__':
     start_time = time.time()
-    run(sys.argv[:])
+    while True:
+        random_raft = get_raft_node()
+        try:
+            log_info("Client connected to raft node :", random_raft["ip"], random_raft["port"])
+            run(random_raft["ip"], random_raft["port"], str(sys.argv[1]))
+            break
+        except grpc.RpcError:
+            log_info("Client could not connect with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
+            time.sleep(2)
     print("--- %s seconds ---" % (time.time() - start_time))
