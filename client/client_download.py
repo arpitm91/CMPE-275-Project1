@@ -142,6 +142,8 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
                      os.path.join(os.path.dirname(os.path.realpath(__file__)), "Downloads"),
                      file_location_info.maxChunks)
 
+        log_info("Merge Completed")
+
 
 # python3 client_download.py <filename>
 if __name__ == '__main__':

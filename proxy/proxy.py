@@ -29,9 +29,10 @@ def file_upload_iterator(common_q, data_center_address, data_center_port):
         common_q_front = common_q.get(block=True)
         if common_q_front is None:
             break
-        log_info("Sending to DataCenter:", data_center_address + ":" + data_center_port, "Filename",
-                 common_q_front.fileName, "Chunk: ", common_q_front.chunkId, ", Seq: ",
-                 common_q_front.seqNum, "/", common_q_front.seqMax)
+        # log_info("Sending to DataCenter:", data_center_address + ":" + data_center_port, "Filename",
+        #          common_q_front.fileName, "Chunk: ", common_q_front.chunkId, ", Seq: ",
+        #          common_q_front.seqNum, "/", common_q_front.seqMax)
+        log_info("Sending... File:", common_q_front.fileName, "Chunk:", common_q_front.chunkId, ", Seq: ", common_q_front.seqNum, "/", common_q_front.seqMax)
         yield common_q_front
 
     return

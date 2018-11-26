@@ -4,7 +4,7 @@ import time
 import queue
 from datetime import datetime
 
-DEBUG = False
+DEBUG = True
 
 WHITE = '\033[97m'  # User Input color
 YELLOW = '\033[93m'  # Log output color
