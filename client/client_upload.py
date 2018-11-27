@@ -20,6 +20,7 @@ from utils.common_utils import get_rand_hashing_node_from_node_info_object
 from utils.input_output_util import log_info
 
 THREAD_POOL_SIZE = 128
+GRPC_TIMEOUT = 2
 
 
 def file_upload_iterator(file_path, file_name, chunk_num):
@@ -52,14 +53,14 @@ def run(raft_ip, raft_port, file_name):
     if len(file_info) > 1:
         extension = "." + file_info[1]
 
-    file_name = file_info[0] + "_" + str(math.ceil(time.time())) + extension
+    file_name = "team1_" + file_info[0] + "_" + str(math.ceil(time.time())) + extension
     file_size = file_utils.get_file_size(file_path)
 
     request = file_transfer.FileUploadInfo()
     request.fileName = file_name
     request.fileSize = file_size
 
-    response = stub.RequestFileUpload(request)
+    response = stub.RequestFileUpload(request, timeout=GRPC_TIMEOUT)
     log_info("Got list of proxies: ", response.lstProxy)
     # pprint.pprint(response.lstProxy)
 
@@ -116,5 +117,5 @@ if __name__ == '__main__':
             break
         except grpc.RpcError:
             log_info("Client could not connect with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
-            time.sleep(2)
+            time.sleep(0.2)
     print("--- %s seconds ---" % (time.time() - start_time))

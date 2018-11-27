@@ -12,6 +12,7 @@ import file_transfer_pb2_grpc as file_transfer_rpc
 from utils.common_utils import get_raft_node
 from utils.input_output_util import log_info
 
+GRPC_TIMEOUT = 10
 
 def run(raft_ip, raft_port):
     stub = file_transfer_rpc.DataTransferServiceStub(grpc.insecure_channel(raft_ip + ':' + raft_port))
@@ -19,7 +20,7 @@ def run(raft_ip, raft_port):
     request = file_transfer.RequestFileList()
     request.isClient = True
 
-    response = stub.ListFiles(request)
+    response = stub.ListFiles(request, timeout=GRPC_TIMEOUT)
 
     log_info("Got list of files: ")
     pprint.pprint(response)
@@ -36,5 +37,5 @@ if __name__ == '__main__':
             break
         except grpc.RpcError:
             log_info("Client could not connect with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
-            time.sleep(2)
+            time.sleep(0.2)
     print("--- %s seconds ---" % (time.time() - start_time))
