@@ -155,18 +155,3 @@ if __name__ == '__main__':
                 break
 
     print("--- %s seconds ---" % (time.time() - start_time))
-
-
-# python3 client_download.py <filename>
-if __name__ == '__main__':
-    start_time = time.time()
-    while True:
-        random_raft = get_raft_node()
-        try:
-            log_info("Client connected to raft node :", random_raft["ip"], random_raft["port"])
-            run(random_raft["ip"], random_raft["port"], str(sys.argv[1]))
-            break
-        except grpc.RpcError:
-            log_info("Client could not connect with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
-            time.sleep(2)
-    print("--- %s seconds ---" % (time.time() - start_time))

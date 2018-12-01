@@ -20,7 +20,7 @@ from utils.common_utils import get_rand_hashing_node_from_node_info_object
 from utils.input_output_util import log_info
 
 THREAD_POOL_SIZE = 128
-GRPC_TIMEOUT = 2
+GRPC_TIMEOUT = 20
 
 
 def file_upload_iterator(file_path, file_name, chunk_num):

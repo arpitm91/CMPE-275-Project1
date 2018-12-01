@@ -395,6 +395,9 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
 
             dcs = Tables.get_all_available_dc()
 
+            if len(dcs) == 0:
+                return my_reply
+
             if not _send_heartbeat_to_check_majority_consensus():
                 return my_reply
 
