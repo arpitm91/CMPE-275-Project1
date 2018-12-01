@@ -119,7 +119,7 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
             proxy_ports.append(proxy_port)
             downloads_folders.append(downloads_folder)
 
-            # download_chunk(file_name, chunk_num, next_sequence_to_download[chunk_num], proxy_address, proxy_port)
+            download_chunk(file_name, chunk_num, next_sequence_to_download[chunk_num], proxy_address, proxy_port)
 
         pool = ThreadPool(THREAD_POOL_SIZE)
         pool.starmap(download_chunk,
@@ -136,6 +136,25 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
         merge_chunks(file_location_info.fileName,
                      os.path.join(os.path.dirname(os.path.realpath(__file__)), "Downloads"),
                      file_location_info.maxChunks)
+
+# python3 client_download.py <filename>
+if __name__ == '__main__':
+    start_time = time.time()
+
+    for i in range(100):
+        if i % 10 == 0:
+            print(i)
+        while True:
+            random_raft = get_raft_node()
+            try:
+                # log_info("Client connected to raft node :", random_raft["ip"], random_raft["port"])
+                run(random_raft["ip"], random_raft["port"], str(sys.argv[1]))
+                break
+            except grpc.RpcError:
+                # log_info("Client could not connect with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
+                break
+
+    print("--- %s seconds ---" % (time.time() - start_time))
 
 
 # python3 client_download.py <filename>

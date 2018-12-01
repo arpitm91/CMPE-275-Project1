@@ -315,7 +315,6 @@ def _send_proxy_heartbeat():
 
 
 def _process_proxy_heartbeat(proxy_client, call_future):
-    log_info("_process_proxy_heartbeat:", proxy_client.server_port)
     with ThreadPoolExecutorStackTraced(max_workers=10) as executor:
         try:
             call_future.result()
@@ -384,7 +383,6 @@ def Check_and_send_replication_request():
 
 
 def _process_datacenter_heartbeat(dc_client, call_future):
-    log_info("_process_datacenter_heartbeat:", dc_client.server_port)
     with ThreadPoolExecutorStackTraced(max_workers=10) as executor:
         try:
             call_future.result()
@@ -423,7 +421,7 @@ class DatacenterClient:
 
     def _SendDataCenterHeartbeat(self, Empty):
         try:
-            log_info("Sending heartbeat to:", self.server_port)
+            # log_info("Sending heartbeat to:", self.server_port)
             call_future = self.data_center_stub.DataCenterHeartbeat.future(Empty,
                                                                            timeout=Globals.DC_HEARTBEAT_TIMEOUT * 0.9)
             call_future.add_done_callback(functools.partial(_process_datacenter_heartbeat, self))

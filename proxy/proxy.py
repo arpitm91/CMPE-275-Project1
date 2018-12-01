@@ -24,22 +24,6 @@ from connections.connections import proxy as proxy_info
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 GRPC_TIMEOUT = 1  # grpc calls time out after 1 sec
 
-
-def file_upload_iterator(stub):
-    while True:
-        common_q_front = common_q.get(block=True)
-        if common_q_front is None:
-            break
-        # log_info("Sending to DataCenter:", data_center_address + ":" + data_center_port, "Filename",
-        #          common_q_front.fileName, "Chunk: ", common_q_front.chunkId, ", Seq: ",
-        #          common_q_front.seqNum, "/", common_q_front.seqMax)
-        log_info("Sending... File:", common_q_front.fileName, "Chunk:", common_q_front.chunkId, ", Seq: ",
-                 common_q_front.seqNum, "/", common_q_front.seqMax)
-        yield common_q_front
-
-    return
-
-
 class ProxyService(our_proto_rpc.ProxyServiceServicer):
     def ProxyHeartbeat(self, request, context):
         return our_proto.Empty()
@@ -66,29 +50,27 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
                 log_info("Could not get response with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
                 time.sleep(0.1)
 
-        if not raft_response.isChunkFound:
-            return
+        if raft_response.isChunkFound:
+            random_data_center_index = random.randint(0, len(raft_response.lstDataCenter) - 1)
+            # data_center
+            data_center_address = raft_response.lstDataCenter[random_data_center_index].ip
+            data_center_port = raft_response.lstDataCenter[random_data_center_index].port
+            log_info("data center selected", data_center_address, data_center_port)
+            log_info("requesting for :", file_name, "chunk no :", chunk_id, "from", data_center_address, ":",
+                     data_center_port)
 
-        random_data_center_index = random.randint(0, len(raft_response.lstDataCenter) - 1)
-        # data_center
-        data_center_address = raft_response.lstDataCenter[random_data_center_index].ip
-        data_center_port = raft_response.lstDataCenter[random_data_center_index].port
-        log_info("data center selected", data_center_address, data_center_port)
-        log_info("requesting for :", file_name, "chunk no :", chunk_id, "from", data_center_address, ":",
-                 data_center_port)
+            stub = common_proto_rpc.DataTransferServiceStub(grpc.insecure_channel(data_center_address + ':' + data_center_port))
+            request = common_proto.ChunkInfo()
+            request.fileName = file_name
+            request.chunkId = chunk_id
+            request.startSeqNum = start_seq_num
+            for response in stub.DownloadChunk(request):
+                log_info("Response received: ", response.seqNum, "/", response.seqMax)
+                yield response
 
-        stub = common_proto_rpc.DataTransferServiceStub(grpc.insecure_channel(data_center_address + ':' + data_center_port))
-        request = common_proto.ChunkInfo()
-        request.fileName = file_name
-        request.chunkId = chunk_id
-        request.startSeqNum = start_seq_num
-        for response in stub.DownloadChunk(request):
-            log_info("Response received: ", response.seqNum, "/", response.seqMax)
-            yield response
+            log_info("request completed for :", file_name, "chunk no :", chunk_id, "from", data_center_address, ":",
+                     data_center_port)
 
-        log_info("request completed for :", file_name, "chunk no :", chunk_id, "from", data_center_address, ":",
-                 data_center_port)
-        return
 
     def UploadFile(self, request_iterator, context):
         request = request_iterator.next()

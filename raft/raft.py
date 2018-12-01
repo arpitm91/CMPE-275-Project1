@@ -61,8 +61,6 @@ def _random_timeout():
 
 
 def _raft_heartbeat_timeout():
-    log_info("FILE_INFO_TABLE:")
-    # pprint.pprint(Tables.TABLE_FILE_INFO)
     if Globals.NODE_STATE == NodeState.FOLLOWER:
         pass
     elif Globals.NODE_STATE == NodeState.LEADER:
@@ -88,7 +86,6 @@ dc_replication_timer = TimerUtil(_dc_replication_timeout, Globals.DC_REPLICATION
 
 
 def _process_heartbeat(client, table, heartbeat_counter, call_future):
-    log_info("_process_heartbeat:", client.server_port)
     with ThreadPoolExecutorStackTraced(max_workers=10) as executor:
         try:
             call_future.result()
@@ -96,7 +93,6 @@ def _process_heartbeat(client, table, heartbeat_counter, call_future):
         except:
             Globals.RAFT_HEARTBEAT_ACK_DICT[(client.server_address, client.server_port)] = (heartbeat_counter, False)
             log_info("Raft node not available!!", client.server_address, client.server_port)
-            return
 
 
 def _send_heartbeat_to_check_majority_consensus():
@@ -130,7 +126,6 @@ def _send_heartbeat():
 
     Globals.RAFT_HEARTBEAT_COUNTER += 1
 
-    # added_logs = Tables.FILE_LOGS[Globals.LAST_SENT_TABLE_LOG:]
     Globals.LAST_SENT_TABLE_LOG = len(Tables.FILE_LOGS)
     table.tableLog.extend(Tables.FILE_LOGS)
 
@@ -668,6 +663,14 @@ def start_server(username, my_port):
         time.sleep(64 * 64 * 100)
 
 
+def start_background_services():
+    random_timer.start()
+    raft_heartbeat_timer.start()
+    dc_heartbeat_timer.start()
+    proxy_heartbeat_timer.start()
+    dc_replication_timer.start()
+
+
 def main(argv):
     username = argv[1]
     Globals.MY_PORT = raft_connections[username]["own"]["port"]
@@ -690,11 +693,8 @@ def main(argv):
         Globals.RAFT_HEARTBEAT_ACK_DICT[(server_address, server_port)] = (0, False)
 
         # threading.Thread(target=start_client, args=(username, server_address, server_port), daemon=True).start()
-    random_timer.start()
-    raft_heartbeat_timer.start()
-    dc_heartbeat_timer.start()
-    proxy_heartbeat_timer.start()
-    dc_replication_timer.start()
+
+    threading.Thread(target=start_background_services, args=(), daemon=True).start()
 
     # Server starts in background (another thread) so keep waiting
     while True:
