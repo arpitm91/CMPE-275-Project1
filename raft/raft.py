@@ -97,23 +97,21 @@ def _process_heartbeat(client, table, heartbeat_counter, call_future):
 
 def _send_heartbeat_to_check_majority_consensus():
     heartbeat_counter = _send_heartbeat()
-    time.sleep(Globals.RAFT_HEARTBEAT_TIMEOUT)
-    while True:
-        available_raft_nodes = 1
-        total_response = 0
-        for raft_node, hb_info in Globals.RAFT_HEARTBEAT_ACK_DICT.items():
-            if hb_info[0] >= heartbeat_counter:
-                total_response += 1
-                if hb_info[1] is True:
-                    available_raft_nodes += 1
+    time.sleep(2*Globals.RAFT_HEARTBEAT_TIMEOUT)
 
-        if available_raft_nodes > (len(Globals.LST_RAFT_CLIENTS) + 1) / 2:
-            return True
+    available_raft_nodes = 1
+    total_response = 0
+    for raft_node, hb_info in Globals.RAFT_HEARTBEAT_ACK_DICT.items():
+        if hb_info[0] >= heartbeat_counter:
+            total_response += 1
+            if hb_info[1] is True:
+                available_raft_nodes += 1
 
-        if total_response == len(Globals.LST_RAFT_CLIENTS):
-            return False
+    if available_raft_nodes > (len(Globals.LST_RAFT_CLIENTS) + 1) / 2:
+        return True
 
-        time.sleep(Globals.RAFT_HEARTBEAT_TIMEOUT)
+    # if total_response == len(Globals.LST_RAFT_CLIENTS):
+    #     return False
 
     return False
 

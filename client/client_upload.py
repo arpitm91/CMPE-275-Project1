@@ -103,7 +103,7 @@ def run(raft_ip, raft_port, file_name):
     pool.join()
 
     log_info("################################################################################")
-    log_info("File Upload Completed. To download file use this name: ", file_name)
+    print("File Upload Completed. To download file use this name: ", file_name)
 
 
 # python3 client_upload.py <filename>
