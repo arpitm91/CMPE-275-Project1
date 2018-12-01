@@ -124,7 +124,7 @@ service RaftService {
     rpc AddProxy (ProxyInfoRaft) returns (Ack);
 
     // (Data center -> Raft) : Signals upload completed to raft
-    rpc FileUploadCompleted(UploadCompleteFileInfo) returns(Empty);
+    rpc FileUploadCompleted(UploadCompleteFileInfo) returns(Ack);
 
     // (Proxy -> Raft) : Fetches location of an existing file from raft
     rpc GetChunkLocationInfo(RequestChunkInfo) returns(ChunkLocationInfo);

@@ -42,7 +42,7 @@ class RaftServiceStub(object):
     self.FileUploadCompleted = channel.unary_unary(
         '/raft.RaftService/FileUploadCompleted',
         request_serializer=raft__pb2.UploadCompleteFileInfo.SerializeToString,
-        response_deserializer=raft__pb2.Empty.FromString,
+        response_deserializer=raft__pb2.Ack.FromString,
         )
     self.GetChunkLocationInfo = channel.unary_unary(
         '/raft.RaftService/GetChunkLocationInfo',
@@ -147,7 +147,7 @@ def add_RaftServiceServicer_to_server(servicer, server):
       'FileUploadCompleted': grpc.unary_unary_rpc_method_handler(
           servicer.FileUploadCompleted,
           request_deserializer=raft__pb2.UploadCompleteFileInfo.FromString,
-          response_serializer=raft__pb2.Empty.SerializeToString,
+          response_serializer=raft__pb2.Ack.SerializeToString,
       ),
       'GetChunkLocationInfo': grpc.unary_unary_rpc_method_handler(
           servicer.GetChunkLocationInfo,

@@ -145,14 +145,16 @@ def upload_completed(file_name, chunk_id, is_success):
     request.isSuccess = is_success
 
     while True:
+        random_raft = {}
         try:
             random_raft = get_raft_node()
             stub = our_proto_rpc.RaftServiceStub(grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]))
-            stub.FileUploadCompleted(request, timeout=GRPC_TIMEOUT)
-            print("Upload completed sent to raft ip :", random_raft["ip"], ",port :", random_raft["port"],
-                     ", success:",
-                     is_success)
-            break
+            response = stub.FileUploadCompleted(request, timeout=GRPC_TIMEOUT)
+            if response.id != -1:
+                print("Upload completed sent to raft ip :", random_raft["ip"], ",port :", random_raft["port"],
+                      ", success:",
+                      is_success)
+                break
         except grpc.RpcError:
             log_info("Could not sent upload complete to raft ip :", random_raft["ip"], ",port :", random_raft["port"],
                      ", success:",

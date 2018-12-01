@@ -571,7 +571,9 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
             lst_dc = [(request.chunkUploadInfo.uploadedDatacenter.ip, request.chunkUploadInfo.uploadedDatacenter.port)]
 
             if not _send_heartbeat_to_check_majority_consensus():
-                return
+                response = raft_proto.Ack()
+                response.id = -1
+                return response
 
             Tables.insert_file_chunk_info_to_file_log(request.fileName, chunk_id, lst_dc,
                                                       raft_proto.Uploaded if request.isSuccess else raft_proto.UploadFaied)
@@ -579,14 +581,16 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
 
             # pprint.pprint(Tables.TABLE_FILE_INFO)
             log_info("###########################################################################")
+            return raft_proto.Ack()
         else:
             client = get_leader_client()
             if client:
                 my_reply = client._FileUploadCompleted(request)
                 return my_reply
             else:
-                return raft_proto.Empty()
-        return raft_proto.Empty()
+                response = raft_proto.Ack()
+                response.id = -1
+                return response
 
     '''
         request: raft.RequestChunkInfo
