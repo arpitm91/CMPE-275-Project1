@@ -121,13 +121,6 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
 
             download_chunk(file_name, chunk_num, next_sequence_to_download[chunk_num], proxy_address, proxy_port)
 
-        pool = ThreadPool(THREAD_POOL_SIZE)
-        pool.starmap(download_chunk,
-                     zip(file_names, chunk_nums, next_sequence_to_download_arr, proxy_addresses, proxy_ports,
-                         downloads_folders))
-        pool.close()
-        pool.join()
-
         log_info("number_of_sequences_downloaded ", next_sequence_to_download)
         log_info("maximum_number_of_sequences ", maximum_number_of_sequences)
 
@@ -141,11 +134,12 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
 if __name__ == '__main__':
     start_time = time.time()
 
-    for i in range(100):
+    for i in range(1000):
         if i % 10 == 0:
             print(i)
         while True:
-            random_raft = get_raft_node()
+            # random_raft = get_raft_node()            
+            random_raft = { "ip": "localhost", "port": "10000"}
             try:
                 # log_info("Client connected to raft node :", random_raft["ip"], random_raft["port"])
                 run(random_raft["ip"], random_raft["port"], str(sys.argv[1]))

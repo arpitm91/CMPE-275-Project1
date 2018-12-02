@@ -46,6 +46,8 @@ class Tables:
     # Key: (ip1, port1), Value: True/False (Proxy Available or Not)
     TABLE_PROXY_INFO = {}
 
+    NOT_AVAILABLE_OTHER_RAFT_NODES = {}
+
     @staticmethod
     def init_proxies(lst_proxies):
         for ip, port in lst_proxies:

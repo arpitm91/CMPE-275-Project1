@@ -41,6 +41,8 @@ class Globals:
     RAFT_HEARTBEAT_ACK_DICT = {}
     RAFT_HEARTBEAT_COUNTER = 1
 
+    CACHE_DIRTY_TIME = 60   # Seconds
+
     @staticmethod
     def get_next_log_index():
         Globals.CURRENT_LOG_INDEX += 1

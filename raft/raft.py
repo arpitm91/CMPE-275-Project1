@@ -179,9 +179,18 @@ def get_leader_client():
 
 
 def request_file_info_from_other_raft_nodes(request):
+    cur_time = time.time()
     for node in other_raft_nodes:
+        availability = Tables.NOT_AVAILABLE_OTHER_RAFT_NODES[(node["ip"], node["port"])]
+        if availability[0]:
+            if (cur_time - availability[1]) < Globals.CACHE_DIRTY_TIME:
+                continue
+            else:
+                Tables.NOT_AVAILABLE_OTHER_RAFT_NODES[(node["ip"], node["port"])] = (False, 0)
+
         try:
-            stub = file_transfer_proto_rpc.DataTransferServiceStub(grpc.insecure_channel(node["ip"] + ':' + node["port"]))
+            stub = file_transfer_proto_rpc.DataTransferServiceStub(
+                grpc.insecure_channel(node["ip"] + ':' + node["port"]))
             file_location_info = stub.GetFileLocation(request)
             log_info("Response received From other Raft: ")
             # pprint.pprint(file_location_info)
@@ -191,6 +200,7 @@ def request_file_info_from_other_raft_nodes(request):
                 return file_location_info
         except:
             log_info("Fail to connect to: ", node["ip"], node["port"])
+            Tables.NOT_AVAILABLE_OTHER_RAFT_NODES[(node["ip"], node["port"])] = (True, time.time())
     file_location_info = file_transfer_proto.FileLocationInfo()
     file_location_info.isFileFound = False
     return file_location_info
@@ -199,24 +209,43 @@ def request_file_info_from_other_raft_nodes(request):
 def request_file_list_from_other_raft_nodes(request):
     request.isClient = False
     set_files = set()
-    thread_pool_size = 4
-    pool = ThreadPool(thread_pool_size)
+    # thread_pool_size = 4
+    # pool = ThreadPool(thread_pool_size)
+
+
+    threads = []
 
     def send_request_to_other_raft_nodes(other_node, return_set):
+
         try:
-            stub = file_transfer_proto_rpc.DataTransferServiceStub(grpc.insecure_channel(other_node["ip"] + ':' + other_node["port"]))
+            stub = file_transfer_proto_rpc.DataTransferServiceStub(
+                grpc.insecure_channel(other_node["ip"] + ':' + other_node["port"]))
             files = stub.ListFiles(request, timeout=1)
             for file_name in files.lstFileNames:
                 return_set.add(file_name)
         except:
             log_info("Fail to connect to: ", other_node["ip"], other_node["port"])
+            Tables.NOT_AVAILABLE_OTHER_RAFT_NODES[(other_node["ip"], other_node["port"])] = (True, time.time())
 
-    set_files_arr = []
-    for _ in other_raft_nodes:
-        set_files_arr.append(set_files)
-    pool.starmap(send_request_to_other_raft_nodes, zip(other_raft_nodes, set_files_arr))
-    pool.close()
-    pool.join()
+    cur_time = time.time()
+
+    for node in other_raft_nodes:
+
+        availability = Tables.NOT_AVAILABLE_OTHER_RAFT_NODES[(node["ip"], node["port"])]
+        if availability[0]:
+            if (cur_time - availability[1]) < Globals.CACHE_DIRTY_TIME:
+                continue
+            else:
+                Tables.NOT_AVAILABLE_OTHER_RAFT_NODES[(node["ip"], node["port"])] = (False, 0)
+
+        threads.append(
+            threading.Thread(target=send_request_to_other_raft_nodes, args=(node, set_files)))
+        threads[-1].start()
+
+    for t in threads:
+        t.join()
+    threads.clear()
+
     return list(set_files)
 
 
@@ -703,6 +732,9 @@ def main(argv):
         Globals.RAFT_HEARTBEAT_ACK_DICT[(server_address, server_port)] = (0, False)
 
         # threading.Thread(target=start_client, args=(username, server_address, server_port), daemon=True).start()
+
+    for node in other_raft_nodes:
+        Tables.NOT_AVAILABLE_OTHER_RAFT_NODES[(node["ip"], node["port"])] = (False, 0)
 
     threading.Thread(target=start_background_services, args=(), daemon=True).start()
 
