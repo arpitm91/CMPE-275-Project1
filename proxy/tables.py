@@ -460,6 +460,3 @@ class ProxyClient:
         except:
             log_info("Exception: _SendProxyHeartbeat")
 
-
-dc_heartbeat_timer = TimerUtil(_dc_heartbeat_timeout, Globals.DC_HEARTBEAT_TIMEOUT)
-proxy_heartbeat_timer = TimerUtil(_proxy_heartbeat_timeout, Globals.PROXY_HEARTBEAT_TIMEOUT)

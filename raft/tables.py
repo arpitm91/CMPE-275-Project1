@@ -311,7 +311,7 @@ def _proxy_heartbeat_timeout():
 def _send_proxy_heartbeat():
     empty = raft_proto.Empty()
     for proxy_client in Globals.LST_PROXY_CLIENTS:
-        proxy_client._SendProxyHeartbeat(empty)
+        proxy_client._SendProxyHeartbeat(Tables.FILE_LOGS)
 
 
 def _process_proxy_heartbeat(proxy_client, call_future):
@@ -452,10 +452,10 @@ class ProxyClient:
         channel = grpc.insecure_channel(server_address + ':' + str(server_port))
         self.proxy_stub = raft_proto_rpc.ProxyServiceStub(channel)
 
-    def _SendProxyHeartbeat(self, Empty):
+    def _SendProxyHeartbeat(self, table):
         try:
             log_info("Sending heartbeat to:", self.server_port)
-            call_future = self.proxy_stub.ProxyHeartbeat.future(Empty, timeout=Globals.PROXY_HEARTBEAT_TIMEOUT * 0.9)
+            call_future = self.proxy_stub.ProxyHeartbeat.future(table, timeout=Globals.PROXY_HEARTBEAT_TIMEOUT * 0.9)
             call_future.add_done_callback(functools.partial(_process_proxy_heartbeat, self))
         except:
             log_info("Exception: _SendProxyHeartbeat")
