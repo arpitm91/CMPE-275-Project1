@@ -135,7 +135,7 @@ service RaftService {
 
 service ProxyService {
     // (Raft -> Proxy) : Heartbeat for proxy
-    rpc ProxyHeartbeat(Empty) returns (Empty);
+    rpc ProxyHeartbeat(TableLog) returns (Empty);
 }
 
 service DataCenterService {

@@ -18,14 +18,17 @@ import raft_pb2 as our_proto
 import raft_pb2_grpc as our_proto_rpc
 from common_utils import get_raft_node
 from utils.input_output_util import log_info
+from tables import Tables
 
 from connections.connections import proxy as proxy_info
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 GRPC_TIMEOUT = 1  # grpc calls time out after 1 sec
 
+
 class ProxyService(our_proto_rpc.ProxyServiceServicer):
     def ProxyHeartbeat(self, request, context):
+        Tables.set_table_log(request)
         return our_proto.Empty()
 
 
@@ -39,16 +42,22 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
         request.fileName = file_name
         request.chunkId = chunk_id
 
-        while True:
-            random_raft = get_raft_node()
-            stub = our_proto_rpc.RaftServiceStub(grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]))
-            try:
-                raft_response = stub.GetChunkLocationInfo(request, timeout=GRPC_TIMEOUT)
-                log_info("Got raft response with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
-                break
-            except grpc.RpcError:
-                log_info("Could not get response with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
-                time.sleep(0.1)
+        lst_dc = []
+        is_chunk_found = False
+
+        for dc in Tables.TABLE_FILE_INFO[request.fileName][request.chunkId].keys():
+            if Tables.TABLE_FILE_INFO[request.fileName][request.chunkId][dc] == our_proto.Uploaded:
+                dc_info = our_proto.DataCenterInfo()
+                dc_info.ip = dc[0]
+                dc_info.port = dc[1]
+                lst_dc.append(dc_info)
+                is_chunk_found = True
+
+        raft_response = our_proto.ChunkLocationInfo()
+        raft_response.fileName = request.fileName
+        raft_response.chunkId = request.chunkId
+        raft_response.lstDataCenter.extend(lst_dc)
+        raft_response.isChunkFound = is_chunk_found
 
         if raft_response.isChunkFound:
             random_data_center_index = random.randint(0, len(raft_response.lstDataCenter) - 1)

@@ -8,6 +8,7 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
+from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -19,8 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='raft.proto',
   package='raft',
   syntax='proto3',
-  serialized_options=None,
-  serialized_pb=_b('\n\nraft.proto\x12\x04raft\"\x11\n\x03\x41\x63k\x12\n\n\x02id\x18\x01 \x01(\x03\"\xa1\x01\n\x08TableLog\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12\n\n\x02ip\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\t\x12\x11\n\tlog_index\x18\x05 \x01(\x03\x12%\n\toperation\x18\x06 \x01(\x0e\x32\x12.raft.LogOperation\x12\x1e\n\x07logType\x18\x07 \x01(\x0e\x32\r.raft.LogType\"g\n\x05Table\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\x11\n\tleader_ip\x18\x02 \x01(\t\x12\x13\n\x0bleader_port\x18\x03 \x01(\t\x12 \n\x08tableLog\x18\x04 \x03(\x0b\x32\x0e.raft.TableLog\"O\n\tCandidacy\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\n\n\x02ip\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\x12\x12\n\nlog_length\x18\x04 \x01(\x03\"D\n\x11\x43\x61ndidacyResponse\x12\x19\n\x05voted\x18\x01 \x01(\x0e\x32\n.raft.Vote\x12\x14\n\x0c\x63ycle_number\x18\x02 \x01(\x03\"*\n\x0e\x44\x61taCenterInfo\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\")\n\rProxyInfoRaft\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\"\x07\n\x05\x45mpty\"b\n\x0fReplicationInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12,\n\x0e\x66romDatacenter\x18\x03 \x01(\x0b\x32\x14.raft.DataCenterInfo\"T\n\x0f\x43hunkUploadInfo\x12\x0f\n\x07\x63hunkId\x18\x01 \x01(\x03\x12\x30\n\x12uploadedDatacenter\x18\x02 \x01(\x0b\x32\x14.raft.DataCenterInfo\"m\n\x16UploadCompleteFileInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12.\n\x0f\x63hunkUploadInfo\x18\x02 \x01(\x0b\x32\x15.raft.ChunkUploadInfo\x12\x11\n\tisSuccess\x18\x03 \x01(\x08\"5\n\x10RequestChunkInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\"y\n\x11\x43hunkLocationInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12+\n\rlstDataCenter\x18\x03 \x03(\x0b\x32\x14.raft.DataCenterInfo\x12\x14\n\x0cisChunkFound\x18\x04 \x01(\x08*\x89\x01\n\x0cLogOperation\x12\x13\n\x0fUploadRequested\x10\x00\x12\x0c\n\x08Uploaded\x10\x01\x12\x0f\n\x0bUploadFaied\x10\x02\x12\x0b\n\x07\x44\x65leted\x10\x03\x12\x18\n\x14TemporaryUnavailable\x10\x04\x12\r\n\tAvailable\x10\x05\x12\x0f\n\x0bUnavailable\x10\x06*7\n\x07LogType\x12\x0b\n\x07\x46ileLog\x10\x00\x12\x11\n\rDatacenterLog\x10\x01\x12\x0c\n\x08ProxyLog\x10\x02*\x17\n\x04Vote\x12\x07\n\x03YES\x10\x00\x12\x06\n\x02NO\x10\x01*v\n\x10ReplicationState\x12\x16\n\x12ReplicationPending\x10\x00\x12\x18\n\x14ReplicationRequested\x10\x01\x12\x16\n\x12ReplicationStarted\x10\x02\x12\x18\n\x14ReplicationCompleted\x10\x03\x32\xc6\x03\n\x0bRaftService\x12\'\n\rRaftHeartbeat\x12\x0b.raft.Table\x1a\t.raft.Ack\x12\x37\n\x0bRequestVote\x12\x0f.raft.Candidacy\x1a\x17.raft.CandidacyResponse\x12\'\n\nAddFileLog\x12\x0e.raft.TableLog\x1a\t.raft.Ack\x12\x30\n\rAddDataCenter\x12\x14.raft.DataCenterInfo\x1a\t.raft.Ack\x12*\n\x08\x41\x64\x64Proxy\x12\x13.raft.ProxyInfoRaft\x1a\t.raft.Ack\x12>\n\x13\x46ileUploadCompleted\x12\x1c.raft.UploadCompleteFileInfo\x1a\t.raft.Ack\x12G\n\x14GetChunkLocationInfo\x12\x16.raft.RequestChunkInfo\x1a\x17.raft.ChunkLocationInfo\x12\x45\n\x12GetChunkUploadInfo\x12\x16.raft.RequestChunkInfo\x1a\x17.raft.ChunkLocationInfo2:\n\x0cProxyService\x12*\n\x0eProxyHeartbeat\x12\x0b.raft.Empty\x1a\x0b.raft.Empty2}\n\x11\x44\x61taCenterService\x12/\n\x13\x44\x61taCenterHeartbeat\x12\x0b.raft.Empty\x1a\x0b.raft.Empty\x12\x37\n\x13ReplicationInitiate\x12\x15.raft.ReplicationInfo\x1a\t.raft.Ackb\x06proto3')
+  serialized_pb=_b('\n\nraft.proto\x12\x04raft\"\x11\n\x03\x41\x63k\x12\n\n\x02id\x18\x01 \x01(\x03\"\xa1\x01\n\x08TableLog\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12\n\n\x02ip\x18\x03 \x01(\t\x12\x0c\n\x04port\x18\x04 \x01(\t\x12\x11\n\tlog_index\x18\x05 \x01(\x03\x12%\n\toperation\x18\x06 \x01(\x0e\x32\x12.raft.LogOperation\x12\x1e\n\x07logType\x18\x07 \x01(\x0e\x32\r.raft.LogType\"g\n\x05Table\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\x11\n\tleader_ip\x18\x02 \x01(\t\x12\x13\n\x0bleader_port\x18\x03 \x01(\t\x12 \n\x08tableLog\x18\x04 \x03(\x0b\x32\x0e.raft.TableLog\"O\n\tCandidacy\x12\x14\n\x0c\x63ycle_number\x18\x01 \x01(\x03\x12\n\n\x02ip\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\x12\x12\n\nlog_length\x18\x04 \x01(\x03\"D\n\x11\x43\x61ndidacyResponse\x12\x19\n\x05voted\x18\x01 \x01(\x0e\x32\n.raft.Vote\x12\x14\n\x0c\x63ycle_number\x18\x02 \x01(\x03\"*\n\x0e\x44\x61taCenterInfo\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\")\n\rProxyInfoRaft\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\"\x07\n\x05\x45mpty\"b\n\x0fReplicationInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12,\n\x0e\x66romDatacenter\x18\x03 \x01(\x0b\x32\x14.raft.DataCenterInfo\"T\n\x0f\x43hunkUploadInfo\x12\x0f\n\x07\x63hunkId\x18\x01 \x01(\x03\x12\x30\n\x12uploadedDatacenter\x18\x02 \x01(\x0b\x32\x14.raft.DataCenterInfo\"m\n\x16UploadCompleteFileInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12.\n\x0f\x63hunkUploadInfo\x18\x02 \x01(\x0b\x32\x15.raft.ChunkUploadInfo\x12\x11\n\tisSuccess\x18\x03 \x01(\x08\"5\n\x10RequestChunkInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\"y\n\x11\x43hunkLocationInfo\x12\x10\n\x08\x66ileName\x18\x01 \x01(\t\x12\x0f\n\x07\x63hunkId\x18\x02 \x01(\x03\x12+\n\rlstDataCenter\x18\x03 \x03(\x0b\x32\x14.raft.DataCenterInfo\x12\x14\n\x0cisChunkFound\x18\x04 \x01(\x08*\x89\x01\n\x0cLogOperation\x12\x13\n\x0fUploadRequested\x10\x00\x12\x0c\n\x08Uploaded\x10\x01\x12\x0f\n\x0bUploadFaied\x10\x02\x12\x0b\n\x07\x44\x65leted\x10\x03\x12\x18\n\x14TemporaryUnavailable\x10\x04\x12\r\n\tAvailable\x10\x05\x12\x0f\n\x0bUnavailable\x10\x06*7\n\x07LogType\x12\x0b\n\x07\x46ileLog\x10\x00\x12\x11\n\rDatacenterLog\x10\x01\x12\x0c\n\x08ProxyLog\x10\x02*\x17\n\x04Vote\x12\x07\n\x03YES\x10\x00\x12\x06\n\x02NO\x10\x01*v\n\x10ReplicationState\x12\x16\n\x12ReplicationPending\x10\x00\x12\x18\n\x14ReplicationRequested\x10\x01\x12\x16\n\x12ReplicationStarted\x10\x02\x12\x18\n\x14ReplicationCompleted\x10\x03\x32\xc6\x03\n\x0bRaftService\x12\'\n\rRaftHeartbeat\x12\x0b.raft.Table\x1a\t.raft.Ack\x12\x37\n\x0bRequestVote\x12\x0f.raft.Candidacy\x1a\x17.raft.CandidacyResponse\x12\'\n\nAddFileLog\x12\x0e.raft.TableLog\x1a\t.raft.Ack\x12\x30\n\rAddDataCenter\x12\x14.raft.DataCenterInfo\x1a\t.raft.Ack\x12*\n\x08\x41\x64\x64Proxy\x12\x13.raft.ProxyInfoRaft\x1a\t.raft.Ack\x12>\n\x13\x46ileUploadCompleted\x12\x1c.raft.UploadCompleteFileInfo\x1a\t.raft.Ack\x12G\n\x14GetChunkLocationInfo\x12\x16.raft.RequestChunkInfo\x1a\x17.raft.ChunkLocationInfo\x12\x45\n\x12GetChunkUploadInfo\x12\x16.raft.RequestChunkInfo\x1a\x17.raft.ChunkLocationInfo2=\n\x0cProxyService\x12-\n\x0eProxyHeartbeat\x12\x0e.raft.TableLog\x1a\x0b.raft.Empty2}\n\x11\x44\x61taCenterService\x12/\n\x13\x44\x61taCenterHeartbeat\x12\x0b.raft.Empty\x1a\x0b.raft.Empty\x12\x37\n\x13ReplicationInitiate\x12\x15.raft.ReplicationInfo\x1a\t.raft.Ackb\x06proto3')
 )
 
 _LOGOPERATION = _descriptor.EnumDescriptor(
@@ -31,35 +31,35 @@ _LOGOPERATION = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='UploadRequested', index=0, number=0,
-      serialized_options=None,
+      options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='Uploaded', index=1, number=1,
-      serialized_options=None,
+      options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='UploadFaied', index=2, number=2,
-      serialized_options=None,
+      options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='Deleted', index=3, number=3,
-      serialized_options=None,
+      options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='TemporaryUnavailable', index=4, number=4,
-      serialized_options=None,
+      options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='Available', index=5, number=5,
-      serialized_options=None,
+      options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='Unavailable', index=6, number=6,
-      serialized_options=None,
+      options=None,
       type=None),
   ],
   containing_type=None,
-  serialized_options=None,
+  options=None,
   serialized_start=1031,
   serialized_end=1168,
 )
@@ -74,19 +74,19 @@ _LOGTYPE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='FileLog', index=0, number=0,
-      serialized_options=None,
+      options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='DatacenterLog', index=1, number=1,
-      serialized_options=None,
+      options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='ProxyLog', index=2, number=2,
-      serialized_options=None,
+      options=None,
       type=None),
   ],
   containing_type=None,
-  serialized_options=None,
+  options=None,
   serialized_start=1170,
   serialized_end=1225,
 )
@@ -101,15 +101,15 @@ _VOTE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='YES', index=0, number=0,
-      serialized_options=None,
+      options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='NO', index=1, number=1,
-      serialized_options=None,
+      options=None,
       type=None),
   ],
   containing_type=None,
-  serialized_options=None,
+  options=None,
   serialized_start=1227,
   serialized_end=1250,
 )
@@ -124,23 +124,23 @@ _REPLICATIONSTATE = _descriptor.EnumDescriptor(
   values=[
     _descriptor.EnumValueDescriptor(
       name='ReplicationPending', index=0, number=0,
-      serialized_options=None,
+      options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='ReplicationRequested', index=1, number=1,
-      serialized_options=None,
+      options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='ReplicationStarted', index=2, number=2,
-      serialized_options=None,
+      options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
       name='ReplicationCompleted', index=3, number=3,
-      serialized_options=None,
+      options=None,
       type=None),
   ],
   containing_type=None,
-  serialized_options=None,
+  options=None,
   serialized_start=1252,
   serialized_end=1370,
 )
@@ -179,14 +179,14 @@ _ACK = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -210,56 +210,56 @@ _TABLELOG = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='chunkId', full_name='raft.TableLog.chunkId', index=1,
       number=2, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='ip', full_name='raft.TableLog.ip', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='port', full_name='raft.TableLog.port', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='log_index', full_name='raft.TableLog.log_index', index=4,
       number=5, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='operation', full_name='raft.TableLog.operation', index=5,
       number=6, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='logType', full_name='raft.TableLog.logType', index=6,
       number=7, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -283,35 +283,35 @@ _TABLE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='leader_ip', full_name='raft.Table.leader_ip', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='leader_port', full_name='raft.Table.leader_port', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='tableLog', full_name='raft.Table.tableLog', index=3,
       number=4, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -335,35 +335,35 @@ _CANDIDACY = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='ip', full_name='raft.Candidacy.ip', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='port', full_name='raft.Candidacy.port', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='log_length', full_name='raft.Candidacy.log_length', index=3,
       number=4, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -387,21 +387,21 @@ _CANDIDACYRESPONSE = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='cycle_number', full_name='raft.CandidacyResponse.cycle_number', index=1,
       number=2, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -425,21 +425,21 @@ _DATACENTERINFO = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='port', full_name='raft.DataCenterInfo.port', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -463,21 +463,21 @@ _PROXYINFORAFT = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='port', full_name='raft.ProxyInfoRaft.port', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -501,7 +501,7 @@ _EMPTY = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -525,28 +525,28 @@ _REPLICATIONINFO = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='chunkId', full_name='raft.ReplicationInfo.chunkId', index=1,
       number=2, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='fromDatacenter', full_name='raft.ReplicationInfo.fromDatacenter', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -570,21 +570,21 @@ _CHUNKUPLOADINFO = _descriptor.Descriptor(
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='uploadedDatacenter', full_name='raft.ChunkUploadInfo.uploadedDatacenter', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -608,28 +608,28 @@ _UPLOADCOMPLETEFILEINFO = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='chunkUploadInfo', full_name='raft.UploadCompleteFileInfo.chunkUploadInfo', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='isSuccess', full_name='raft.UploadCompleteFileInfo.isSuccess', index=2,
       number=3, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -653,21 +653,21 @@ _REQUESTCHUNKINFO = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='chunkId', full_name='raft.RequestChunkInfo.chunkId', index=1,
       number=2, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -691,35 +691,35 @@ _CHUNKLOCATIONINFO = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='chunkId', full_name='raft.ChunkLocationInfo.chunkId', index=1,
       number=2, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='lstDataCenter', full_name='raft.ChunkLocationInfo.lstDataCenter', index=2,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='isChunkFound', full_name='raft.ChunkLocationInfo.isChunkFound', index=3,
       number=4, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -854,7 +854,7 @@ _RAFTSERVICE = _descriptor.ServiceDescriptor(
   full_name='raft.RaftService',
   file=DESCRIPTOR,
   index=0,
-  serialized_options=None,
+  options=None,
   serialized_start=1373,
   serialized_end=1827,
   methods=[
@@ -865,7 +865,7 @@ _RAFTSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_TABLE,
     output_type=_ACK,
-    serialized_options=None,
+    options=None,
   ),
   _descriptor.MethodDescriptor(
     name='RequestVote',
@@ -874,7 +874,7 @@ _RAFTSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_CANDIDACY,
     output_type=_CANDIDACYRESPONSE,
-    serialized_options=None,
+    options=None,
   ),
   _descriptor.MethodDescriptor(
     name='AddFileLog',
@@ -883,7 +883,7 @@ _RAFTSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_TABLELOG,
     output_type=_ACK,
-    serialized_options=None,
+    options=None,
   ),
   _descriptor.MethodDescriptor(
     name='AddDataCenter',
@@ -892,7 +892,7 @@ _RAFTSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_DATACENTERINFO,
     output_type=_ACK,
-    serialized_options=None,
+    options=None,
   ),
   _descriptor.MethodDescriptor(
     name='AddProxy',
@@ -901,7 +901,7 @@ _RAFTSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_PROXYINFORAFT,
     output_type=_ACK,
-    serialized_options=None,
+    options=None,
   ),
   _descriptor.MethodDescriptor(
     name='FileUploadCompleted',
@@ -910,7 +910,7 @@ _RAFTSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_UPLOADCOMPLETEFILEINFO,
     output_type=_ACK,
-    serialized_options=None,
+    options=None,
   ),
   _descriptor.MethodDescriptor(
     name='GetChunkLocationInfo',
@@ -919,7 +919,7 @@ _RAFTSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_REQUESTCHUNKINFO,
     output_type=_CHUNKLOCATIONINFO,
-    serialized_options=None,
+    options=None,
   ),
   _descriptor.MethodDescriptor(
     name='GetChunkUploadInfo',
@@ -928,7 +928,7 @@ _RAFTSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_REQUESTCHUNKINFO,
     output_type=_CHUNKLOCATIONINFO,
-    serialized_options=None,
+    options=None,
   ),
 ])
 _sym_db.RegisterServiceDescriptor(_RAFTSERVICE)
@@ -941,18 +941,18 @@ _PROXYSERVICE = _descriptor.ServiceDescriptor(
   full_name='raft.ProxyService',
   file=DESCRIPTOR,
   index=1,
-  serialized_options=None,
+  options=None,
   serialized_start=1829,
-  serialized_end=1887,
+  serialized_end=1890,
   methods=[
   _descriptor.MethodDescriptor(
     name='ProxyHeartbeat',
     full_name='raft.ProxyService.ProxyHeartbeat',
     index=0,
     containing_service=None,
-    input_type=_EMPTY,
+    input_type=_TABLELOG,
     output_type=_EMPTY,
-    serialized_options=None,
+    options=None,
   ),
 ])
 _sym_db.RegisterServiceDescriptor(_PROXYSERVICE)
@@ -965,9 +965,9 @@ _DATACENTERSERVICE = _descriptor.ServiceDescriptor(
   full_name='raft.DataCenterService',
   file=DESCRIPTOR,
   index=2,
-  serialized_options=None,
-  serialized_start=1889,
-  serialized_end=2014,
+  options=None,
+  serialized_start=1892,
+  serialized_end=2017,
   methods=[
   _descriptor.MethodDescriptor(
     name='DataCenterHeartbeat',
@@ -976,7 +976,7 @@ _DATACENTERSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_EMPTY,
     output_type=_EMPTY,
-    serialized_options=None,
+    options=None,
   ),
   _descriptor.MethodDescriptor(
     name='ReplicationInitiate',
@@ -985,7 +985,7 @@ _DATACENTERSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_REPLICATIONINFO,
     output_type=_ACK,
-    serialized_options=None,
+    options=None,
   ),
 ])
 _sym_db.RegisterServiceDescriptor(_DATACENTERSERVICE)

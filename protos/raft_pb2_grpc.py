@@ -177,7 +177,7 @@ class ProxyServiceStub(object):
     """
     self.ProxyHeartbeat = channel.unary_unary(
         '/raft.ProxyService/ProxyHeartbeat',
-        request_serializer=raft__pb2.Empty.SerializeToString,
+        request_serializer=raft__pb2.TableLog.SerializeToString,
         response_deserializer=raft__pb2.Empty.FromString,
         )
 
@@ -198,7 +198,7 @@ def add_ProxyServiceServicer_to_server(servicer, server):
   rpc_method_handlers = {
       'ProxyHeartbeat': grpc.unary_unary_rpc_method_handler(
           servicer.ProxyHeartbeat,
-          request_deserializer=raft__pb2.Empty.FromString,
+          request_deserializer=raft__pb2.TableLog.FromString,
           response_serializer=raft__pb2.Empty.SerializeToString,
       ),
   }
