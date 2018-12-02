@@ -28,7 +28,7 @@ GRPC_TIMEOUT = 1  # grpc calls time out after 1 sec
 
 class ProxyService(our_proto_rpc.ProxyServiceServicer):
     def ProxyHeartbeat(self, request, context):
-        Tables.set_table_log(request)
+        Tables.set_table_log(request.tableLog)
         return our_proto.Empty()
 
 
