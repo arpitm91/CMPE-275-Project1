@@ -309,9 +309,10 @@ def _proxy_heartbeat_timeout():
 
 
 def _send_proxy_heartbeat():
-    empty = raft_proto.Empty()
+    table = raft_proto.Table()
+    table.tableLog.extend(Tables.FILE_LOGS)
     for proxy_client in Globals.LST_PROXY_CLIENTS:
-        proxy_client._SendProxyHeartbeat(Tables.FILE_LOGS)
+        proxy_client._SendProxyHeartbeat(table)
 
 
 def _process_proxy_heartbeat(proxy_client, call_future):

@@ -63,6 +63,19 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
         raft_response.lstDataCenter.extend(lst_dc)
         raft_response.isChunkFound = is_chunk_found
 
+        if not raft_response.isChunkFound:
+            while True:
+                random_raft = get_raft_node()
+                stub = our_proto_rpc.RaftServiceStub(
+                    grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]))
+                try:
+                    raft_response = stub.GetChunkLocationInfo(request, timeout=GRPC_TIMEOUT)
+                    log_info("Got raft response with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
+                    break
+                except grpc.RpcError:
+                    log_info("Could not get response with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
+                    time.sleep(0.1)
+
         if raft_response.isChunkFound:
             random_data_center_index = random.randint(0, len(raft_response.lstDataCenter) - 1)
             # data_center
