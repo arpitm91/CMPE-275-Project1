@@ -424,7 +424,7 @@ class DatacenterClient:
         channel = grpc.insecure_channel(server_address + ':' + str(server_port))
         self.data_center_stub = raft_proto_rpc.DataCenterServiceStub(channel)
 
-        heartbeat_channel = grpc.insecure_channel(server_address + ':' + str(server_port + HEARTBEAT_PORT_INCREMENT))
+        heartbeat_channel = grpc.insecure_channel(server_address + ':' + str(int(server_port) + HEARTBEAT_PORT_INCREMENT))
         self.heartbeat_data_center_stub = raft_proto_rpc.DataCenterServiceStub(heartbeat_channel)
 
     def _SendDataCenterHeartbeat(self, Empty):
@@ -457,7 +457,7 @@ class ProxyClient:
         self.heartbeat_fail_count = 0
 
         # create a gRPC channel + stub
-        channel = grpc.insecure_channel(server_address + ':' + str(server_port + HEARTBEAT_PORT_INCREMENT))
+        channel = grpc.insecure_channel(server_address + ':' + str(int(server_port) + HEARTBEAT_PORT_INCREMENT))
         self.proxy_stub = raft_proto_rpc.ProxyServiceStub(channel)
 
     def _SendProxyHeartbeat(self, table):

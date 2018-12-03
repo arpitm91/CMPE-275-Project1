@@ -714,7 +714,7 @@ def start_server(username, my_port):
     raft_proto_rpc.add_RaftServiceServicer_to_server(server_heartbeat_object, server_heartbeat)
     file_transfer_proto_rpc.add_DataTransferServiceServicer_to_server(server_heartbeat_object, server_heartbeat)
     log_info('Starting server. Listening...', my_port + HEARTBEAT_PORT_INCREMENT)
-    server_heartbeat.add_insecure_port('[::]:' + str(my_port + HEARTBEAT_PORT_INCREMENT))
+    server_heartbeat.add_insecure_port('[::]:' + str(int(my_port) + HEARTBEAT_PORT_INCREMENT))
     server_heartbeat.start()
 
     # Server starts in background (another thread) so keep waiting
