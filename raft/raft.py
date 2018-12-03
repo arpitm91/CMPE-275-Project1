@@ -8,6 +8,7 @@ import time
 import sys
 import os
 import math
+from multiprocessing import Process
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
@@ -709,14 +710,6 @@ def start_server(username, my_port):
     server.add_insecure_port('[::]:' + str(my_port))
     server.start()
 
-    server_heartbeat = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    server_heartbeat_object = HeartbeatServer(username)
-    raft_proto_rpc.add_RaftServiceServicer_to_server(server_heartbeat_object, server_heartbeat)
-    file_transfer_proto_rpc.add_DataTransferServiceServicer_to_server(server_heartbeat_object, server_heartbeat)
-    log_info('Starting server. Listening...', str(int(my_port) + HEARTBEAT_PORT_INCREMENT))
-    server_heartbeat.add_insecure_port('[::]:' + str(int(my_port) + HEARTBEAT_PORT_INCREMENT))
-    server_heartbeat.start()
-
     # Server starts in background (another thread) so keep waiting
     while True:
         time.sleep(64 * 64 * 100)
@@ -736,6 +729,8 @@ def main(argv):
     Globals.MY_IP = raft_connections[username]["own"]["ip"]
 
     threading.Thread(target=start_server, args=(username, Globals.MY_PORT), daemon=True).start()
+
+    Process(target=start_server, args=(username, str(int(Globals.MY_PORT) + HEARTBEAT_PORT_INCREMENT)), daemon=True).run()
 
     # # Init Data-center Table
     # Tables.init_dc(connections.data_centers)
