@@ -83,8 +83,9 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
         next_sequence_to_download = [0] * file_location_info.maxChunks
         maximum_number_of_sequences = [float('inf')] * file_location_info.maxChunks
     else:
-        next_sequence_to_download = [0] * (chunks + 1)
-        maximum_number_of_sequences = [0] * (chunks + 1)
+        next_sequence_to_download = [100] * (chunks + 1)
+        maximum_number_of_sequences = [100] * (chunks + 1)
+        next_sequence_to_download[chunks] = 0
         maximum_number_of_sequences[chunks] = float('inf')
 
     while not whole_file_downloaded(failed_chunks):
@@ -102,10 +103,11 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
                 log_info("data center selected", proxy_address, proxy_port)
 
             download_chunk(file_name, chunk_num, next_sequence_to_download[chunk_num], proxy_address, proxy_port,
-                           next_sequence_to_download, maximum_number_of_sequences)
+                           next_sequence_to_download, maximum_number_of_sequences, downloads_folder)
 
         log_info("number_of_sequences_downloaded ", next_sequence_to_download)
         log_info("maximum_number_of_sequences ", maximum_number_of_sequences)
+        failed_chunks = {}
 
     if chunks == -1:
         log_info("calling merge ")
