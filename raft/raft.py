@@ -275,7 +275,8 @@ class Client:
         self.raft_stub = raft_proto_rpc.RaftServiceStub(channel)
         self.file_transfer_stub = file_transfer_proto_rpc.DataTransferServiceStub(channel)
 
-        heartbeat_channel = grpc.insecure_channel(server_address + ':' + str(int(server_port) + HEARTBEAT_PORT_INCREMENT))
+        heartbeat_channel = grpc.insecure_channel(
+            server_address + ':' + str(int(server_port) + HEARTBEAT_PORT_INCREMENT))
         self.raft_heartbeat_stub = raft_proto_rpc.RaftServiceStub(heartbeat_channel)
 
         # create new listening thread for when new message streams come in
@@ -714,6 +715,7 @@ def start_server(username, my_port):
     while True:
         time.sleep(64 * 64 * 100)
 
+
 def start_heartbeat_server(username, my_port):
     # create a gRPC server
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
@@ -727,6 +729,7 @@ def start_heartbeat_server(username, my_port):
     # Server starts in background (another thread) so keep waiting
     while True:
         time.sleep(64 * 64 * 100)
+
 
 def start_background_services():
     random_timer.start()
@@ -743,7 +746,8 @@ def main(argv):
 
     threading.Thread(target=start_server, args=(username, Globals.MY_PORT), daemon=True).start()
 
-    Process(target=start_heartbeat_server, args=(username, str(int(Globals.MY_PORT) + HEARTBEAT_PORT_INCREMENT))).start()
+    threading.Thread(target=start_heartbeat_server,
+                     args=(username, str(int(Globals.MY_PORT) + HEARTBEAT_PORT_INCREMENT)), daemon=True).start()
 
     # # Init Data-center Table
     # Tables.init_dc(connections.data_centers)
