@@ -274,7 +274,7 @@ class Client:
         self.raft_stub = raft_proto_rpc.RaftServiceStub(channel)
         self.file_transfer_stub = file_transfer_proto_rpc.DataTransferServiceStub(channel)
 
-        heartbeat_channel = grpc.insecure_channel(server_address + ':' + str(server_port + HEARTBEAT_PORT_INCREMENT))
+        heartbeat_channel = grpc.insecure_channel(server_address + ':' + str(int(server_port) + HEARTBEAT_PORT_INCREMENT))
         self.raft_heartbeat_stub = raft_proto_rpc.RaftServiceStub(heartbeat_channel)
 
         # create new listening thread for when new message streams come in
@@ -713,7 +713,7 @@ def start_server(username, my_port):
     server_heartbeat_object = HeartbeatServer(username)
     raft_proto_rpc.add_RaftServiceServicer_to_server(server_heartbeat_object, server_heartbeat)
     file_transfer_proto_rpc.add_DataTransferServiceServicer_to_server(server_heartbeat_object, server_heartbeat)
-    log_info('Starting server. Listening...', my_port + HEARTBEAT_PORT_INCREMENT)
+    log_info('Starting server. Listening...', str(int(my_port) + HEARTBEAT_PORT_INCREMENT))
     server_heartbeat.add_insecure_port('[::]:' + str(int(my_port) + HEARTBEAT_PORT_INCREMENT))
     server_heartbeat.start()
 
