@@ -18,15 +18,11 @@ from utils.common_utils import get_rand_hashing_node_from_node_info_object
 from utils.input_output_util import log_info
 
 THREAD_POOL_SIZE = 4
-next_sequence_to_download = []
-maximum_number_of_sequences = []
 
 
-def download_chunk(file_name, chunk_num, start_seq_num, proxy_address, proxy_port, downloads_folder="Downloads"):
+def download_chunk(file_name, chunk_num, start_seq_num, proxy_address, proxy_port, next_sequence_to_download,
+                   maximum_number_of_sequences, downloads_folder="Downloads"):
     log_info("requesting for :", file_name, "chunk no :", chunk_num, "from", proxy_address, ":", proxy_port)
-
-    global next_sequence_to_download
-    global maximum_number_of_sequences
 
     stub = rpc.DataTransferServiceStub(grpc.insecure_channel(proxy_address + ':' + proxy_port))
     request = file_transfer.ChunkInfo()
@@ -35,8 +31,8 @@ def download_chunk(file_name, chunk_num, start_seq_num, proxy_address, proxy_por
     request.startSeqNum = start_seq_num
     try:
         for response in stub.DownloadChunk(request):
-            log_info("Response received: Chunk", response.chunkId, "Sequence:", response.seqNum, "/",
-                     response.seqMax)
+            # log_info("Response received: Chunk", response.chunkId, "Sequence:", response.seqNum, "/",
+            #          response.seqMax)
             next_sequence_to_download[chunk_num] = response.seqNum + 1
             maximum_number_of_sequences[chunk_num] = response.seqMax
             write_file_chunks(response, os.path.join(os.path.dirname(os.path.realpath(__file__)), downloads_folder))
@@ -58,8 +54,8 @@ def get_file_location(stub, request):
 
 
 def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", dc_ip="", dc_port=""):
-    global next_sequence_to_download
-    global maximum_number_of_sequences
+    next_sequence_to_download = []
+    maximum_number_of_sequences = []
 
     failed_chunks = {}
 
@@ -92,13 +88,6 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
         maximum_number_of_sequences[chunks] = float('inf')
 
     while not whole_file_downloaded(failed_chunks):
-        file_names = []
-        chunk_nums = []
-        next_sequence_to_download_arr = []
-        proxy_addresses = []
-        proxy_ports = []
-        downloads_folders = []
-
         for chunk_num in failed_chunks.keys():
             if chunks == -1:
                 selected_proxy = get_rand_hashing_node_from_node_info_object(file_location_info.lstProxy, file_name,
@@ -112,21 +101,8 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
                 proxy_port = dc_port
                 log_info("data center selected", proxy_address, proxy_port)
 
-            file_names.append(file_name)
-            chunk_nums.append(chunk_num)
-            next_sequence_to_download_arr.append(next_sequence_to_download[chunk_num])
-            proxy_addresses.append(proxy_address)
-            proxy_ports.append(proxy_port)
-            downloads_folders.append(downloads_folder)
-
-            # download_chunk(file_name, chunk_num, next_sequence_to_download[chunk_num], proxy_address, proxy_port)
-
-        pool = ThreadPool(THREAD_POOL_SIZE)
-        pool.starmap(download_chunk,
-                     zip(file_names, chunk_nums, next_sequence_to_download_arr, proxy_addresses, proxy_ports,
-                         downloads_folders))
-        pool.close()
-        pool.join()
+            download_chunk(file_name, chunk_num, next_sequence_to_download[chunk_num], proxy_address, proxy_port,
+                           next_sequence_to_download, maximum_number_of_sequences)
 
         log_info("number_of_sequences_downloaded ", next_sequence_to_download)
         log_info("maximum_number_of_sequences ", maximum_number_of_sequences)

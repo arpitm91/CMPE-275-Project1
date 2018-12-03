@@ -63,7 +63,7 @@ class DataTransferService(common_proto_rpc.DataTransferServiceServicer):
             seq_num = request.seqNum
             seq_max = request.seqMax
             file_path = os.path.join(FOLDER, file_name)
-            print("Received... File:", file_name, "Chunk:", chunk_id, ", Seq: ", seq_num, "/", seq_max)
+            # print("Received... File:", file_name, "Chunk:", chunk_id, ", Seq: ", seq_num, "/", seq_max)
             if seq_num == 0:
                 log_info("Upload request received for", file_name, "chunk", chunk_id)
                 if os.path.isfile(os.path.join(file_path, str(chunk_id))):
@@ -103,7 +103,7 @@ class DataTransferService(common_proto_rpc.DataTransferServiceServicer):
                     reply.data = chunk_buffer
                     reply.seqNum = current_seq
                     reply.seqMax = total_seq
-                    log_info("Sent...", file_name, "chunk", chunk_id, "seq", current_seq)
+                    # log_info("Sent...", file_name, "chunk", chunk_id, "seq", current_seq)
                     current_seq += 1
                     # time.sleep(1)
                     yield reply
