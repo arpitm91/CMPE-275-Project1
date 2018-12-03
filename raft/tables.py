@@ -327,7 +327,8 @@ def _process_proxy_heartbeat(proxy_client, call_future):
             _mark_proxy_available(proxy_client)
         except:
             proxy_client.heartbeat_fail_count += 1
-            log_info("Proxy Exception Error !!", proxy_client.server_port, "COUNT:", proxy_client.heartbeat_fail_count)
+            log_info("Proxy Exception Error !!", proxy_client.server_address, proxy_client.heartbeat_server_port,
+                     "COUNT:", proxy_client.heartbeat_fail_count)
             if proxy_client.heartbeat_fail_count > Globals.MAX_ALLOWED_FAILED_HEARTBEAT_COUNT_BEFORE_REPLICATION:
                 _mark_proxy_failed(proxy_client)
 
@@ -395,7 +396,8 @@ def _process_datacenter_heartbeat(dc_client, call_future):
             _mark_dc_available(dc_client)
         except:
             dc_client.heartbeat_fail_count += 1
-            log_info("DATACENTER Exception Error !!", dc_client.server_port, "COUNT:", dc_client.heartbeat_fail_count)
+            log_info("DATACENTER Exception Error !!", dc_client.server_address, dc_client.heartbeat_server_port,
+                     "COUNT:", dc_client.heartbeat_fail_count)
             if dc_client.heartbeat_fail_count > Globals.MAX_ALLOWED_FAILED_HEARTBEAT_COUNT_BEFORE_REPLICATION:
                 _mark_dc_failed(dc_client)
 
@@ -409,7 +411,9 @@ def _process_datacenter_replication_initiate(dc_client, dc_ip, dc_port, Replicat
             lst_dc = [(dc_ip, dc_port)]
             Tables.insert_file_chunk_info_to_file_log(file_name, chunk_id, lst_dc, raft_proto.UploadRequested)
         except:
-            pass
+            log_info("DATACENTER Exception Error while Replication !!", dc_client.server_address,
+                     dc_client.heartbeat_server_port,
+                     "COUNT:", dc_client.heartbeat_fail_count)
 
 
 class DatacenterClient:
@@ -417,6 +421,7 @@ class DatacenterClient:
         self.username = username
         self.server_address = server_address
         self.server_port = server_port
+        self.heartbeat_server_port = str(int(server_port) + HEARTBEAT_PORT_INCREMENT)
 
         self.heartbeat_fail_count = 0
 
@@ -424,7 +429,8 @@ class DatacenterClient:
         channel = grpc.insecure_channel(server_address + ':' + str(server_port))
         self.data_center_stub = raft_proto_rpc.DataCenterServiceStub(channel)
 
-        heartbeat_channel = grpc.insecure_channel(server_address + ':' + str(int(server_port) + HEARTBEAT_PORT_INCREMENT))
+        heartbeat_channel = grpc.insecure_channel(
+            server_address + ':' + str(self.heartbeat_server_port))
         self.heartbeat_data_center_stub = raft_proto_rpc.DataCenterServiceStub(heartbeat_channel)
 
     def _SendDataCenterHeartbeat(self, Empty):
@@ -453,11 +459,12 @@ class ProxyClient:
         self.username = username
         self.server_address = server_address
         self.server_port = server_port
+        self.heartbeat_server_port = str(int(server_port) + HEARTBEAT_PORT_INCREMENT)
 
         self.heartbeat_fail_count = 0
 
         # create a gRPC channel + stub
-        channel = grpc.insecure_channel(server_address + ':' + str(int(server_port) + HEARTBEAT_PORT_INCREMENT))
+        channel = grpc.insecure_channel(server_address + ':' + str(self.heartbeat_server_port))
         self.proxy_stub = raft_proto_rpc.ProxyServiceStub(channel)
 
     def _SendProxyHeartbeat(self, table):

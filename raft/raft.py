@@ -94,7 +94,7 @@ def _process_heartbeat(client, table, heartbeat_counter, call_future):
             Globals.RAFT_HEARTBEAT_ACK_DICT[(client.server_address, client.server_port)] = (heartbeat_counter, True)
         except:
             Globals.RAFT_HEARTBEAT_ACK_DICT[(client.server_address, client.server_port)] = (heartbeat_counter, False)
-            log_info("Raft node not available!!", client.server_address, client.server_port)
+            log_info("Raft node not available!!", client.server_address, client.heartbeat_server_port)
 
 
 def _send_heartbeat_to_check_majority_consensus():
@@ -270,13 +270,15 @@ class Client:
         self.username = username
         self.server_address = server_address
         self.server_port = server_port
+        self.heartbeat_server_port = str(int(server_port) + HEARTBEAT_PORT_INCREMENT)
+
         # create a gRPC channel + stub
         channel = grpc.insecure_channel(server_address + ':' + str(server_port))
         self.raft_stub = raft_proto_rpc.RaftServiceStub(channel)
         self.file_transfer_stub = file_transfer_proto_rpc.DataTransferServiceStub(channel)
 
         heartbeat_channel = grpc.insecure_channel(
-            server_address + ':' + str(int(server_port) + HEARTBEAT_PORT_INCREMENT))
+            server_address + ':' + str(self.heartbeat_server_port))
         self.raft_heartbeat_stub = raft_proto_rpc.RaftServiceStub(heartbeat_channel)
 
         # create new listening thread for when new message streams come in
