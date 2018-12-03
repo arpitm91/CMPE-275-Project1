@@ -5,6 +5,7 @@ from concurrent import futures
 import queue
 import itertools
 import pprint
+from multiprocessing import Process
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
@@ -174,7 +175,7 @@ if __name__ == '__main__':
     my_port = proxy_info[proxy_name]["port"]
 
     threading.Thread(target=start_server, args=(proxy_name, my_port)).start()
-    threading.Thread(target=start_server, args=(proxy_name, str(int(my_port) + HEARTBEAT_PORT_INCREMENT), 5)).start()
+    Process(target=start_server, args=(proxy_name, str(int(my_port) + HEARTBEAT_PORT_INCREMENT), 5)).run()
 
     threading.Thread(target=register_proxy, args=()).start()
 
