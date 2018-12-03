@@ -1,10 +1,7 @@
-import random
-import pprint
 import grpc
 import sys
 import os
 import time
-from multiprocessing.dummy import Pool as ThreadPool
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
@@ -16,6 +13,8 @@ import protos.file_transfer_pb2_grpc as rpc
 from utils.common_utils import get_raft_node
 from utils.common_utils import get_rand_hashing_node_from_node_info_object
 from utils.input_output_util import log_info
+
+from utils.threading_utils import ThreadPool
 
 THREAD_POOL_SIZE = 4
 
@@ -88,6 +87,8 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
         next_sequence_to_download[chunks] = 0
         maximum_number_of_sequences[chunks] = float('inf')
 
+    pool = ThreadPool(THREAD_POOL_SIZE)
+
     while not whole_file_downloaded(failed_chunks):
         for chunk_num in failed_chunks.keys():
             if chunks == -1:
@@ -102,9 +103,10 @@ def run(raft_ip, raft_port, file_name, chunks=-1, downloads_folder="Downloads", 
                 proxy_port = dc_port
                 log_info("data center selected", proxy_address, proxy_port)
 
-            download_chunk(file_name, chunk_num, next_sequence_to_download[chunk_num], proxy_address, proxy_port,
-                           next_sequence_to_download, maximum_number_of_sequences, downloads_folder)
+            pool.add_task(download_chunk, file_name, chunk_num, next_sequence_to_download[chunk_num], proxy_address,
+                          proxy_port,next_sequence_to_download, maximum_number_of_sequences, downloads_folder)
 
+        pool.wait_completion()
         log_info("number_of_sequences_downloaded ", next_sequence_to_download)
         log_info("maximum_number_of_sequences ", maximum_number_of_sequences)
         failed_chunks = {}
