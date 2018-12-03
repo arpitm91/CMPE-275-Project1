@@ -192,7 +192,8 @@ if __name__ == '__main__':
     FOLDER = data_center_info[data_center_name]["folder"]
 
     threading.Thread(target=start_server, args=(data_center_name, my_port)).start()
-    threading.Thread(target=start_server, args=(data_center_name, my_port + HEARTBEAT_PORT_INCREMENT, 5)).start()
+    threading.Thread(target=start_server,
+                     args=(data_center_name, str(int(my_port) + HEARTBEAT_PORT_INCREMENT), 5)).start()
 
     threading.Thread(target=register_dc, args=()).start()
 
