@@ -125,6 +125,7 @@ class DataTransferService(common_proto_rpc.DataTransferServiceServicer):
 def start_server(username, port, workers=10):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=workers))
     common_proto_rpc.add_DataTransferServiceServicer_to_server(DataTransferService(), server)
+    our_proto_rpc.add_DataCenterServiceServicer_to_server(DataCenterService(), server)
     server.add_insecure_port('[::]:' + str(port))
     server.start()
     log_info("server started at port : ", port, "username :", username)

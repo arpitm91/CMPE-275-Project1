@@ -412,7 +412,7 @@ def _process_datacenter_replication_initiate(dc_client, dc_ip, dc_port, Replicat
             Tables.insert_file_chunk_info_to_file_log(file_name, chunk_id, lst_dc, raft_proto.UploadRequested)
         except:
             log_info("DATACENTER Exception Error while Replication !!", dc_client.server_address,
-                     dc_client.heartbeat_server_port,
+                     dc_client.server_port,
                      "COUNT:", dc_client.heartbeat_fail_count)
 
 
