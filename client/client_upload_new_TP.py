@@ -4,7 +4,6 @@ import grpc
 import sys
 import os
 import time
-from multiprocessing.dummy import Pool as ThreadPool
 
 import math
 
@@ -18,6 +17,8 @@ import protos.file_transfer_pb2_grpc as file_transfer_rpc
 from utils.common_utils import get_raft_node
 from utils.common_utils import get_rand_hashing_node_from_node_info_object
 from utils.input_output_util import log_info
+
+from utils.threading_utils import ThreadPool
 
 THREAD_POOL_SIZE = 16
 GRPC_TIMEOUT = 20
@@ -72,11 +73,7 @@ def run(raft_ip, raft_port, file_name):
 
     lst_chunk_upload_info = []
 
-    file_paths = []
-    file_names = []
-    chunk_nums = []
-    proxy_addresses = []
-    proxy_ports = []
+    pool = ThreadPool(THREAD_POOL_SIZE)
 
     for chunk_num in range(num_of_chunks):
         selected_proxy = get_rand_hashing_node_from_node_info_object(response.lstProxy, file_name, chunk_num)
@@ -90,18 +87,9 @@ def run(raft_ip, raft_port, file_name):
         chunk_upload_info.uploadedDatacenter.port = proxy_port
 
         lst_chunk_upload_info.append(chunk_upload_info)
+        pool.add_task(upload_chunk,file_path, file_name, chunk_num, proxy_address, proxy_port)
 
-        file_paths.append(file_path)
-        file_names.append(file_name)
-        chunk_nums.append(chunk_num)
-        proxy_addresses.append(proxy_address)
-        proxy_ports.append(proxy_port)
-
-    pool = ThreadPool(THREAD_POOL_SIZE)
-    pool.starmap(upload_chunk, zip(file_paths, file_names, chunk_nums, proxy_addresses, proxy_ports))
-    pool.close()
-    pool.join()
-
+    pool.wait_completion()
     log_info("################################################################################")
     print("File Upload Completed. To download file use this name: ", file_name)
 
