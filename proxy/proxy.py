@@ -8,7 +8,6 @@ import pprint
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "utils"))
 
 import threading
 import grpc
@@ -17,9 +16,10 @@ import file_transfer_pb2 as common_proto
 import file_transfer_pb2_grpc as common_proto_rpc
 import raft_pb2 as our_proto
 import raft_pb2_grpc as our_proto_rpc
-from common_utils import get_raft_node
+from utils.common_utils import get_raft_node
 from utils.input_output_util import log_info
 from tables import Tables
+from utils.constants import HEARTBEAT_PORT_INCREMENT
 
 from connections.connections import proxy as proxy_info
 
@@ -82,7 +82,8 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
             log_info("requesting for :", file_name, "chunk no :", chunk_id, "from", data_center_address, ":",
                      data_center_port)
 
-            stub = common_proto_rpc.DataTransferServiceStub(grpc.insecure_channel(data_center_address + ':' + data_center_port))
+            stub = common_proto_rpc.DataTransferServiceStub(
+                grpc.insecure_channel(data_center_address + ':' + data_center_port))
             request = common_proto.ChunkInfo()
             request.fileName = file_name
             request.chunkId = chunk_id
@@ -94,7 +95,6 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
             log_info("request completed for :", file_name, "chunk no :", chunk_id, "from", data_center_address, ":",
                      data_center_port)
 
-
     def UploadFile(self, request_iterator, context):
         request = request_iterator.next()
         # Get upload information
@@ -104,7 +104,8 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
         file_name = request.fileName
         while True:
             random_raft = get_raft_node()
-            raft_stub = our_proto_rpc.RaftServiceStub(grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]))
+            raft_stub = our_proto_rpc.RaftServiceStub(
+                grpc.insecure_channel(random_raft["ip"] + ':' + random_raft["port"]))
             try:
                 raft_response = raft_stub.GetChunkUploadInfo(raft_request, timeout=GRPC_TIMEOUT)
                 log_info("Got raft response with raft ip :", random_raft["ip"], ",port :",
@@ -132,8 +133,8 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
         return my_reply
 
 
-def start_server(username, port):
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+def start_server(username, port, workers=10):
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=workers))
     common_proto_rpc.add_DataTransferServiceServicer_to_server(DataCenterServer(), server)
     our_proto_rpc.add_ProxyServiceServicer_to_server(ProxyService(), server)
     server.add_insecure_port('[::]:' + str(port))
@@ -173,6 +174,7 @@ if __name__ == '__main__':
     my_port = proxy_info[proxy_name]["port"]
 
     threading.Thread(target=start_server, args=(proxy_name, my_port)).start()
+    threading.Thread(target=start_server, args=(proxy_name, my_port + HEARTBEAT_PORT_INCREMENT, 5)).start()
 
     threading.Thread(target=register_proxy, args=()).start()
 

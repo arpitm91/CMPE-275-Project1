@@ -18,6 +18,7 @@ from client.client_download import run as download_as_client
 from common_utils import get_raft_node
 from connections.connections import data_center as data_center_info
 from utils.input_output_util import log_info
+from utils.constants import HEARTBEAT_PORT_INCREMENT
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 GRPC_TIMEOUT = 10  # grpc calls time out after 1 sec
@@ -120,8 +121,8 @@ class DataTransferService(common_proto_rpc.DataTransferServiceServicer):
         print("Download request completed for", file_name, "chunk", chunk_id, "seq", start_seq_num)
 
 
-def start_server(username, port):
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+def start_server(username, port, workers=10):
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=workers))
     common_proto_rpc.add_DataTransferServiceServicer_to_server(DataTransferService(), server)
     our_proto_rpc.add_DataCenterServiceServicer_to_server(DataCenterService(), server)
     server.add_insecure_port('[::]:' + str(port))
@@ -191,6 +192,7 @@ if __name__ == '__main__':
     FOLDER = data_center_info[data_center_name]["folder"]
 
     threading.Thread(target=start_server, args=(data_center_name, my_port)).start()
+    threading.Thread(target=start_server, args=(data_center_name, my_port + HEARTBEAT_PORT_INCREMENT, 5)).start()
 
     threading.Thread(target=register_dc, args=()).start()
 
