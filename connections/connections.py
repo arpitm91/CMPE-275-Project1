@@ -88,23 +88,8 @@ other_raft_nodes = [
     {
         "ip": "10.0.30.4",
         "port": "10000"
-    },
-    {
-        "ip": "10.0.20.1",
-        "port": "8600"
-    },
-    {
-        "ip": "10.0.20.2",
-        "port": "8600"
-    },
-    {
-        "ip": "10.0.20.3",
-        "port": "8600"
-    },
-    {
-        "ip": "10.0.20.4",
-        "port": "8600"
     }
+
 ]
 
 proxy = {
@@ -131,7 +116,7 @@ data_center = {
     "dc_anuj_0": {
         "ip": anuj_ip,
         "port": dc_port_0,
-        "folder": "/Users/anujchaudhari/Desktop/CMPE275/DataCenter/0"
+        "folder": "/Users/achaudhari/Documents/275/DataCenter/0"
     },
     "dc_aartee_0": {
         "ip": aartee_ip,
@@ -146,7 +131,7 @@ data_center = {
     "dc_anuj_1": {
         "ip": anuj_ip,
         "port": dc_port_1,
-        "folder": "/Users/anujchaudhari/Desktop/CMPE275/DataCenter/1"
+        "folder": "/Users/achaudhari/Documents/275/DataCenter/1"
     },
     "dc_aartee_1": {
         "ip": aartee_ip,
