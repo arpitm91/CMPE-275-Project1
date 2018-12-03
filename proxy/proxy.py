@@ -137,6 +137,18 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
 def start_server(username, port, workers=10):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=workers))
     common_proto_rpc.add_DataTransferServiceServicer_to_server(DataCenterServer(), server)
+    server.add_insecure_port('[::]:' + str(port))
+    server.start()
+    log_info("server started at port : ", port, "username :", username)
+    try:
+        while True:
+            time.sleep(_ONE_DAY_IN_SECONDS)
+    except KeyboardInterrupt:
+        server.stop(0)
+
+
+def start_heartbeat_server(username, port, workers=10):
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=workers))
     our_proto_rpc.add_ProxyServiceServicer_to_server(ProxyService(), server)
     server.add_insecure_port('[::]:' + str(port))
     server.start()
@@ -178,7 +190,8 @@ if __name__ == '__main__':
     my_port = proxy_info[proxy_name]["port"]
 
     threading.Thread(target=start_server, args=(proxy_name, my_port)).start()
-    Process(target=start_server, args=(proxy_name, str(int(my_port) + HEARTBEAT_PORT_INCREMENT), 5)).start()
+    threading.Thread(target=start_heartbeat_server,
+                     args=(proxy_name, str(int(my_port) + HEARTBEAT_PORT_INCREMENT), 5)).start()
     threading.Thread(target=register_proxy, args=()).start()
 
     try:

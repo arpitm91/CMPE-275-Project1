@@ -125,6 +125,18 @@ class DataTransferService(common_proto_rpc.DataTransferServiceServicer):
 def start_server(username, port, workers=10):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=workers))
     common_proto_rpc.add_DataTransferServiceServicer_to_server(DataTransferService(), server)
+    server.add_insecure_port('[::]:' + str(port))
+    server.start()
+    log_info("server started at port : ", port, "username :", username)
+    try:
+        while True:
+            time.sleep(_ONE_DAY_IN_SECONDS)
+    except KeyboardInterrupt:
+        server.stop(0)
+
+
+def start_heartbeat_server(username, port, workers=10):
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=workers))
     our_proto_rpc.add_DataCenterServiceServicer_to_server(DataCenterService(), server)
     server.add_insecure_port('[::]:' + str(port))
     server.start()
@@ -196,7 +208,8 @@ if __name__ == '__main__':
     FOLDER = data_center_info[data_center_name]["folder"]
 
     threading.Thread(target=start_server, args=(data_center_name, my_port)).start()
-    Process(target=start_server, args=(data_center_name, str(int(my_port) + HEARTBEAT_PORT_INCREMENT), 5)).start()
+    threading.Thread(target=start_heartbeat_server,
+                     args=(data_center_name, str(int(my_port) + HEARTBEAT_PORT_INCREMENT), 5)).start()
     threading.Thread(target=register_dc, args=()).start()
 
     try:
