@@ -185,7 +185,7 @@ def request_file_info_from_other_raft_nodes(request):
     for node in other_raft_nodes:
         availability = Tables.NOT_AVAILABLE_OTHER_RAFT_NODES[(node["ip"], node["port"])]
         if availability[0]:
-            if (cur_time - availability[1]) < Globals.CACHE_DIRTY_TIME:
+            if (cur_time - availability[1]) < Globals.CIRCUIT_BREAKER_TIME:
                 continue
             else:
                 Tables.NOT_AVAILABLE_OTHER_RAFT_NODES[(node["ip"], node["port"])] = (False, 0)
@@ -235,7 +235,7 @@ def request_file_list_from_other_raft_nodes(request):
 
         availability = Tables.NOT_AVAILABLE_OTHER_RAFT_NODES[(node["ip"], node["port"])]
         if availability[0]:
-            if (cur_time - availability[1]) < Globals.CACHE_DIRTY_TIME:
+            if (cur_time - availability[1]) < Globals.CIRCUIT_BREAKER_TIME:
                 continue
             else:
                 Tables.NOT_AVAILABLE_OTHER_RAFT_NODES[(node["ip"], node["port"])] = (False, 0)
@@ -253,8 +253,14 @@ def request_file_list_from_other_raft_nodes(request):
 
 def get_file_lists(request):
     lst_files = []
+    time_diff = time.time() - Tables.CACHED_FILE_LIST[0]
+
     if request.isClient:
-        lst_files = request_file_list_from_other_raft_nodes(request)
+        if time_diff > Globals.CACHE_DIRTY_TIME:
+            lst_files = request_file_list_from_other_raft_nodes(request)
+            Tables.CACHED_FILE_LIST = (time.time(), lst_files)
+        else:
+            lst_files = Tables.CACHED_FILE_LIST
 
     lst_files = lst_files + Tables.get_all_available_file_list()
     my_reply = file_transfer_proto.FileList()
