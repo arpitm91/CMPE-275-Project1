@@ -162,6 +162,9 @@ def register_proxy():
             if response.id != -1:
                 log_info("Registered with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
                 break
+            else:
+                log_info("No Consensus: Could not register with raft ip :", random_raft["ip"], ",port :",
+                         random_raft["port"])
         except grpc.RpcError:
             log_info("Could not register with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
         time.sleep(0.1)
@@ -175,8 +178,7 @@ if __name__ == '__main__':
     my_port = proxy_info[proxy_name]["port"]
 
     threading.Thread(target=start_server, args=(proxy_name, my_port)).start()
-    Process(target=start_server, args=(proxy_name, str(int(my_port) + HEARTBEAT_PORT_INCREMENT), 5)).run()
-
+    Process(target=start_server, args=(proxy_name, str(int(my_port) + HEARTBEAT_PORT_INCREMENT), 5)).start()
     threading.Thread(target=register_proxy, args=()).start()
 
     try:

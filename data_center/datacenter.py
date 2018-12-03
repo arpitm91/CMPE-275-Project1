@@ -179,6 +179,9 @@ def register_dc():
             if response.id != -1:
                 log_info("Registered with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
                 break
+            else:
+                log_info("No Consensus: Could not register with raft ip :", random_raft["ip"], ",port :",
+                         random_raft["port"])
         except grpc.RpcError:
             log_info("Could not register with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
         time.sleep(0.1)
@@ -193,9 +196,7 @@ if __name__ == '__main__':
     FOLDER = data_center_info[data_center_name]["folder"]
 
     threading.Thread(target=start_server, args=(data_center_name, my_port)).start()
-    Process(target=start_server,
-            args=(data_center_name, str(int(my_port) + HEARTBEAT_PORT_INCREMENT), 5)).run()
-
+    Process(target=start_server, args=(data_center_name, str(int(my_port) + HEARTBEAT_PORT_INCREMENT), 5)).start()
     threading.Thread(target=register_dc, args=()).start()
 
     try:
