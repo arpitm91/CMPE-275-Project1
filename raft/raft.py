@@ -714,6 +714,19 @@ def start_server(username, my_port):
     while True:
         time.sleep(64 * 64 * 100)
 
+def start_heartbeat_server(username, my_port):
+    # create a gRPC server
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server_object = HeartbeatServer(username)
+    raft_proto_rpc.add_RaftServiceServicer_to_server(server_object, server)
+    file_transfer_proto_rpc.add_DataTransferServiceServicer_to_server(server_object, server)
+    log_info('Starting server. Listening...', my_port)
+    server.add_insecure_port('[::]:' + str(my_port))
+    server.start()
+
+    # Server starts in background (another thread) so keep waiting
+    while True:
+        time.sleep(64 * 64 * 100)
 
 def start_background_services():
     random_timer.start()
@@ -730,7 +743,7 @@ def main(argv):
 
     threading.Thread(target=start_server, args=(username, Globals.MY_PORT), daemon=True).start()
 
-    Process(target=start_server, args=(username, str(int(Globals.MY_PORT) + HEARTBEAT_PORT_INCREMENT)), daemon=True).run()
+    Process(target=start_heartbeat_server, args=(username, str(int(Globals.MY_PORT) + HEARTBEAT_PORT_INCREMENT))).start()
 
     # # Init Data-center Table
     # Tables.init_dc(connections.data_centers)
