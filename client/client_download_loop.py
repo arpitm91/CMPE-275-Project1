@@ -1,20 +1,13 @@
-import random
-import pprint
 import grpc
 import sys
 import os
 import time
-from multiprocessing.dummy import Pool as ThreadPool
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
 
-from utils.file_utils import write_file_chunks
-from utils.file_utils import merge_chunks
 import protos.file_transfer_pb2 as file_transfer
 import protos.file_transfer_pb2_grpc as rpc
-from utils.common_utils import get_raft_node
-from utils.common_utils import get_rand_hashing_node_from_node_info_object
 from utils.input_output_util import log_info
 
 THREAD_POOL_SIZE = 4
@@ -28,8 +21,6 @@ def run(raft_ip, raft_port, file_name):
     request.fileName = file_name
 
     file_location_info = stub.RequestFileInfo(request)
-    log_info("file_location_info")
-    # pprint.pprint(file_location_info)
 
     if file_location_info.isFileFound:
         proxies = []
@@ -61,15 +52,7 @@ if __name__ == '__main__':
     for i in range(no_of_downloads):
         if i % 10 == 0:
             print(i)
-        while True:
-            # random_raft = get_raft_node()            
-            random_raft = {"ip": "localhost", "port": "10000"}
-            try:
-                # log_info("Client connected to raft node :", random_raft["ip"], random_raft["port"])
-                run(random_raft["ip"], random_raft["port"], str(sys.argv[1]))
-                break
-            except grpc.RpcError:
-                # log_info("Client could not connect with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
-                break
+        random_raft = {"ip": "localhost", "port": "10000"}
+        run(random_raft["ip"], random_raft["port"], str(sys.argv[1]))
 
     print("--- %s seconds ---" % (time.time() - start_time))
