@@ -19,6 +19,7 @@ import file_transfer_pb2 as file_transfer_proto
 import file_transfer_pb2_grpc as file_transfer_proto_rpc
 
 from constants import CHUNK_SIZE
+from constants import HEARTBEAT_PORT_INCREMENT
 
 from connections.connections import raft_connections as raft_connections
 from connections.connections import other_raft_nodes as other_raft_nodes
@@ -272,18 +273,24 @@ class Client:
         channel = grpc.insecure_channel(server_address + ':' + str(server_port))
         self.raft_stub = raft_proto_rpc.RaftServiceStub(channel)
         self.file_transfer_stub = file_transfer_proto_rpc.DataTransferServiceStub(channel)
+
+        heartbeat_channel = grpc.insecure_channel(server_address + ':' + str(server_port + HEARTBEAT_PORT_INCREMENT))
+        self.raft_heartbeat_stub = raft_proto_rpc.RaftServiceStub(heartbeat_channel)
+
         # create new listening thread for when new message streams come in
         # threading.Thread(target=self._RaftHeartbeat, daemon=True).start()
 
     def _RaftHeartbeat(self, table, heartbeat_counter):
         try:
-            call_future = self.raft_stub.RaftHeartbeat.future(table, timeout=Globals.RAFT_HEARTBEAT_TIMEOUT * 0.9)
+            call_future = self.raft_heartbeat_stub.RaftHeartbeat.future(table,
+                                                                        timeout=Globals.RAFT_HEARTBEAT_TIMEOUT * 0.9)
             call_future.add_done_callback(functools.partial(_process_heartbeat, self, table, heartbeat_counter))
         except:
             log_info("Exception: _RaftHeartbeat")
 
     def _RequestVote(self, Candidacy):
-        call_future = self.raft_stub.RequestVote.future(Candidacy, timeout=Globals.RAFT_HEARTBEAT_TIMEOUT * 0.9)
+        call_future = self.raft_heartbeat_stub.RequestVote.future(Candidacy,
+                                                                  timeout=Globals.RAFT_HEARTBEAT_TIMEOUT * 0.9)
         call_future.add_done_callback(functools.partial(_process_request_for_vote, self, Candidacy))
 
     def _RequestFileUpload(self, FileUploadInfo):
@@ -305,8 +312,7 @@ class Client:
         return self.raft_stub.GetChunkUploadInfo(RequestChunkInfo)
 
 
-# server
-class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.DataTransferServiceServicer):
+class HeartbeatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.DataTransferServiceServicer):
     def __init__(self, username):
         self.username = username
 
@@ -389,6 +395,12 @@ class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.Dat
             candidacy_response.voted = raft_proto.NO
 
         return candidacy_response
+
+
+# server
+class ChatServer(raft_proto_rpc.RaftServiceServicer, file_transfer_proto_rpc.DataTransferServiceServicer):
+    def __init__(self, username):
+        self.username = username
 
     '''
     request: raft.TableLog
@@ -696,6 +708,14 @@ def start_server(username, my_port):
     log_info('Starting server. Listening...', my_port)
     server.add_insecure_port('[::]:' + str(my_port))
     server.start()
+
+    server_heartbeat = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server_heartbeat_object = HeartbeatServer(username)
+    raft_proto_rpc.add_RaftServiceServicer_to_server(server_heartbeat_object, server_heartbeat)
+    file_transfer_proto_rpc.add_DataTransferServiceServicer_to_server(server_heartbeat_object, server_heartbeat)
+    log_info('Starting server. Listening...', my_port + HEARTBEAT_PORT_INCREMENT)
+    server_heartbeat.add_insecure_port('[::]:' + str(my_port + HEARTBEAT_PORT_INCREMENT))
+    server_heartbeat.start()
 
     # Server starts in background (another thread) so keep waiting
     while True:
