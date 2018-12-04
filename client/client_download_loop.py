@@ -2,6 +2,7 @@ import grpc
 import sys
 import os
 import time
+import pprint
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, "protos"))
@@ -21,6 +22,7 @@ def run(raft_ip, raft_port, file_name):
     request.fileName = file_name
 
     file_location_info = stub.RequestFileInfo(request)
+    # pprint.pprint(file_location_info)
 
     if file_location_info.isFileFound:
         proxies = []
@@ -28,7 +30,8 @@ def run(raft_ip, raft_port, file_name):
             proxies.append(proxy)
 
         stub = rpc.DataTransferServiceStub(grpc.insecure_channel(proxies[0].ip + ':' + proxies[0].port))
-        with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "Downloads/" + file_name), 'wb') as f:
+        with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "Downloads",
+                               str(time.time()) + "_" + file_name), 'wb') as f:
             for chunk in range(file_location_info.maxChunks):
                 request = file_transfer.ChunkInfo()
                 request.fileName = file_name
@@ -47,12 +50,12 @@ if __name__ == '__main__':
     if len(sys.argv) >= 3:
         no_of_downloads = int(sys.argv[2])
 
-    print("sdvdsvdsv",no_of_downloads,len(sys.argv))
+    print("sdvdsvdsv", no_of_downloads, len(sys.argv))
 
     for i in range(no_of_downloads):
         if i % 10 == 0:
             print(i)
-        random_raft = {"ip": "localhost", "port": "10000"}
+        random_raft = {"ip": "10.0.10.1", "port": "10000"}
         run(random_raft["ip"], random_raft["port"], str(sys.argv[1]))
 
     print("--- %s seconds ---" % (time.time() - start_time))

@@ -63,6 +63,7 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
         raft_response.isChunkFound = is_chunk_found
 
         if not raft_response.isChunkFound:
+            counter = 1
             while True:
                 random_raft = get_raft_node()
                 stub = our_proto_rpc.RaftServiceStub(
@@ -72,6 +73,9 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
                     log_info("Got raft response with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
                     break
                 except grpc.RpcError:
+                    if counter > 10:
+                        break
+                    counter = counter + 1
                     log_info("Could not get response with raft ip :", random_raft["ip"], ",port :", random_raft["port"])
                     time.sleep(0.1)
 
