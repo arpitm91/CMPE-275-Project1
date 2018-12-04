@@ -47,13 +47,14 @@ class DataCenterServer(common_proto_rpc.DataTransferServiceServicer):
         lst_dc = []
         is_chunk_found = False
 
-        for dc in Tables.TABLE_FILE_INFO[request.fileName][request.chunkId].keys():
-            if Tables.TABLE_FILE_INFO[request.fileName][request.chunkId][dc] == our_proto.Uploaded:
-                dc_info = our_proto.DataCenterInfo()
-                dc_info.ip = dc[0]
-                dc_info.port = dc[1]
-                lst_dc.append(dc_info)
-                is_chunk_found = True
+        if request.fileName in Tables.TABLE_FILE_INFO and request.chunkId in Tables.TABLE_FILE_INFO[request.fileName]:
+            for dc in Tables.TABLE_FILE_INFO[request.fileName][request.chunkId].keys():
+                if Tables.TABLE_FILE_INFO[request.fileName][request.chunkId][dc] == our_proto.Uploaded:
+                    dc_info = our_proto.DataCenterInfo()
+                    dc_info.ip = dc[0]
+                    dc_info.port = dc[1]
+                    lst_dc.append(dc_info)
+                    is_chunk_found = True
 
         raft_response = our_proto.ChunkLocationInfo()
         raft_response.fileName = request.fileName

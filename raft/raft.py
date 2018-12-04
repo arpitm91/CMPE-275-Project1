@@ -182,6 +182,26 @@ def get_leader_client():
 
 def request_file_info_from_other_raft_nodes(request):
     cur_time = time.time()
+
+    threads = []
+
+    file_info = []
+
+    def send_request_to_other_raft_nodes(node, file_info):
+        try:
+            stub = file_transfer_proto_rpc.DataTransferServiceStub(
+                grpc.insecure_channel(node["ip"] + ':' + node["port"]))
+            file_location_info = stub.GetFileLocation(request, timeout=1)
+            log_info("Response received From other Raft: ")
+            # pprint.pprint(file_location_info)
+            log_info(file_location_info.maxChunks)
+            log_info("is file found in other Raft:", file_location_info.isFileFound)
+            if file_location_info.isFileFound:
+                file_info.append(file_location_info)
+        except:
+            log_info("Fail to connect to: ", node["ip"], node["port"])
+            Tables.NOT_AVAILABLE_OTHER_RAFT_NODES[(node["ip"], node["port"])] = (True, time.time())
+
     for node in other_raft_nodes:
         availability = Tables.NOT_AVAILABLE_OTHER_RAFT_NODES[(node["ip"], node["port"])]
         if availability[0]:
@@ -190,19 +210,17 @@ def request_file_info_from_other_raft_nodes(request):
             else:
                 Tables.NOT_AVAILABLE_OTHER_RAFT_NODES[(node["ip"], node["port"])] = (False, 0)
 
-        try:
-            stub = file_transfer_proto_rpc.DataTransferServiceStub(
-                grpc.insecure_channel(node["ip"] + ':' + node["port"]))
-            file_location_info = stub.GetFileLocation(request)
-            log_info("Response received From other Raft: ")
-            # pprint.pprint(file_location_info)
-            log_info(file_location_info.maxChunks)
-            log_info("is file found in other Raft:", file_location_info.isFileFound)
-            if file_location_info.isFileFound:
-                return file_location_info
-        except:
-            log_info("Fail to connect to: ", node["ip"], node["port"])
-            Tables.NOT_AVAILABLE_OTHER_RAFT_NODES[(node["ip"], node["port"])] = (True, time.time())
+        threads.append(
+            threading.Thread(target=send_request_to_other_raft_nodes, args=(node, file_info)))
+        threads[-1].start()
+
+    for t in threads:
+        t.join()
+    threads.clear()
+
+    if len(file_info) != 0:
+        return file_info[0]
+
     file_location_info = file_transfer_proto.FileLocationInfo()
     file_location_info.isFileFound = False
     return file_location_info
@@ -213,7 +231,6 @@ def request_file_list_from_other_raft_nodes(request):
     set_files = set()
     # thread_pool_size = 4
     # pool = ThreadPool(thread_pool_size)
-
 
     threads = []
 
@@ -258,9 +275,9 @@ def get_file_lists(request):
     if request.isClient:
         if time_diff > Globals.CACHE_DIRTY_TIME:
             lst_files = request_file_list_from_other_raft_nodes(request)
-            Tables.CACHED_FILE_LIST = (time.time(), lst_files)
+            Tables.CACHED_FILE_LIST = [time.time(), lst_files]
         else:
-            lst_files = Tables.CACHED_FILE_LIST
+            lst_files = Tables.CACHED_FILE_LIST[1]
 
     lst_files = lst_files + Tables.get_all_available_file_list()
     my_reply = file_transfer_proto.FileList()

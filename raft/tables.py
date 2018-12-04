@@ -50,7 +50,7 @@ class Tables:
 
     NOT_AVAILABLE_OTHER_RAFT_NODES = {}
 
-    CACHED_FILE_LIST = (0, [])
+    CACHED_FILE_LIST = [0, []]
 
     @staticmethod
     def init_proxies(lst_proxies):
